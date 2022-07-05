@@ -1,0 +1,66 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32616.157
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halogen", "Halogen.csproj", "{365BCD51-DCED-4D09-9785-01D3FEF99EFE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1EB2C059-2F2E-4A44-9A91-74FA2393E238} = {1EB2C059-2F2E-4A44-9A91-74FA2393E238}
+		{664B691B-4504-4971-A687-C39BA0D81E44} = {664B691B-4504-4971-A687-C39BA0D81E44}
+		{8281AD60-C0A4-4B78-AEAE-4A3CAA364C15} = {8281AD60-C0A4-4B78-AEAE-4A3CAA364C15}
+		{C8B6C555-8C63-4FB4-8CEA-71A69FBF23B3} = {C8B6C555-8C63-4FB4-8CEA-71A69FBF23B3}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AmazonLibrary", "..\AmazonLibrary\AmazonLibrary.csproj", "{1EB2C059-2F2E-4A44-9A91-74FA2393E238}"
+	ProjectSection(ProjectDependencies) = postProject
+		{664B691B-4504-4971-A687-C39BA0D81E44} = {664B691B-4504-4971-A687-C39BA0D81E44}
+		{C8B6C555-8C63-4FB4-8CEA-71A69FBF23B3} = {C8B6C555-8C63-4FB4-8CEA-71A69FBF23B3}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssistantLibrary", "..\AssistantLibrary\AssistantLibrary.csproj", "{C8B6C555-8C63-4FB4-8CEA-71A69FBF23B3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{664B691B-4504-4971-A687-C39BA0D81E44} = {664B691B-4504-4971-A687-C39BA0D81E44}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelperLibrary", "..\HelperLibrary\HelperLibrary.csproj", "{664B691B-4504-4971-A687-C39BA0D81E44}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaLibrary", "..\MediaLibrary\MediaLibrary.csproj", "{8281AD60-C0A4-4B78-AEAE-4A3CAA364C15}"
+	ProjectSection(ProjectDependencies) = postProject
+		{664B691B-4504-4971-A687-C39BA0D81E44} = {664B691B-4504-4971-A687-C39BA0D81E44}
+		{C8B6C555-8C63-4FB4-8CEA-71A69FBF23B3} = {C8B6C555-8C63-4FB4-8CEA-71A69FBF23B3}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{365BCD51-DCED-4D09-9785-01D3FEF99EFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{365BCD51-DCED-4D09-9785-01D3FEF99EFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{365BCD51-DCED-4D09-9785-01D3FEF99EFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{365BCD51-DCED-4D09-9785-01D3FEF99EFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1EB2C059-2F2E-4A44-9A91-74FA2393E238}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1EB2C059-2F2E-4A44-9A91-74FA2393E238}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1EB2C059-2F2E-4A44-9A91-74FA2393E238}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1EB2C059-2F2E-4A44-9A91-74FA2393E238}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C8B6C555-8C63-4FB4-8CEA-71A69FBF23B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8B6C555-8C63-4FB4-8CEA-71A69FBF23B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8B6C555-8C63-4FB4-8CEA-71A69FBF23B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8B6C555-8C63-4FB4-8CEA-71A69FBF23B3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{664B691B-4504-4971-A687-C39BA0D81E44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{664B691B-4504-4971-A687-C39BA0D81E44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{664B691B-4504-4971-A687-C39BA0D81E44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{664B691B-4504-4971-A687-C39BA0D81E44}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8281AD60-C0A4-4B78-AEAE-4A3CAA364C15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8281AD60-C0A4-4B78-AEAE-4A3CAA364C15}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8281AD60-C0A4-4B78-AEAE-4A3CAA364C15}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8281AD60-C0A4-4B78-AEAE-4A3CAA364C15}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {661CB612-549C-4B67-A6B4-B950184C4AE1}
+	EndGlobalSection
+EndGlobal
