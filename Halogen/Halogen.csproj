@@ -45,11 +45,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Bindings\ApiBindings" />
     <Folder Include="Controllers\" />
     <Folder Include="Attributes\" />
-    <Folder Include="Bindings\" />
     <Folder Include="DbModels\" />
-    <Folder Include="Services\Interfaces\" />
     <Folder Include="Services\DbServices\" />
     <Folder Include="Services\HostedServices\" />
     <Folder Include="ViewModels\" />

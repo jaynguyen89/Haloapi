@@ -1,5 +1,5 @@
 ﻿namespace HelperLibrary.Shared;
-    
+
 public static class Enums {
 
     public enum RoleType {

@@ -14,6 +14,7 @@ public static class Constants {
     public const string BSlash = "\\";
     public const string Semicolon = ";";
     public const string Colon = ":";
+    public const string Comma = ",";
     public const string DoubleQuote = "\"";
     public const string SingleQuote = "'";
 

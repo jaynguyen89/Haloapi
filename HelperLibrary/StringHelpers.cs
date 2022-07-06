@@ -1,12 +1,11 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Text;
+﻿using System.Text;
 using System.Text.RegularExpressions;
 using HelperLibrary.Shared;
 using Newtonsoft.Json;
 
 namespace HelperLibrary;
     
-public static class Helpers {
+public static class StringHelpers {
     
     public static byte[] EncodeDataAscii(this object data) => Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(data));
     
@@ -18,36 +17,8 @@ public static class Helpers {
             ? (T) Convert.ChangeType(decodedData, typeof(T))
             : JsonConvert.DeserializeObject<T>(decodedData);
     }
-    
-    /// <summary>
-    /// To get StringValue and ByteValue of enums having EnumValue attribute.
-    /// </summary>
-    public static T? GetEnumValue<T>(this Enum any) {
-        var enumType = any.GetType();
-        var enumFields = enumType.GetField(any.ToString());
 
-        if (enumFields is null) return default;
-
-        if (typeof(T).Name.ToLower().Equals(nameof(String).ToLower())) {
-            var stringValue = enumFields.GetCustomAttributes(typeof(EnumValueAttribute), false)
-                is EnumValueAttribute[] { Length: > 0 } attributesForStringValue
-                ? attributesForStringValue[0].StringValue
-                : string.Empty;
-                
-            return string.IsNullOrEmpty(stringValue)
-                ? default
-                : (T) Convert.ChangeType(stringValue, TypeCode.String);
-        }
-
-        var byteValue = enumFields.GetCustomAttributes(typeof(EnumValueAttribute), false)
-            is EnumValueAttribute[] { Length: > 0 } attributesForByteValue
-            ? attributesForByteValue[0].ByteValue
-            : byte.MinValue;
-            
-        return (T) Convert.ChangeType(byteValue, TypeCode.Byte);
-    }
-    
-    public static bool IsString(string? any) => !string.IsNullOrEmpty(any) && !string.IsNullOrWhiteSpace(any);
+    public static bool IsString(this string? any) => !string.IsNullOrEmpty(any) && !string.IsNullOrWhiteSpace(any);
         
     public static string RemoveAllSpaces(this string any) => Regex.Replace(any, Constants.MultiSpace, string.Empty);
     
@@ -56,13 +27,9 @@ public static class Helpers {
      * Eg. ThisIsAnExample -> This Is An Example
      */
     public static string ToHumanStyled(this string any) => string.Join(Constants.MonoSpace, Regex.Split(any, @"(?<!^)(?=[A-Z])"));
-    
-    public static int GetRandomNumberInRangeInclusive(int min, int max) => new Random().Next(min, max + 1);
-    
+
     public static string CapitalizeFirstLetterOfEachWord(this string sentence) => Regex.Replace(sentence, @"(^\w)|(\s\w)", m => m.Value.ToUpper());
-    
-    public static bool IsNumber(string any) => int.TryParse(any, out _);
-    
+
     public static string LowerCaseFirstChar(this string any) => char.ToLower(any[0]) + any[1..];
 
     public static string UpperCaseFirstChar(this string any, bool restToLower = false) => char.ToUpper(any[0]) + (restToLower ? any[1..].ToLower() : any[1..]);

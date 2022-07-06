@@ -65,6 +65,8 @@ public sealed class HalogenOptions {
                 public string ValidAudiences { get; set; }
             
                 public string IssuerSigningKeys { get; set; }
+                
+                public string Expiration { get; set; }
             }
         }
         
@@ -79,6 +81,34 @@ public sealed class HalogenOptions {
             public string Expiration { get; set; }
             
             public string CorsOrigins { get; set; }
+        }
+        
+        public sealed class CacheSettings {
+
+            public string IsEnabled { get; set; }
+            
+            public string SlidingExpiration { get; set; }
+            
+            public string AbsoluteExpiration { get; set; }
+
+            public sealed class Connection {
+                
+                public string Endpoint { get; set; }
+                
+                public string Port { get; set; }
+                
+                public string Password { get; set; }
+                
+                public string Ssl { get; set; }
+                
+                public string DefaultDb { get; set; }
+                
+                public string AbortConnect { get; set; }
+                
+                public string AllowAdmin { get; set; }
+                
+                public string InstanceName { get; set; }
+            }
         }
     }
 
