@@ -2,7 +2,7 @@
 
 namespace AssistantLibrary;
     
-public static class ServiceInjections {
+public static class ServiceCollection {
 
     public static void RegisterAssistantLibraryServices(this ContainerBuilder builder) {
         

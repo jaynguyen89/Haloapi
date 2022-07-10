@@ -2,7 +2,7 @@
 
 namespace AmazonLibrary {
     
-    public static class ServiceInjections {
+    public static class ServiceCollection {
 
         public static void RegisterAmazonLibraryServices(this ContainerBuilder builder) {
             

@@ -1,6 +1,6 @@
 ﻿using Halogen.Bindings.ServiceBindings;
 
-namespace Halogen.Services.CacheServices.Interfaces; 
+namespace Halogen.Services.DbServices.Interfaces; 
 
 internal interface ICacheService {
 

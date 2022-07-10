@@ -1,18 +1,29 @@
 ﻿namespace HelperLibrary.Shared;
 
 public static class Enums {
+    
+    public enum LogSeverity {
+        [EnumValue("Information", 0)]
+        INFORMATION,
+        [EnumValue("Debugging", 1)]
+        DEBUGGING,
+        [EnumValue("Error", 2)]
+        ERROR,
+        [EnumValue("Caution", 3)]
+        CAUTION // means something the needs to be refactored or reworked
+    }
 
     public enum RoleType {
         [EnumValue("Customer", 0)]
-        Customer,
+        CUSTOMER,
         [EnumValue("Supplier", 1)]
-        Supplier,
+        SUPPLIER,
         [EnumValue("Admintrator", 2)]
-        Administrator,
+        ADMINISTRATOR,
         [EnumValue("Staff", 3)]
-        Staff,
+        STAFF,
         [EnumValue("Moderator", 4)]
-        Moderator
+        MODERATOR
     }
 
     public enum DateFormat {
@@ -47,148 +58,148 @@ public static class Enums {
 
     public enum NumberFormat {
         [EnumValue("{0:#,##0.##}", 0)]
-        CommaForThousands,
+        COMMA_FOR_THOUSANDS,
         [EnumValue("{0:#.##0,##}", 1)]
-        DotForThousands,
+        DOT_FOR_THOUSANDS,
         [EnumValue("{0:#,##}", 2)]
-        NoSeparatorCommaForDecimal,
+        NO_SEPARATOR_COMMA_FOR_DECIMAL,
         [EnumValue("{0:#.##}", 3)]
-        NoseparatorDotForDecimal
+        NOSEPARATOR_DOT_FOR_DECIMAL
     }
 
     public enum LocalityRegion {
         [EnumValue("Asia", 0)]
-        Asia,
+        ASIA,
         [EnumValue("Africa", 1)]
-        Africa,
+        AFRICA,
         [EnumValue("Europe", 2)]
-        Europe,
+        EUROPE,
         [EnumValue("North America", 3)]
-        NorthAmerica,
+        NORTH_AMERICA,
         [EnumValue("Oceania", 4)]
-        Oceania,
+        OCEANIA,
         [EnumValue("South America", 5)]
-        SouthAmerica
+        SOUTH_AMERICA
     }
 
     public enum DivisionType {
-        State,
-        Province
+        STATE,
+        PROVINCE
     }
 
     public enum AddressVariant {
         [EnumValue("PO Box", 1)]
-        PoBox,
+        PO_BOX,
         [EnumValue("Western", 2)]
-        Western,
+        WESTERN,
         [EnumValue("Eastern", 3)]
-        Eastern
+        EASTERN
     }
 
     public enum ApplicationTheme {
         [EnumValue("Sapphire", 0)]
-        Blue,
+        BLUE,
         [EnumValue("Amber", 1)]
-        Orange,
+        ORANGE,
         [EnumValue("Onyx", 2)]
-        Carbon,
+        CARBON,
         [EnumValue("Topaz", 3)]
-        Yellow,
+        YELLOW,
         [EnumValue("Emerald", 4)]
-        Green,
+        GREEN,
         [EnumValue("Moonstone", 5)]
-        White,
+        WHITE,
         [EnumValue("Tourmaline", 6)]
-        Red,
+        RED,
         [EnumValue("Amethyst", 7)]
-        Violet,
+        VIOLET,
         [EnumValue("Aquamarine", 8)]
-        Cyan,
+        CYAN,
         [EnumValue("Alexandrite", 9)]
-        Teal,
+        TEAL,
         [EnumValue("Sodalite", 10)]
-        Indigo
+        INDIGO
     }
 
     public enum Language {
         [EnumValue("English", 0)]
-        English,
+        ENGLISH,
         [EnumValue("Vietnamese", 1)]
-        Vietnamese,
+        VIETNAMESE,
         [EnumValue("Chinese", 2)]
-        Chinese,
+        CHINESE,
         [EnumValue("Japanese", 3)]
-        Japanese,
+        JAPANESE,
         [EnumValue("French", 4)]
-        French,
+        FRENCH,
         [EnumValue("Russian", 5)]
-        Russian,
+        RUSSIAN,
         [EnumValue("Indonesian", 6)]
-        Indonesian,
+        INDONESIAN,
         [EnumValue("Malaysian", 7)]
-        Malaysian,
+        MALAYSIAN,
         [EnumValue("Thailand", 8)]
-        Thailand,
+        THAILAND,
         [EnumValue("Korean", 9)]
-        Korean
+        KOREAN
     }
 
     public enum UnitSystem {
         [EnumValue("International Unit System", 0)]
-        InternationalUnitSystem,
+        INTERNATIONAL_UNIT_SYSTEM,
         [EnumValue("English Unit System", 1)]
-        EnglishUnitSystem
+        ENGLISH_UNIT_SYSTEM
     }
 
     public enum NameFormat {
         [EnumValue("Show full name", 0)]
-        ShowFullName,
+        SHOW_FULL_NAME,
         [EnumValue("Show first name", 1)]
-        ShowFirstName,
+        SHOW_FIRST_NAME,
         [EnumValue("Show last name", 2)]
-        ShowLastName,
+        SHOW_LAST_NAME,
         [EnumValue("Show nick name", 3)]
-        ShowNickName,
+        SHOW_NICK_NAME,
         [EnumValue("Show initials", 4)]
-        ShowInitials
+        SHOW_INITIALS
     }
 
     public enum BirthFormat {
         [EnumValue("Show full birthday only", 0)]
-        ShowFullBrithOnly,
+        SHOW_FULL_BRITH_ONLY,
         [EnumValue("Show full birthday with age", 1)]
-        ShowFullBirthAndAge,
+        SHOW_FULL_BIRTH_AND_AGE,
         [EnumValue("Show year only", 2)]
-        ShowYearOnly,
+        SHOW_YEAR_ONLY,
         [EnumValue("show year with age", 3)]
-        ShowYearAndAge,
+        SHOW_YEAR_AND_AGE,
         [EnumValue("Show day and month only", 4)]
-        ShowDayMonthOnly,
+        SHOW_DAY_MONTH_ONLY,
         [EnumValue("Show month and year only", 5)]
-        ShowMonthYearOnly,
+        SHOW_MONTH_YEAR_ONLY,
         [EnumValue("Show month and year with age", 6)]
-        ShowMonthYearAndAge,
+        SHOW_MONTH_YEAR_AND_AGE,
         [EnumValue("Show age only", 7)]
-        ShowAgeOnly
+        SHOW_AGE_ONLY
     }
 
     public enum WorkInformationFormat {
         [EnumValue("Show all information", 0)]
-        ShowAllInformation,
+        SHOW_ALL_INFORMATION,
         [EnumValue("Show company information only", 1)]
-        ShowCompanyOnly,
+        SHOW_COMPANY_ONLY,
         [EnumValue("Show job title only", 2)]
-        ShowJobTitleOnly
+        SHOW_JOB_TITLE_ONLY
     }
 
     public enum Privacy {
         [EnumValue("Visible to public", 0)]
-        VisibleToPublic,
+        VISIBLE_TO_PUBLIC,
         [EnumValue("Visible to all connections", 1)]
-        VisibleToAllConnections,
+        VISIBLE_TO_ALL_CONNECTIONS,
         [EnumValue("Visible to a group", 2)]
-        VisibleToAGroup,
+        VISIBLE_TO_A_GROUP,
         [EnumValue("Visible to self", 3)]
-        VisibleToSelf
+        VISIBLE_TO_SELF
     }
 }

@@ -2,7 +2,7 @@
 
 namespace MediaLibrary.Services;
     
-public static class ServiceInjections {
+public static class ServiceCollection {
 
     public static void RegisterMediaLibraryServices(this ContainerBuilder builder) {
         
