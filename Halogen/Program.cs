@@ -11,6 +11,8 @@ using Halogen.Parsers;
 using Halogen.Services;
 using HelperLibrary;
 using HelperLibrary.Shared;
+using HelperLibrary.Shared.Ecosystem;
+using HelperLibrary.Shared.Logger;
 using MediaLibrary;
 using MediaLibrary.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -364,6 +366,11 @@ public static class Program {
 
     public static void ConfigureContainer(ContainerBuilder builder) {
         builder.RegisterInstance(_configuration).As<IConfiguration>();
+        
+        var environment = _configuration.GetValue<string>($"{nameof(Halogen)}Environment");
+        builder.RegisterInstance(new Ecosystem { Environment = environment }).As<IEcosystem>();
+        
+        builder.RegisterType<LoggerService>().As<ILoggerService>();
         builder.RegisterAssistantLibraryServices();
         builder.RegisterAmazonLibraryServices();
         builder.RegisterMediaLibraryServices();

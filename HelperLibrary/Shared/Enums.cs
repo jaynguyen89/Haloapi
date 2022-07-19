@@ -1,7 +1,12 @@
 ﻿namespace HelperLibrary.Shared;
 
 public static class Enums {
-    
+
+    public enum ApiResult {
+        SUCCESS,
+        FAILED
+    }
+
     public enum LogSeverity {
         [EnumValue("Information", 0)]
         INFORMATION,
@@ -201,5 +206,9 @@ public static class Enums {
         VISIBLE_TO_A_GROUP,
         [EnumValue("Visible to self", 3)]
         VISIBLE_TO_SELF
+    }
+
+    public enum EmailTemplate {
+        
     }
 }

@@ -50,7 +50,7 @@ public partial class HalogenDbContext : DbContext {
 
             entity.Property(e => e.RecoveryToken).HasMaxLength(50);
 
-            entity.Property(e => e.TwoFaSecretKey).HasMaxLength(20);
+            entity.Property(e => e.TwoFaSecretKey).HasMaxLength(50);
 
             entity.Property(e => e.UniqueIdentifier).HasMaxLength(40);
 
@@ -225,6 +225,8 @@ public partial class HalogenDbContext : DbContext {
                 .HasDefaultValueSql("(newid())");
 
             entity.Property(e => e.Code).HasMaxLength(5);
+            
+            entity.Property(e => e.TelephoneCode).HasMaxLength(5);
 
             entity.Property(e => e.Name).HasMaxLength(80);
 

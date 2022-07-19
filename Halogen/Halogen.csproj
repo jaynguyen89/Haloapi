@@ -45,7 +45,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Bindings\ApiBindings" />
     <Folder Include="Controllers\" />
     <Folder Include="Attributes\" />
     <Folder Include="DbModels\" />
