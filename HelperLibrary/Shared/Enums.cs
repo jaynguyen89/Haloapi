@@ -18,12 +18,29 @@ public static class Enums {
         CAUTION // means something the needs to be refactored or reworked
     }
 
-    public enum RoleType {
+    public enum AuthorizationFailure {
+        [EnumValue("Invalid User", 0)]
+        INVALID_USER,
+        [EnumValue("Mismatched Bearer Token", 1)]
+        MISMATCHED_BEARER_TOKEN,
+        [EnumValue("Mismatched Authentication Token", 2)]
+        MISMATCHED_AUTH_TOKEN,
+        [EnumValue("Authorization Expired", 3)]
+        AUTHORIZATION_EXPIRED,
+        [EnumValue("Invalid Role", 4)]
+        INVALID_ROLE,
+        [EnumValue("Missing Two-Factor Token", 5)]
+        NO_TWO_FACTOR_TOKEN,
+        [EnumValue("Mismatched Two-Factor Token", 6)]
+        INVALID_TWO_FACTOR_TOKEN
+    }
+
+    public enum Role {
         [EnumValue("Customer", 0)]
         CUSTOMER,
         [EnumValue("Supplier", 1)]
         SUPPLIER,
-        [EnumValue("Admintrator", 2)]
+        [EnumValue("Administrator", 2)]
         ADMINISTRATOR,
         [EnumValue("Staff", 3)]
         STAFF,

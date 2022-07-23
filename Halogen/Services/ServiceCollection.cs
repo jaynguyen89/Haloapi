@@ -1,5 +1,7 @@
 ﻿using Autofac;
 using Halogen.DbContexts;
+using Halogen.Services.AppServices.Interfaces;
+using Halogen.Services.AppServices.Services;
 using Halogen.Services.DbServices.Interfaces;
 using Halogen.Services.DbServices.Services;
 
@@ -11,6 +13,7 @@ public static class ServiceCollection {
         builder.RegisterType<HalogenDbContext>();
         builder.RegisterType<RedisCache>().As<ICacheService>();
         builder.RegisterType<IJwtService>().As<JwtService>();
+        builder.RegisterType<SessionService>().As<ISessionService>();
         
         builder.RegisterType<ContextService>().As<IContextService>();
         builder.RegisterType<AccountService>().As<IAccountService>();

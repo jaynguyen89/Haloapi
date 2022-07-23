@@ -50,6 +50,7 @@
     <Folder Include="DbModels\" />
     <Folder Include="Services\DbServices\" />
     <Folder Include="Services\HostedServices\" />
+    <Folder Include="ViewModels" />
     <Folder Include="ViewModels\" />
     <Folder Include="PartialModels\" />
   </ItemGroup>

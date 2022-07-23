@@ -4,7 +4,7 @@ using HelperLibrary.Shared.Logger;
 
 namespace Halogen.Services.DbServices.Services; 
 
-internal sealed class ProfileService: ServiceBase, IProfileService {
+internal sealed class ProfileService: DbServiceBase, IProfileService {
     
     internal ProfileService(
         ILoggerService logger,

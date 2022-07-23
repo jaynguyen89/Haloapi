@@ -4,7 +4,7 @@ using HelperLibrary.Shared.Logger;
 
 namespace Halogen.Services.DbServices.Services; 
 
-internal sealed class AuthenticationService: ServiceBase, IAuthenticationService {
+internal sealed class AuthenticationService: DbServiceBase, IAuthenticationService {
 
     internal AuthenticationService(
         ILoggerService logger,

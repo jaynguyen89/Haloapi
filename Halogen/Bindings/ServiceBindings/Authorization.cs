@@ -1,12 +1,12 @@
-﻿namespace Halogen.Bindings.ServiceBindings; 
+﻿using HelperLibrary.Shared;
+
+namespace Halogen.Bindings.ServiceBindings; 
 
 public sealed class Authorization {
 
     public string AccountId { get; set; } = null!;
 
-    public string Username { get; set; } = null!;
-
-    public string EmailAddress { get; set; } = null!;
+    public Enums.Role[] Roles { get; set; } = null!;
 
     public string BearerToken { get; set; } = null!;
 

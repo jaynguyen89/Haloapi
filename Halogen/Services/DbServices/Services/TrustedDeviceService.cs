@@ -4,7 +4,7 @@ using HelperLibrary.Shared.Logger;
 
 namespace Halogen.Services.DbServices.Services; 
 
-internal sealed class TrustedDeviceService: ServiceBase, ITrustedDeviceService {
+internal sealed class TrustedDeviceService: DbServiceBase, ITrustedDeviceService {
     
     internal TrustedDeviceService(
         ILoggerService logger,

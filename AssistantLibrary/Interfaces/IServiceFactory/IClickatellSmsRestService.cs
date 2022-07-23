@@ -1,5 +1,5 @@
 ﻿namespace AssistantLibrary.Interfaces.IServiceFactory; 
 
-public interface IGlobalSmsService {
+public interface IClickatellSmsRestService {
     
 }

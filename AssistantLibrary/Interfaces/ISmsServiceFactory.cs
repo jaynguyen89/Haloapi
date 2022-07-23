@@ -1,5 +1,8 @@
-﻿namespace AssistantLibrary.Interfaces; 
+﻿using AssistantLibrary.Interfaces.IServiceFactory;
 
-public interface ISmsService {
-    
+namespace AssistantLibrary.Interfaces; 
+
+public interface ISmsServiceFactory {
+
+    ISmsService GetActiveSmsService();
 }

@@ -366,6 +366,7 @@ public static class Program {
 
     public static void ConfigureContainer(ContainerBuilder builder) {
         builder.RegisterInstance(_configuration).As<IConfiguration>();
+        builder.RegisterType<HttpContextAccessor>().As<IHttpContextAccessor>().SingleInstance();
         
         var environment = _configuration.GetValue<string>($"{nameof(Halogen)}Environment");
         builder.RegisterInstance(new Ecosystem { Environment = environment }).As<IEcosystem>();

@@ -2,7 +2,7 @@
 
 namespace AssistantLibrary.Interfaces; 
 
-internal interface ICryptoService {
+public interface ICryptoService {
 
     KeyValuePair<string, string> GenerateHashAndSalt(string plainText, int saltLength);
 

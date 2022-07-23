@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿#pragma warning disable 8618
+using Newtonsoft.Json;
 
 namespace AssistantLibrary.Bindings; 
 

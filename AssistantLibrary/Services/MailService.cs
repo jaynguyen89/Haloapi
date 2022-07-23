@@ -87,7 +87,7 @@ public sealed class MailService: ServiceBase, IMailService {
         _mailMessage.IsBodyHtml = true;
         _mailMessage.Priority = mail.Priority;
 
-        _ = mail.Placeholders.Select(x => bodyContent = bodyContent.Replace(x.Key, x.Value));
+        _ = mail.Placeholders.Select(x => bodyContent = bodyContent!.Replace(x.Key, x.Value));
         _mailMessage.Body = bodyContent;
         
         mail.Attachments?.ForEach(x => _mailMessage.Attachments.Add(new Attachment(x.Key, x.Value)));

@@ -13,7 +13,6 @@ internal sealed class RegistrationData {
     public string Password { get; set; } = null!;
     
     public string PasswordConfirm { get; set; } = null!;
-    
 
     internal async Task<string[]> VerifyRegistrationData() {
         var errors = new List<string>();

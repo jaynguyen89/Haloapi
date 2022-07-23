@@ -27,6 +27,8 @@ namespace Halogen.DbModels
         public string NormalizedUsername { get; set; } = null!;
         public string PasswordSalt { get; set; } = null!;
         public string HashPassword { get; set; } = null!;
+        public string? OneTimePassword { get; set; }
+        public DateTime? OneTimePasswordTimestamp { get; set; }
         public bool TwoFactorEnabled { get; set; }
         public string? TwoFaSecretKey { get; set; }
         public string? RecoveryToken { get; set; }

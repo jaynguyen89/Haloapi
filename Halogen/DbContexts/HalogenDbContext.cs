@@ -48,6 +48,8 @@ public partial class HalogenDbContext : DbContext {
 
             entity.Property(e => e.PasswordSalt).HasMaxLength(30);
 
+            entity.Property(e => e.OneTimePassword).HasMaxLength(15);
+
             entity.Property(e => e.RecoveryToken).HasMaxLength(50);
 
             entity.Property(e => e.TwoFaSecretKey).HasMaxLength(50);

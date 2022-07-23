@@ -15,6 +15,7 @@ public sealed class HalogenOptions {
         public string CookieShouldCheckConsent { get; set; }
         public string RecaptchaEnabled { get; set; }
         public DbSettings DbSettings { get; set; }
+        public ServiceSettings ServiceSettings { get; set; }
         public TwoFactorSettings TwoFactorSettings { get; set; }
         public CryptoSettings PasswordSettings { get; set; }
 
@@ -86,6 +87,11 @@ public sealed class DbSettings {
     public string DbName { get; set; }
     public string? Username { get; set; }
     public string? Password { get; set; }
+}
+
+public sealed class ServiceSettings {
+    public string TwoFactorEnabled { get; set; }
+    public string RecaptchaEnabled { get; set; }
 }
 
 public sealed class TwoFactorSettings {

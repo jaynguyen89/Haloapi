@@ -2,7 +2,7 @@
 
 namespace AssistantLibrary.Interfaces; 
 
-internal interface IAssistantService {
+public interface IAssistantService {
 
     Task<RecaptchaResponse?> IsHumanActivity(string clientToken);
 }

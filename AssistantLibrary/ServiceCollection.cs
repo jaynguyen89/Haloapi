@@ -11,5 +11,6 @@ public static class ServiceCollection {
         builder.RegisterType<CryptoService>().As<ICryptoService>();
         builder.RegisterType<MailService>().As<IMailService>();
         builder.RegisterType<TwoFactorService>().As<ITwoFactorService>();
+        builder.RegisterType<SmsServiceFactory>().As<ISmsServiceFactory>();
     }
 }

@@ -4,7 +4,7 @@ using HelperLibrary.Shared.Logger;
 
 namespace Halogen.Services.DbServices.Services; 
 
-internal sealed class PreferenceService: ServiceBase, IPreferenceService {
+internal sealed class PreferenceService: DbServiceBase, IPreferenceService {
     
     internal PreferenceService(
         ILoggerService logger,
