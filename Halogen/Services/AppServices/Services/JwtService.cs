@@ -1,12 +1,12 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Halogen.Parsers;
-using Halogen.Services.DbServices.Interfaces;
+using Halogen.Services.AppServices.Interfaces;
 using HelperLibrary;
 using HelperLibrary.Shared;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Halogen.Services.DbServices.Services; 
+namespace Halogen.Services.AppServices.Services; 
 
 internal sealed class JwtService: IJwtService {
     

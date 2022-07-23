@@ -1,6 +1,4 @@
-﻿using System.Security.Claims;
-
-namespace Halogen.Services.DbServices.Interfaces; 
+﻿namespace Halogen.Services.AppServices.Interfaces; 
 
 internal interface IJwtService {
     

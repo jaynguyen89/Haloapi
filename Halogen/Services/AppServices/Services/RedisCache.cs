@@ -1,11 +1,11 @@
 ﻿using Halogen.Bindings.ServiceBindings;
 using Halogen.Parsers;
-using Halogen.Services.DbServices.Interfaces;
+using Halogen.Services.AppServices.Interfaces;
 using HelperLibrary;
 using HelperLibrary.Shared;
 using Microsoft.Extensions.Caching.Distributed;
 
-namespace Halogen.Services.DbServices.Services; 
+namespace Halogen.Services.AppServices.Services; 
 
 internal sealed class RedisCache: ICacheService {
 
