@@ -232,6 +232,11 @@ internal sealed class AuthenticationController: AppController {
         };
     }
 
+    [HttpGet("test")]
+    public JsonResult Test() {
+        return new JsonResult(new { Request = Enums.ApiResult.SUCCESS });
+    }
+
     [ServiceFilter(typeof(RecaptchaAuthorize))]
     [HttpPost("register-by-email-address")]
     public async Task<JsonResult> RegisterAccountByEmailAddress(RegistrationData registrationData) {

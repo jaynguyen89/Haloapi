@@ -40,7 +40,7 @@ public sealed class ClickatellSmsHttpService: ServiceBase, ISmsService, IClickat
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(Constants.ContentTypes[contentType]));
 
         var encodedContent = Regex.Replace(binding.SmsContent, Constants.MonoSpace, Constants.Plus);
-        if (_environment.Equals(Constants.Development)) {
+        if (_environment.Equals(Constants.Local)) {
             var receiverPhoneNumber = _options.Dev.ClickatellHttpSettings.DevTestPhoneNumber;
             var requestUrl = $"{_clickatellBaseUrl}&to={receiverPhoneNumber}&content={encodedContent}";
             

@@ -39,7 +39,7 @@ public partial class HalogenDbContext {
             )
         };
 
-        _connectionString = environment.Equals(Constants.Development)
+        _connectionString = environment.Equals(Constants.Local)
             ? $"Server={serverEndpoint};Database={dbName};Trusted_Connection=True;"
             : $"Server={serverEndpoint};Database={dbName};User={username};Password={password};Trusted_Connection=True;";
     }
