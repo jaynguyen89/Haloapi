@@ -7,7 +7,7 @@ using HelperLibrary.Shared;
 
 namespace Halogen.Bindings.ApiBindings; 
 
-internal sealed class PhoneNumberData {
+internal sealed class RegionalizedPhoneNumber {
 
     private readonly ICacheService _cacheService;
     
@@ -15,11 +15,11 @@ internal sealed class PhoneNumberData {
     
     private readonly string _cacheKey;
 
-    public string TelephoneCode { get; set; } = null!;
+    public string RegionCode { get; set; } = null!;
     
     public string PhoneNumber { get; set; } = null!;
 
-    internal PhoneNumberData(
+    internal RegionalizedPhoneNumber(
         IConfiguration configuration,
         ICacheService cacheService,
         ILocalityService localityService
@@ -33,10 +33,10 @@ internal sealed class PhoneNumberData {
         var errors = new List<string>();
         var telephoneCodes = await _cacheService.GetCacheEntry<string[]>(_cacheKey) ?? await _localityService.GetTelephoneCodes() ?? Constants.TelephoneCodes;
 
-        TelephoneCode = Regex.Replace(TelephoneCode.Trim(), Constants.MultiSpace, string.Empty);
+        RegionCode = Regex.Replace(RegionCode.Trim(), Constants.MultiSpace, string.Empty);
         PhoneNumber = Regex.Replace(PhoneNumber.Trim(), Constants.MultiSpace, string.Empty);
         
-        if (!telephoneCodes.Any(x => x.Equals(TelephoneCode))) errors.Add($"{nameof(TelephoneCode).ToHumanStyled()} is not found or haven't been supported yet.");
+        if (!telephoneCodes.Any(x => x.Equals(RegionCode))) errors.Add($"{nameof(RegionCode).ToHumanStyled()} is not found or haven't been supported yet.");
         errors = errors.Concat(PhoneNumber.VerifyPhoneNumber() ?? new List<string>()).ToList();
 
         return errors.ToArray();

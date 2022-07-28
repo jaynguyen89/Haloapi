@@ -3,4 +3,6 @@
 public interface IEcosystem {
 
     string GetEnvironment();
+
+    bool GetUseLongerId();
 }

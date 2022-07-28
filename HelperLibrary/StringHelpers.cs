@@ -18,6 +18,8 @@ public static class StringHelpers {
             : JsonConvert.DeserializeObject<T>(decodedData);
     }
 
+    public static string NewGuid(bool longerId = false) => longerId ? $"{NewGuid()}{NewGuid()}" : Guid.NewGuid().ToString("N");
+
     public static bool IsString(this string? any) => !string.IsNullOrEmpty(any) && !string.IsNullOrWhiteSpace(any);
         
     public static string RemoveAllSpaces(this string any) => Regex.Replace(any, Constants.MultiSpace, string.Empty);
@@ -36,10 +38,10 @@ public static class StringHelpers {
     
     public static string RemoveAllSpecialChars(this string any) => Regex.Replace(any, "[^a-zA-Z0-9]+", string.Empty, RegexOptions.Compiled);
     
-    public static string GenerateRandomString(int length = Constants.RandomStringDefaultLength, bool caseSensitive = false, bool includeSpecialChars = false) {
-        const string sChars = "QWERTYUIOPASDFGHJKKLZXCVBNMqwertyuiopasdfghjklzxcvbnm1234567890!@#$%_+.*|";
+    public static string GenerateRandomString(int length = Constants.RandomStringDefaultLength, bool includeSpecialChars = false, bool caseSensitive = false) {
+        const string sChars = "QWERTYUIOPASDFGHJKKLZXCVBNMqwertyuiopasdfghjklzxcvbnm1234567890!@$%-_+.*|:<>";
         const string nChars = "QWERTYUIOPASDFGHJKKLZXCVBNMqwertyuiopasdfghjklzxcvbnm1234567890";
-        const string scChars = "QWERTYUIOPASDFGHJKKLZXCVBNM1234567890!@#$%_+.*|";
+        const string scChars = "QWERTYUIOPASDFGHJKKLZXCVBNM1234567890!@$%-_+.*|:<>";
         const string ncChars = "QWERTYUIOPASDFGHJKKLZXCVBNM1234567890";
         
         var charSetToUse = caseSensitive
@@ -58,4 +60,13 @@ public static class StringHelpers {
     public static string ShortOrLong(this string any, params int[] bounds) => any.Length < bounds[0] ? "short" : (any.Length > bounds[1] ? "long" : string.Empty);
     
     public static bool IsValidUrl(this string url) => Uri.TryCreate(url, UriKind.Absolute, out var uriResult) && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+
+    public static string SetDefaultEmailBodyValues(this string body, Tuple<string, string, string> defaultBodyValues) {
+        var (halogenLogoUrl, clientBaseUri, clientApplicationName) = defaultBodyValues;
+        body = Regex.Replace(body, @"\bCLIENT_LOGO_URL\b", halogenLogoUrl);
+        body = Regex.Replace(body, @"\bCLIENT_BASE_URI\b", clientBaseUri);
+        body = Regex.Replace(body, @"\bCLIENT_APPLICATION_NAME\b", clientApplicationName);
+        body = Regex.Replace(body, @"\bCURRENT_YEAR\b", DateTime.UtcNow.Year.ToString());
+        return body;
+    }
 }

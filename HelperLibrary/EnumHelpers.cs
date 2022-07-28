@@ -1,13 +1,19 @@
 ﻿namespace HelperLibrary;
 
-public sealed class EnumValueAttribute: Attribute {
-    
+[AttributeUsage(AttributeTargets.Field)]
+public class ValueAttribute : Attribute {
     public string StringValue { get; set; }
-        
+
+    public ValueAttribute(string stringValue) {
+        StringValue = stringValue;
+    }
+}
+
+[AttributeUsage(AttributeTargets.Field)]
+public sealed class CompositeValueAttribute: ValueAttribute {
     public byte ByteValue { get; set; }
 
-    public EnumValueAttribute(string stringValue, byte byteValue) {
-        StringValue = stringValue;
+    public CompositeValueAttribute(string stringValue, byte byteValue): base(stringValue) {
         ByteValue = byteValue;
     }
 }
@@ -15,7 +21,8 @@ public sealed class EnumValueAttribute: Attribute {
 public static class EnumHelpers {
     
     /// <summary>
-    /// To get StringValue and ByteValue of enums having EnumValue attribute.
+    /// To get StringValue and ByteValue of enums having CompositeValue attribute.
+    /// Or to get StringValue of enums having Value attribute.
     /// </summary>
     public static T? GetEnumValue<T>(this Enum any) {
         var enumType = any.GetType();
@@ -24,8 +31,8 @@ public static class EnumHelpers {
         if (enumFields is null) return default;
 
         if (typeof(T).Name.ToLower().Equals(nameof(String).ToLower())) {
-            var stringValue = enumFields.GetCustomAttributes(typeof(EnumValueAttribute), false)
-                is EnumValueAttribute[] { Length: > 0 } attributesForStringValue
+            var stringValue = enumFields.GetCustomAttributes(typeof(CompositeValueAttribute), false)
+                is CompositeValueAttribute[] { Length: > 0 } attributesForStringValue
                 ? attributesForStringValue[0].StringValue
                 : string.Empty;
                 
@@ -34,8 +41,8 @@ public static class EnumHelpers {
                 : (T) Convert.ChangeType(stringValue, TypeCode.String);
         }
 
-        var byteValue = enumFields.GetCustomAttributes(typeof(EnumValueAttribute), false)
-            is EnumValueAttribute[] { Length: > 0 } attributesForByteValue
+        var byteValue = enumFields.GetCustomAttributes(typeof(CompositeValueAttribute), false)
+            is CompositeValueAttribute[] { Length: > 0 } attributesForByteValue
             ? attributesForByteValue[0].ByteValue
             : byte.MinValue;
             

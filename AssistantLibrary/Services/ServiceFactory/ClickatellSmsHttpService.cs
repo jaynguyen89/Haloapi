@@ -30,9 +30,10 @@ public sealed class ClickatellSmsHttpService: ServiceBase, ISmsService, IClickat
         _logger.Log(new LoggerBinding<ClickatellSmsHttpService> { Location = nameof(SendSingleSms) });
         
         var contentType = _environment switch {
-            Constants.Development => _options.Value.Dev.ClickatellHttpSettings.RequestContentType,
-            Constants.Staging => _options.Value.Stg.ClickatellHttpSettings.RequestContentType,
-            _ => _options.Value.Prod.ClickatellHttpSettings.RequestContentType
+            Constants.Development => _options.Dev.ClickatellHttpSettings.RequestContentType,
+            Constants.Staging => _options.Stg.ClickatellHttpSettings.RequestContentType,
+            Constants.Production => _options.Prod.ClickatellHttpSettings.RequestContentType,
+            _ => _options.Loc.ClickatellHttpSettings.RequestContentType
         };
         
         _httpClient.DefaultRequestHeaders.Accept.Clear();
@@ -40,7 +41,7 @@ public sealed class ClickatellSmsHttpService: ServiceBase, ISmsService, IClickat
 
         var encodedContent = Regex.Replace(binding.SmsContent, Constants.MonoSpace, Constants.Plus);
         if (_environment.Equals(Constants.Development)) {
-            var receiverPhoneNumber = _options.Value.Dev.ClickatellHttpSettings.DevTestPhoneNumber;
+            var receiverPhoneNumber = _options.Dev.ClickatellHttpSettings.DevTestPhoneNumber;
             var requestUrl = $"{_clickatellBaseUrl}&to={receiverPhoneNumber}&content={encodedContent}";
             
             _httpClient.BaseAddress = new Uri(requestUrl);

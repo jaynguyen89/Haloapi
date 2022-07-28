@@ -3,11 +3,12 @@ namespace AssistantLibrary;
     
 public sealed class AssistantLibraryOptions {
 
+    public Local Loc { get; set; }
     public Development Dev { get; set; }
     public Staging Stg { get; set; }
     public Production Prod { get; set; }
     
-    public class Development {
+    public class Local {
         public string? ProjectName { get; set; }
         public string RsaKeyLength { get; set; }
         public TwoFactorSettings TwoFactorSettings { get; set; }
@@ -15,11 +16,14 @@ public sealed class AssistantLibraryOptions {
         public MailServiceSettings MailServiceSettings { get; set; }
         public ServiceFactorySettings ServiceFactorySettings { get; set; }
         public ClickatellHttpSettings ClickatellHttpSettings { get; set; }
+        public QrGeneratorSettings QrGeneratorSettings { get; set; }
     }
     
-    public sealed class Staging: Development { }
+    public sealed class Development: Local { }
+    
+    public sealed class Staging: Local { }
 
-    public sealed class Production: Development { }
+    public sealed class Production: Local { }
 }
 
 public sealed class TwoFactorSettings {
@@ -40,10 +44,17 @@ public sealed class MailServiceSettings {
     public Credentials ServerCredentails { get; set; }
     public string DefaultSenderAddress { get; set; }
     public string DefaultSenderName { get; set; }
+    public DefaultPlaceholders DefaultPlaceholderValues { get; set; }
     
     public sealed class Credentials {
         public string EmailAddress { get; set; }
         public string Password { get; set; }
+    }
+
+    public sealed class DefaultPlaceholders {
+        public string HalogenLogoUrl { get; set; }
+        public string ClientBaseUri { get; set; }
+        public string ClientApplicationName { get; set; }
     }
 }
 
@@ -57,4 +68,13 @@ public sealed class ClickatellHttpSettings {
     public string ApiKey { get; set; }
     public string DevTestPhoneNumber { get; set; }
     public string RequestContentType { get; set; }
+}
+
+public sealed class QrGeneratorSettings {
+    public string ImageSize { get; set; }
+    public string DarkColor { get; set; }
+    public string LightColor { get; set; }
+    public string EccLevel { get; set; }
+    public string WithLogo { get; set; }
+    public string LogoName { get; set; }
 }

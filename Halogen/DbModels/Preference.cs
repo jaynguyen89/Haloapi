@@ -14,7 +14,6 @@ namespace Halogen.DbModels
         public byte NumberFormat { get; set; }
         public byte UnitSystem { get; set; }
         public string Privacy { get; set; } = null!;
-        public string Security { get; set; } = null!;
         public DateTime UpdatedOn { get; set; }
 
         public virtual Account Account { get; set; } = null!;

@@ -23,7 +23,8 @@ public sealed class CryptoService: ServiceBase, ICryptoService {
         var rsaKeySize = ecosystem.GetEnvironment() switch {
             Constants.Development => options.Value.Dev.RsaKeyLength,
             Constants.Staging => options.Value.Stg.RsaKeyLength,
-            _ => options.Value.Prod.RsaKeyLength
+            Constants.Production => options.Value.Prod.RsaKeyLength,
+            _ => options.Value.Loc.RsaKeyLength
         };
         _rsaKeySize = int.Parse(rsaKeySize);
     }
@@ -48,7 +49,7 @@ public sealed class CryptoService: ServiceBase, ICryptoService {
         try {
             return BCryptHelper.CheckPassword(plainText, hash);
         }
-        catch (BCrypt.SaltParseException) {
+        catch (SaltParseException) {
             return BCryptHelper.CheckPassword(hash, plainText);
         }
     }

@@ -37,7 +37,8 @@ internal sealed class TwoFactorAuthorize: AuthorizeAttribute, IAuthorizationFilt
             ecosystem.GetEnvironment() switch {
                 Constants.Development => options.Value.Dev.ServiceSettings.TwoFactorEnabled,
                 Constants.Staging => options.Value.Stg.ServiceSettings.TwoFactorEnabled,
-                _ => options.Value.Prod.ServiceSettings.TwoFactorEnabled
+                Constants.Production => options.Value.Prod.ServiceSettings.TwoFactorEnabled,
+                _ => options.Value.Loc.ServiceSettings.TwoFactorEnabled
             }
         );
     }

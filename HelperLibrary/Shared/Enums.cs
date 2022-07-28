@@ -8,99 +8,120 @@ public static class Enums {
     }
 
     public enum LogSeverity {
-        [EnumValue("Information", 0)]
+        [CompositeValue("Information", 0)]
         INFORMATION,
-        [EnumValue("Debugging", 1)]
+        [CompositeValue("Debugging", 1)]
         DEBUGGING,
-        [EnumValue("Error", 2)]
+        [CompositeValue("Error", 2)]
         ERROR,
-        [EnumValue("Caution", 3)]
+        [CompositeValue("Caution", 3)]
         CAUTION // means something the needs to be refactored or reworked
     }
 
+    public enum TimeUnit {
+        [Value("Millisecond")]
+        MILLISECOND,
+        [Value("Second")]
+        SECOND,
+        [Value("Minute")]
+        MINUTE,
+        [Value("Hour")]
+        HOUR,
+        [Value("Day")]
+        DAY,
+        [Value("Week")]
+        WEEK,
+        [Value("Month")]
+        MONTH,
+        [Value("Quarter")]
+        QUARTER,
+        [Value("Year")]
+        YEAR
+    }
+
     public enum AuthorizationFailure {
-        [EnumValue("Invalid User", 0)]
+        [CompositeValue("Invalid User", 0)]
         INVALID_USER,
-        [EnumValue("Mismatched Bearer Token", 1)]
+        [CompositeValue("Mismatched Bearer Token", 1)]
         MISMATCHED_BEARER_TOKEN,
-        [EnumValue("Mismatched Authentication Token", 2)]
+        [CompositeValue("Mismatched Authentication Token", 2)]
         MISMATCHED_AUTH_TOKEN,
-        [EnumValue("Authorization Expired", 3)]
+        [CompositeValue("Authorization Expired", 3)]
         AUTHORIZATION_EXPIRED,
-        [EnumValue("Invalid Role", 4)]
+        [CompositeValue("Invalid Role", 4)]
         INVALID_ROLE,
-        [EnumValue("Missing Two-Factor Token", 5)]
+        [CompositeValue("Missing Two-Factor Token", 5)]
         NO_TWO_FACTOR_TOKEN,
-        [EnumValue("Mismatched Two-Factor Token", 6)]
+        [CompositeValue("Mismatched Two-Factor Token", 6)]
         INVALID_TWO_FACTOR_TOKEN
     }
 
     public enum Role {
-        [EnumValue("Customer", 0)]
+        [CompositeValue("Customer", 0)]
         CUSTOMER,
-        [EnumValue("Supplier", 1)]
+        [CompositeValue("Supplier", 1)]
         SUPPLIER,
-        [EnumValue("Administrator", 2)]
+        [CompositeValue("Administrator", 2)]
         ADMINISTRATOR,
-        [EnumValue("Staff", 3)]
+        [CompositeValue("Staff", 3)]
         STAFF,
-        [EnumValue("Moderator", 4)]
+        [CompositeValue("Moderator", 4)]
         MODERATOR
     }
 
     public enum DateFormat {
-        [EnumValue("dd MMM yyyy", 0)]
+        [CompositeValue("dd MMM yyyy", 0)]
         DDMMMYYYY,
-        [EnumValue("ddd, dd MMM yyyy", 1)]
+        [CompositeValue("ddd, dd MMM yyyy", 1)]
         WDDMMMYYYY,
-        [EnumValue("dd/MM/yyyy", 2)]
+        [CompositeValue("dd/MM/yyyy", 2)]
         DDMMYYYYS,
-        [EnumValue("ddd, dd/MM/YYYY", 3)]
+        [CompositeValue("ddd, dd/MM/YYYY", 3)]
         WDDMMYYYYS,
-        [EnumValue("dd-MM-yyyy", 4)]
+        [CompositeValue("dd-MM-yyyy", 4)]
         DDMMYYYYD,
-        [EnumValue("ddd, dd-MM-YYYY", 5)]
+        [CompositeValue("ddd, dd-MM-YYYY", 5)]
         WDDMMYYYYD,
-        [EnumValue("yyyy/MM/dd", 6)]
+        [CompositeValue("yyyy/MM/dd", 6)]
         YYYYMMDDS,
-        [EnumValue("yyyy-MM-dd", 7)]
+        [CompositeValue("yyyy-MM-dd", 7)]
         YYYYMMDDD,
     }
     
     public enum TimeFormat {
-        [EnumValue("hh:mm tt", 0)]
+        [CompositeValue("hh:mm tt", 0)]
         HHMMTTC,
-        [EnumValue("HH:mm", 1)]
+        [CompositeValue("HH:mm", 1)]
         HHMMC,
-        [EnumValue("hh.mm tt", 2)]
+        [CompositeValue("hh.mm tt", 2)]
         HHMMTTD,
-        [EnumValue("HH.mm", 3)]
+        [CompositeValue("HH.mm", 3)]
         HHMMD,
     }
 
     public enum NumberFormat {
-        [EnumValue("{0:#,##0.##}", 0)]
+        [CompositeValue("{0:#,##0.##}", 0)]
         COMMA_FOR_THOUSANDS,
-        [EnumValue("{0:#.##0,##}", 1)]
+        [CompositeValue("{0:#.##0,##}", 1)]
         DOT_FOR_THOUSANDS,
-        [EnumValue("{0:#,##}", 2)]
+        [CompositeValue("{0:#,##}", 2)]
         NO_SEPARATOR_COMMA_FOR_DECIMAL,
-        [EnumValue("{0:#.##}", 3)]
+        [CompositeValue("{0:#.##}", 3)]
         NOSEPARATOR_DOT_FOR_DECIMAL
     }
 
     public enum LocalityRegion {
-        [EnumValue("Asia", 0)]
+        [CompositeValue("Asia", 0)]
         ASIA,
-        [EnumValue("Africa", 1)]
+        [CompositeValue("Africa", 1)]
         AFRICA,
-        [EnumValue("Europe", 2)]
+        [CompositeValue("Europe", 2)]
         EUROPE,
-        [EnumValue("North America", 3)]
+        [CompositeValue("North America", 3)]
         NORTH_AMERICA,
-        [EnumValue("Oceania", 4)]
+        [CompositeValue("Oceania", 4)]
         OCEANIA,
-        [EnumValue("South America", 5)]
+        [CompositeValue("South America", 5)]
         SOUTH_AMERICA
     }
 
@@ -110,122 +131,123 @@ public static class Enums {
     }
 
     public enum AddressVariant {
-        [EnumValue("PO Box", 1)]
+        [CompositeValue("PO Box", 1)]
         PO_BOX,
-        [EnumValue("Western", 2)]
+        [CompositeValue("Western", 2)]
         WESTERN,
-        [EnumValue("Eastern", 3)]
+        [CompositeValue("Eastern", 3)]
         EASTERN
     }
 
     public enum ApplicationTheme {
-        [EnumValue("Sapphire", 0)]
+        [CompositeValue("Sapphire", 0)]
         BLUE,
-        [EnumValue("Amber", 1)]
+        [CompositeValue("Amber", 1)]
         ORANGE,
-        [EnumValue("Onyx", 2)]
+        [CompositeValue("Onyx", 2)]
         CARBON,
-        [EnumValue("Topaz", 3)]
+        [CompositeValue("Topaz", 3)]
         YELLOW,
-        [EnumValue("Emerald", 4)]
+        [CompositeValue("Emerald", 4)]
         GREEN,
-        [EnumValue("Moonstone", 5)]
+        [CompositeValue("Moonstone", 5)]
         WHITE,
-        [EnumValue("Tourmaline", 6)]
+        [CompositeValue("Tourmaline", 6)]
         RED,
-        [EnumValue("Amethyst", 7)]
+        [CompositeValue("Amethyst", 7)]
         VIOLET,
-        [EnumValue("Aquamarine", 8)]
+        [CompositeValue("Aquamarine", 8)]
         CYAN,
-        [EnumValue("Alexandrite", 9)]
+        [CompositeValue("Alexandrite", 9)]
         TEAL,
-        [EnumValue("Sodalite", 10)]
+        [CompositeValue("Sodalite", 10)]
         INDIGO
     }
 
     public enum Language {
-        [EnumValue("English", 0)]
+        [CompositeValue("English", 0)]
         ENGLISH,
-        [EnumValue("Vietnamese", 1)]
+        [CompositeValue("Vietnamese", 1)]
         VIETNAMESE,
-        [EnumValue("Chinese", 2)]
+        [CompositeValue("Chinese", 2)]
         CHINESE,
-        [EnumValue("Japanese", 3)]
+        [CompositeValue("Japanese", 3)]
         JAPANESE,
-        [EnumValue("French", 4)]
+        [CompositeValue("French", 4)]
         FRENCH,
-        [EnumValue("Russian", 5)]
+        [CompositeValue("Russian", 5)]
         RUSSIAN,
-        [EnumValue("Indonesian", 6)]
+        [CompositeValue("Indonesian", 6)]
         INDONESIAN,
-        [EnumValue("Malaysian", 7)]
+        [CompositeValue("Malaysian", 7)]
         MALAYSIAN,
-        [EnumValue("Thailand", 8)]
+        [CompositeValue("Thailand", 8)]
         THAILAND,
-        [EnumValue("Korean", 9)]
+        [CompositeValue("Korean", 9)]
         KOREAN
     }
 
     public enum UnitSystem {
-        [EnumValue("International Unit System", 0)]
+        [CompositeValue("International Unit System", 0)]
         INTERNATIONAL_UNIT_SYSTEM,
-        [EnumValue("English Unit System", 1)]
+        [CompositeValue("English Unit System", 1)]
         ENGLISH_UNIT_SYSTEM
     }
 
     public enum NameFormat {
-        [EnumValue("Show full name", 0)]
+        [CompositeValue("Show full name", 0)]
         SHOW_FULL_NAME,
-        [EnumValue("Show first name", 1)]
+        [CompositeValue("Show first name", 1)]
         SHOW_FIRST_NAME,
-        [EnumValue("Show last name", 2)]
+        [CompositeValue("Show last name", 2)]
         SHOW_LAST_NAME,
-        [EnumValue("Show nick name", 3)]
+        [CompositeValue("Show nick name", 3)]
         SHOW_NICK_NAME,
-        [EnumValue("Show initials", 4)]
+        [CompositeValue("Show initials", 4)]
         SHOW_INITIALS
     }
 
     public enum BirthFormat {
-        [EnumValue("Show full birthday only", 0)]
+        [CompositeValue("Show full birthday only", 0)]
         SHOW_FULL_BRITH_ONLY,
-        [EnumValue("Show full birthday with age", 1)]
+        [CompositeValue("Show full birthday with age", 1)]
         SHOW_FULL_BIRTH_AND_AGE,
-        [EnumValue("Show year only", 2)]
+        [CompositeValue("Show year only", 2)]
         SHOW_YEAR_ONLY,
-        [EnumValue("show year with age", 3)]
+        [CompositeValue("show year with age", 3)]
         SHOW_YEAR_AND_AGE,
-        [EnumValue("Show day and month only", 4)]
+        [CompositeValue("Show day and month only", 4)]
         SHOW_DAY_MONTH_ONLY,
-        [EnumValue("Show month and year only", 5)]
+        [CompositeValue("Show month and year only", 5)]
         SHOW_MONTH_YEAR_ONLY,
-        [EnumValue("Show month and year with age", 6)]
+        [CompositeValue("Show month and year with age", 6)]
         SHOW_MONTH_YEAR_AND_AGE,
-        [EnumValue("Show age only", 7)]
+        [CompositeValue("Show age only", 7)]
         SHOW_AGE_ONLY
     }
 
-    public enum WorkInformationFormat {
-        [EnumValue("Show all information", 0)]
+    public enum CareerFormat {
+        [CompositeValue("Show all information", 0)]
         SHOW_ALL_INFORMATION,
-        [EnumValue("Show company information only", 1)]
+        [CompositeValue("Show company information only", 1)]
         SHOW_COMPANY_ONLY,
-        [EnumValue("Show job title only", 2)]
+        [CompositeValue("Show job title only", 2)]
         SHOW_JOB_TITLE_ONLY
     }
 
-    public enum Privacy {
-        [EnumValue("Visible to public", 0)]
+    public enum Visibility {
+        [CompositeValue("Visible to public", 0)]
         VISIBLE_TO_PUBLIC,
-        [EnumValue("Visible to all connections", 1)]
+        [CompositeValue("Visible to all connections", 1)]
         VISIBLE_TO_ALL_CONNECTIONS,
-        [EnumValue("Visible to a group", 2)]
+        [CompositeValue("Visible to a group", 2)]
         VISIBLE_TO_A_GROUP,
-        [EnumValue("Visible to self", 3)]
+        [CompositeValue("Visible to self", 3)]
         VISIBLE_TO_SELF
     }
 
     public enum EmailTemplate {
-        
+        [Value("AccountActivationEmail")]
+        ACCOUNT_ACTIVATION_EMAIL
     }
 }

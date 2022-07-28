@@ -31,7 +31,8 @@ internal sealed class RecaptchaAuthorize: AuthorizeAttribute, IAuthorizationFilt
             ecosystem.GetEnvironment() switch {
                 Constants.Development => options.Value.Dev.ServiceSettings.RecaptchaEnabled,
                 Constants.Staging => options.Value.Stg.ServiceSettings.RecaptchaEnabled,
-                _ => options.Value.Prod.ServiceSettings.RecaptchaEnabled
+                Constants.Production => options.Value.Prod.ServiceSettings.RecaptchaEnabled,
+                _ => options.Value.Loc.ServiceSettings.RecaptchaEnabled
             }
         );
     }

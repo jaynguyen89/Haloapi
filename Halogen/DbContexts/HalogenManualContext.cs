@@ -25,11 +25,17 @@ public partial class HalogenDbContext {
                 options.Value.Stg.DbSettings.Username,
                 options.Value.Stg.DbSettings.Password
             ),
-            _ => (
+            Constants.Production => (
                 options.Value.Prod.DbSettings.ServerEndpoint,
                 options.Value.Prod.DbSettings.DbName,
                 options.Value.Prod.DbSettings.Username,
                 options.Value.Prod.DbSettings.Password
+            ),
+            _ => (
+                options.Value.Loc.DbSettings.ServerEndpoint,
+                options.Value.Loc.DbSettings.DbName,
+                options.Value.Loc.DbSettings.Username,
+                options.Value.Loc.DbSettings.Password
             )
         };
 

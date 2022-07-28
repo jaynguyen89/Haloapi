@@ -1,14 +1,15 @@
 ﻿using System.Text.RegularExpressions;
+using Halogen.Bindings.ApiBindings;
 using HelperLibrary;
 using HelperLibrary.Shared;
 
-namespace Halogen.Bindings.ApiBindings; 
+namespace Halogen.Bindings.DataMappers; 
 
 internal sealed class RegistrationData {
 
     public string? EmailAddress { get; set; }
     
-    public PhoneNumberData? PhoneNumber { get; set; }
+    public RegionalizedPhoneNumber? PhoneNumber { get; set; }
     
     public string Password { get; set; } = null!;
     
@@ -17,7 +18,7 @@ internal sealed class RegistrationData {
     internal async Task<string[]> VerifyRegistrationData() {
         var errors = new List<string>();
 
-        EmailAddress = Regex.Replace(EmailAddress?.Trim() ?? string.Empty, Constants.MultiSpace, string.Empty);
+        EmailAddress = Regex.Replace(EmailAddress?.Trim().ToLower() ?? string.Empty, Constants.MultiSpace, string.Empty);
 
         if (!EmailAddress.IsString() && PhoneNumber is null) errors.Add($"Neither {nameof(EmailAddress).ToHumanStyled()} nor {nameof(PhoneNumber)} has been provided.");
         if (!Password.IsString() || !PasswordConfirm.IsString()) errors.Add($"Both {nameof(Password)} and {nameof(PasswordConfirm).ToHumanStyled()} must be provided.");

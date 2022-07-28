@@ -25,9 +25,10 @@ public sealed class TwoFactorService: ServiceBase, ITwoFactorService {
         _logger.Log(new LoggerBinding<TwoFactorService> { Location = nameof(GetTwoFactorAuthenticationData) });
         
         var (projectName, qrImageSize) = _environment switch {
-            Constants.Development => (_options.Value.Dev.ProjectName, _options.Value.Dev.TwoFactorSettings.QrImageSize),
-            Constants.Staging => (_options.Value.Stg.ProjectName, _options.Value.Stg.TwoFactorSettings.QrImageSize),
-            _ => (_options.Value.Prod.ProjectName, _options.Value.Prod.TwoFactorSettings.QrImageSize ?? string.Empty)
+            Constants.Development => (_options.Dev.ProjectName, _options.Dev.TwoFactorSettings.QrImageSize),
+            Constants.Staging => (_options.Stg.ProjectName, _options.Stg.TwoFactorSettings.QrImageSize),
+            Constants.Production => (_options.Prod.ProjectName, _options.Prod.TwoFactorSettings.QrImageSize),
+            _ => (_options.Loc.ProjectName, _options.Loc.TwoFactorSettings.QrImageSize)
         };
         
         var setupCodeData = _authenticator.GenerateSetupCode(
@@ -48,9 +49,10 @@ public sealed class TwoFactorService: ServiceBase, ITwoFactorService {
         _logger.Log(new LoggerBinding<TwoFactorService> { Location = nameof(VerifyTwoFactorAuthenticationPin) });
 
         var tolerance = _environment switch {
-            Constants.Development => _options.Value.Dev.TwoFactorSettings.ToleranceDuration,
-            Constants.Staging => _options.Value.Stg.TwoFactorSettings.ToleranceDuration,
-            _ => _options.Value.Prod.TwoFactorSettings.ToleranceDuration
+            Constants.Development => _options.Dev.TwoFactorSettings.ToleranceDuration,
+            Constants.Staging => _options.Stg.TwoFactorSettings.ToleranceDuration,
+            Constants.Production => _options.Prod.TwoFactorSettings.ToleranceDuration,
+            _ => _options.Loc.TwoFactorSettings.ToleranceDuration
         };
         
         return _authenticator.ValidateTwoFactorPIN(

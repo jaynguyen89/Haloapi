@@ -3,6 +3,7 @@ namespace Halogen.Parsers;
     
 public sealed class HalogenOptions {
     
+    public Local Loc { get; set; }
     public Development Dev { get; set; }
     public Staging Stg { get; set; }
     public Production Prod { get; set; }
@@ -11,13 +12,13 @@ public sealed class HalogenOptions {
         public string TelephoneCodes { get; set; }
     }
 
-    public class Development {
+    public class Local {
         public string CookieShouldCheckConsent { get; set; }
         public string RecaptchaEnabled { get; set; }
         public DbSettings DbSettings { get; set; }
         public ServiceSettings ServiceSettings { get; set; }
         public TwoFactorSettings TwoFactorSettings { get; set; }
-        public CryptoSettings PasswordSettings { get; set; }
+        public SecuritySettings SecuritySettings { get; set; }
 
         public sealed class ServerSettings {
             public string AwsAccessKeyId { get; set; }
@@ -77,9 +78,11 @@ public sealed class HalogenOptions {
         }
     }
 
-    public sealed class Staging: Development { }
+    public sealed class Development: Local { }
+    
+    public sealed class Staging: Local { }
 
-    public sealed class Production: Development { }
+    public sealed class Production: Local { }
 }
 
 public sealed class DbSettings {
@@ -99,7 +102,29 @@ public sealed class TwoFactorSettings {
     public string SecretKeyMaxLength { get; set; }
 }
 
-public sealed class CryptoSettings {
+public sealed class SecuritySettings {
     public string SaltMinLength { get; set; }
     public string SaltMaxLength { get; set; }
+    public string TfaKeyMinLength { get; set; }
+    public string TfaKeyMaxLength { get; set; }
+    public string EmailTokenMinLength { get; set; }
+    public string EmailTokenMaxLength { get; set; }
+    public string EmailTokenValidityDuration { get; set; }
+    public string EmailTokenValidityDurationUnit { get; set; }
+    public string OtpMinLength { get; set; }
+    public string OtpMaxLength { get; set; }
+    public string OtpValidityDuration { get; set; }
+    public string OtpValidityDurationUnit { get; set; }
+    public string RecoveryTokenMinLength { get; set; }
+    public string RecoveryTokenMaxLength { get; set; }
+    public string RecoveryTokenValidityDuration { get; set; }
+    public string RecoveryTokenValidityDurationUnit { get; set; }
+    public string PhoneTokenMinLength { get; set; }
+    public string PhoneTokenMaxLength { get; set; }
+    public string PhoneTokenValidityDuration { get; set; }
+    public string PhoneTokenValidityDurationUnit { get; set; }
+    public string LoginFailedThreshold { get; set; }
+    public string LockOutThreshold { get; set; }
+    public string LockOutDuration { get; set; }
+    public string LockOutDurationUnit { get; set; }
 }

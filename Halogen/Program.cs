@@ -29,49 +29,52 @@ public static class Program {
     
     public static void Main(string[] args) {
         var builder = WebApplication.CreateBuilder(args);
-        builder.Configuration
-               .AddJsonFile("appsettings.json", true, true)
-               .AddEnvironmentVariables(nameof(Halogen));
-
-        builder.Host
-               .UseServiceProviderFactory(new AutofacServiceProviderFactory())
-               .ConfigureAppConfiguration(configurations => {
-                   configurations.AddSystemsManager(
-                       $"{Constants.FSlash}{nameof(Halogen)}",
-                       new AWSOptions { Region = RegionEndpoint.USEast1 },
-                       false,
-                       TimeSpan.FromMinutes(ConfigurationsRefreshMinutesInterval)
-                   );
-                    
-                   configurations.AddSystemsManager(
-                       $"{Constants.FSlash}{nameof(AssistantLibrary)}",
-                       new AWSOptions { Region = RegionEndpoint.USEast1 },
-                       false,
-                       TimeSpan.FromMinutes(ConfigurationsRefreshMinutesInterval)
-                   );
-                    
-                   configurations.AddSystemsManager(
-                       $"{Constants.FSlash}{nameof(AmazonLibrary)}",
-                       new AWSOptions { Region = RegionEndpoint.USEast1 },
-                       false,
-                       TimeSpan.FromMinutes(ConfigurationsRefreshMinutesInterval)
-                   );
-                    
-                   configurations.AddSystemsManager(
-                       $"{Constants.FSlash}{nameof(MediaLibrary)}",
-                       new AWSOptions { Region = RegionEndpoint.USEast1 },
-                       false,
-                       TimeSpan.FromMinutes(ConfigurationsRefreshMinutesInterval)
-                   );
-               });
         
+        builder.Configuration.AddEnvironmentVariables(nameof(Halogen));
+        var isLocal = builder.Configuration.GetValue<string>($"{nameof(Halogen)}Environment").Equals(Constants.Local);
+
+        builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
+        if (isLocal) builder.Configuration.AddJsonFile("appsettings.json", true, true);
+        else builder.Host
+                    .UseServiceProviderFactory(new AutofacServiceProviderFactory())
+                    .ConfigureAppConfiguration(configurations => {
+                        configurations.AddSystemsManager(
+                            $"{Constants.FSlash}{nameof(Halogen)}",
+                            new AWSOptions { Region = RegionEndpoint.USEast1 },
+                            false,
+                            TimeSpan.FromMinutes(ConfigurationsRefreshMinutesInterval)
+                        );
+
+                        configurations.AddSystemsManager(
+                            $"{Constants.FSlash}{nameof(AssistantLibrary)}",
+                            new AWSOptions { Region = RegionEndpoint.USEast1 },
+                            false,
+                            TimeSpan.FromMinutes(ConfigurationsRefreshMinutesInterval)
+                        );
+
+                        configurations.AddSystemsManager(
+                            $"{Constants.FSlash}{nameof(AmazonLibrary)}",
+                            new AWSOptions { Region = RegionEndpoint.USEast1 },
+                            false,
+                            TimeSpan.FromMinutes(ConfigurationsRefreshMinutesInterval)
+                        );
+
+                        configurations.AddSystemsManager(
+                            $"{Constants.FSlash}{nameof(MediaLibrary)}",
+                            new AWSOptions { Region = RegionEndpoint.USEast1 },
+                            false,
+                            TimeSpan.FromMinutes(ConfigurationsRefreshMinutesInterval)
+                        );
+                    });
+
         _configuration = builder.Configuration;
         var environment = _configuration.GetValue<string>($"{nameof(Halogen)}Environment");
-
+        
         var shouldCheckCookieConsent = environment switch {
             Constants.Development => bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Development.CookieShouldCheckConsent)}")),
             Constants.Staging => bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.CookieShouldCheckConsent)}")),
-            _ => bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.CookieShouldCheckConsent)}"))
+            Constants.Production => bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.CookieShouldCheckConsent)}")),
+            _ => bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CookieShouldCheckConsent)}"))
         };
 
         builder.Services.Configure<CookiePolicyOptions>(options => options.CheckConsentNeeded = _ => shouldCheckCookieConsent);
@@ -89,10 +92,15 @@ public static class Program {
                 _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{nameof(HalogenOptions.Staging.SwaggerInfo)}{Constants.Colon}{nameof(HalogenOptions.Staging.SwaggerInfo.ApiName)}"),
                 _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{nameof(HalogenOptions.Staging.SwaggerInfo)}{Constants.Colon}{nameof(HalogenOptions.Staging.SwaggerInfo.Description)}")
             ),
-            _ => (
+            Constants.Production => (
                 _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{nameof(HalogenOptions.Production.SwaggerInfo)}{Constants.Colon}{nameof(HalogenOptions.Production.SwaggerInfo.Version)}"),
                 _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{nameof(HalogenOptions.Production.SwaggerInfo)}{Constants.Colon}{nameof(HalogenOptions.Production.SwaggerInfo.ApiName)}"),
                 _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{nameof(HalogenOptions.Production.SwaggerInfo)}{Constants.Colon}{nameof(HalogenOptions.Production.SwaggerInfo.Description)}")
+            ),
+            _ => (
+                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{nameof(HalogenOptions.Local.SwaggerInfo)}{Constants.Colon}{nameof(HalogenOptions.Local.SwaggerInfo.Version)}"),
+                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{nameof(HalogenOptions.Local.SwaggerInfo)}{Constants.Colon}{nameof(HalogenOptions.Local.SwaggerInfo.ApiName)}"),
+                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{nameof(HalogenOptions.Local.SwaggerInfo)}{Constants.Colon}{nameof(HalogenOptions.Local.SwaggerInfo.Description)}")
             )
         };
 
@@ -124,9 +132,13 @@ public static class Program {
                     _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.JwtSettings.RequireHttpsMetadata)}"),
                     _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.JwtSettings.SaveToken)}")
                 ),
-                _ => (
+                Constants.Production => (
                     _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.RequireHttpsMetadata)}"),
                     _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.SaveToken)}")
+                ),
+                _ => (
+                    _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.RequireHttpsMetadata)}"),
+                    _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.SaveToken)}")
                 )
             };
             
@@ -150,13 +162,21 @@ public static class Program {
                     bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Staging.JwtSettings.TokenValidationParameters.RequireExpirationTime)}")),
                     bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Staging.JwtSettings.TokenValidationParameters.IgnoreTrailingSlashWhenValidatingAudience)}"))
                 ),
-                _ => (
+                Constants.Production => (
                     bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.TokenValidationParameters.ValidateIssuers)}")),
                     bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.TokenValidationParameters.ValidateIssuerSigningKey)}")),
                     bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.TokenValidationParameters.ValidateAudience)}")),
                     bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.TokenValidationParameters.ValidateLifetime)}")),
                     bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.TokenValidationParameters.RequireExpirationTime)}")),
                     bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.TokenValidationParameters.IgnoreTrailingSlashWhenValidatingAudience)}"))
+                ),
+                _ => (
+                    bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters.ValidateIssuers)}")),
+                    bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters.ValidateIssuerSigningKey)}")),
+                    bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters.ValidateAudience)}")),
+                    bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters.ValidateLifetime)}")),
+                    bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters.RequireExpirationTime)}")),
+                    bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters.IgnoreTrailingSlashWhenValidatingAudience)}"))
                 )
             };
             
@@ -173,11 +193,17 @@ public static class Program {
                     _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Staging.JwtSettings.TokenValidationParameters.ValidAudiences)}"),
                     _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Staging.JwtSettings.TokenValidationParameters.IssuerSigningKeys)}")
                 ),
-                _ => (
+                Constants.Production => (
                     int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.TokenValidationParameters.ClockSkew)}")),
                     _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.TokenValidationParameters.ValidIssuers)}"),
                     _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.TokenValidationParameters.ValidAudiences)}"),
                     _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.TokenValidationParameters.IssuerSigningKeys)}")
+                ),
+                _ => (
+                    int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters.ClockSkew)}")),
+                    _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters.ValidIssuers)}"),
+                    _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters.ValidAudiences)}"),
+                    _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters.IssuerSigningKeys)}")
                 )
             };
 
@@ -214,11 +240,17 @@ public static class Program {
                 int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Staging.SessionSettings.MaxAge)}")),
                 int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Staging.SessionSettings.Expiration)}"))
             ),
-            _ => (
+            Constants.Production => (
                 int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.SessionSettings.IdleTimeout)}")),
                 bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.SessionSettings.IsEssential)}")),
                 int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.SessionSettings.MaxAge)}")),
                 int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.SessionSettings.Expiration)}"))
+            ),
+            _ => (
+                int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings.IdleTimeout)}")),
+                bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings.IsEssential)}")),
+                int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings.MaxAge)}")),
+                int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings.Expiration)}"))
             )
         };
 
@@ -255,18 +287,25 @@ public static class Program {
                 _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.ServerSettings)}{Constants.Colon}{nameof(HalogenOptions.Staging.ServerSettings.AwsRegion)}"),
                 _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.ServerSettings)}{Constants.Colon}{nameof(HalogenOptions.Staging.ServerSettings.AwsLogGroupName)}")
             ),
-            _ => (
+            Constants.Production => (
                 _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.ServerSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.ServerSettings.AwsAccessKeyId)}"),
                 _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.ServerSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.ServerSettings.AwsSecretAccessKey)}"),
                 _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.ServerSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.ServerSettings.AwsRegion)}"),
                 _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.ServerSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.ServerSettings.AwsLogGroupName)}")
+            ),
+            _ => (
+                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.ServerSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.ServerSettings.AwsAccessKeyId)}"),
+                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.ServerSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.ServerSettings.AwsSecretAccessKey)}"),
+                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.ServerSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.ServerSettings.AwsRegion)}"),
+                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.ServerSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.ServerSettings.AwsLogGroupName)}")
             )
         };
 
         var isCacheEnabled = environment switch {
             Constants.Development => bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Development.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Development.CacheSettings.IsEnabled)}")),
             Constants.Staging => bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Staging.CacheSettings.IsEnabled)}")),
-            _ => bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.CacheSettings.IsEnabled)}"))
+            Constants.Production => bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.CacheSettings.IsEnabled)}")),
+            _ => bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.IsEnabled)}"))
         };
         
         if (isCacheEnabled)
@@ -292,7 +331,7 @@ public static class Program {
                         _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Staging.CacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Staging.CacheSettings.Connection.AllowAdmin)}"),
                         _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Staging.CacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Staging.CacheSettings.Connection.InstanceName)}")
                     ),
-                    _ => (
+                    Constants.Production => (
                         _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.CacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Production.CacheSettings.Connection.Endpoint)}"),
                         _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.CacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Production.CacheSettings.Connection.Port)}"),
                         _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.CacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Production.CacheSettings.Connection.Password)}"),
@@ -301,6 +340,16 @@ public static class Program {
                         _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.CacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Production.CacheSettings.Connection.AbortConnect)}"),
                         _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.CacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Production.CacheSettings.Connection.AllowAdmin)}"),
                         _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.CacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Production.CacheSettings.Connection.InstanceName)}")
+                    ),
+                    _ => (
+                        _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection.Endpoint)}"),
+                        _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection.Port)}"),
+                        _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection.Password)}"),
+                        _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection.Ssl)}"),
+                        _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection.DefaultDb)}"),
+                        _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection.AbortConnect)}"),
+                        _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection.AllowAdmin)}"),
+                        _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection.InstanceName)}")
                     )
                 };
 
@@ -339,7 +388,8 @@ public static class Program {
         var corsOrigins = environment switch {
             Constants.Development => _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Development.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Development.SessionSettings.CorsOrigins)}"),
             Constants.Staging => _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Staging.SessionSettings.CorsOrigins)}"),
-            _ => _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.SessionSettings.CorsOrigins)}")
+            Constants.Production => _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.SessionSettings.CorsOrigins)}"),
+            _ => _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings.CorsOrigins)}")
         };
         
         app.UseCors(options => options.AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithOrigins(corsOrigins));

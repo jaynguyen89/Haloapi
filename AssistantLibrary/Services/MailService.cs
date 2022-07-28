@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.Mail;
+using System.Text.RegularExpressions;
 using AssistantLibrary.Bindings;
 using AssistantLibrary.Interfaces;
 using HelperLibrary;
@@ -16,6 +17,7 @@ public sealed class MailService: ServiceBase, IMailService {
     private readonly string _defaultSenderEmailAddress;
     private readonly string _defaultSenderName;
     private MailMessage _mailMessage;
+    private readonly Tuple<string, string, string> _defaultBodyPlaceholderValues;
 
     public MailService(
         IEcosystem ecosystem,
@@ -28,37 +30,69 @@ public sealed class MailService: ServiceBase, IMailService {
         var (defaultSenderEmailAddress, defaultSenderName) = ecosystem.GetEnvironment() switch {
             Constants.Development => (options.Value.Dev.MailServiceSettings.DefaultSenderAddress, options.Value.Dev.MailServiceSettings.DefaultSenderName),
             Constants.Staging => (options.Value.Stg.MailServiceSettings.DefaultSenderAddress, options.Value.Stg.MailServiceSettings.DefaultSenderName),
-            _ => (options.Value.Prod.MailServiceSettings.DefaultSenderAddress, options.Value.Prod.MailServiceSettings.DefaultSenderName)
+            Constants.Production => (options.Value.Prod.MailServiceSettings.DefaultSenderAddress, options.Value.Prod.MailServiceSettings.DefaultSenderName),
+            _ => (options.Value.Loc.MailServiceSettings.DefaultSenderAddress, options.Value.Loc.MailServiceSettings.DefaultSenderName)
         };
 
         _defaultSenderEmailAddress = defaultSenderEmailAddress;
         _defaultSenderName = defaultSenderName;
+        
+        var (halogenLogoUrl, clientBaseUri, clientApplicationName) = ecosystem.GetEnvironment() switch {
+            Constants.Development => (
+                options.Value.Dev.MailServiceSettings.DefaultPlaceholderValues.HalogenLogoUrl,
+                options.Value.Dev.MailServiceSettings.DefaultPlaceholderValues.ClientBaseUri,
+                options.Value.Dev.MailServiceSettings.DefaultPlaceholderValues.ClientApplicationName
+            ),
+            Constants.Staging => (
+                options.Value.Stg.MailServiceSettings.DefaultPlaceholderValues.HalogenLogoUrl,
+                options.Value.Stg.MailServiceSettings.DefaultPlaceholderValues.ClientBaseUri,
+                options.Value.Stg.MailServiceSettings.DefaultPlaceholderValues.ClientApplicationName
+            ),
+            Constants.Production => (
+                options.Value.Prod.MailServiceSettings.DefaultPlaceholderValues.HalogenLogoUrl,
+                options.Value.Prod.MailServiceSettings.DefaultPlaceholderValues.ClientBaseUri,
+                options.Value.Prod.MailServiceSettings.DefaultPlaceholderValues.ClientApplicationName
+            ),
+            _ => (
+                options.Value.Loc.MailServiceSettings.DefaultPlaceholderValues.HalogenLogoUrl,
+                options.Value.Loc.MailServiceSettings.DefaultPlaceholderValues.ClientBaseUri,
+                options.Value.Loc.MailServiceSettings.DefaultPlaceholderValues.ClientApplicationName
+            )
+        };
 
+        _defaultBodyPlaceholderValues = new Tuple<string, string, string>(halogenLogoUrl, clientBaseUri, clientApplicationName);
         _mailMessage = new MailMessage();
     }
     
     private void ConfigureSmtpClient() {
         var (serverHost, serverPort, useSsl, emailAddress, password) = _environment switch {
             Constants.Development => (
-                _options.Value.Dev.MailServiceSettings.MailServerHost,
-                int.Parse(_options.Value.Dev.MailServiceSettings.MailServerPort),
-                bool.Parse(_options.Value.Dev.MailServiceSettings.UseSsl),
-                _options.Value.Dev.MailServiceSettings.ServerCredentails.EmailAddress,
-                _options.Value.Dev.MailServiceSettings.ServerCredentails.Password
+                _options.Dev.MailServiceSettings.MailServerHost,
+                int.Parse(_options.Dev.MailServiceSettings.MailServerPort),
+                bool.Parse(_options.Dev.MailServiceSettings.UseSsl),
+                _options.Dev.MailServiceSettings.ServerCredentails.EmailAddress,
+                _options.Dev.MailServiceSettings.ServerCredentails.Password
             ),
             Constants.Staging => (
-                _options.Value.Stg.MailServiceSettings.MailServerHost,
-                int.Parse(_options.Value.Stg.MailServiceSettings.MailServerPort),
-                bool.Parse(_options.Value.Stg.MailServiceSettings.UseSsl),
-                _options.Value.Stg.MailServiceSettings.ServerCredentails.EmailAddress,
-                _options.Value.Stg.MailServiceSettings.ServerCredentails.Password
+                _options.Stg.MailServiceSettings.MailServerHost,
+                int.Parse(_options.Stg.MailServiceSettings.MailServerPort),
+                bool.Parse(_options.Stg.MailServiceSettings.UseSsl),
+                _options.Stg.MailServiceSettings.ServerCredentails.EmailAddress,
+                _options.Stg.MailServiceSettings.ServerCredentails.Password
+            ),
+            Constants.Production => (
+                _options.Prod.MailServiceSettings.MailServerHost,
+                int.Parse(_options.Prod.MailServiceSettings.MailServerPort),
+                bool.Parse(_options.Prod.MailServiceSettings.UseSsl),
+                _options.Prod.MailServiceSettings.ServerCredentails.EmailAddress,
+                _options.Prod.MailServiceSettings.ServerCredentails.Password
             ),
             _ => (
-                _options.Value.Prod.MailServiceSettings.MailServerHost,
-                int.Parse(_options.Value.Prod.MailServiceSettings.MailServerPort),
-                bool.Parse(_options.Value.Prod.MailServiceSettings.UseSsl),
-                _options.Value.Prod.MailServiceSettings.ServerCredentails.EmailAddress,
-                _options.Value.Prod.MailServiceSettings.ServerCredentails.Password
+                _options.Loc.MailServiceSettings.MailServerHost,
+                int.Parse(_options.Loc.MailServiceSettings.MailServerPort),
+                bool.Parse(_options.Loc.MailServiceSettings.UseSsl),
+                _options.Loc.MailServiceSettings.ServerCredentails.EmailAddress,
+                _options.Loc.MailServiceSettings.ServerCredentails.Password
             )
         };
 
@@ -87,7 +121,8 @@ public sealed class MailService: ServiceBase, IMailService {
         _mailMessage.IsBodyHtml = true;
         _mailMessage.Priority = mail.Priority;
 
-        _ = mail.Placeholders.Select(x => bodyContent = bodyContent!.Replace(x.Key, x.Value));
+        bodyContent = bodyContent!.SetDefaultEmailBodyValues(_defaultBodyPlaceholderValues);
+        _ = mail.Placeholders.Select(x => bodyContent = Regex.Replace(bodyContent!, $@"^{x.Key}$", x.Value));
         _mailMessage.Body = bodyContent;
         
         mail.Attachments?.ForEach(x => _mailMessage.Attachments.Add(new Attachment(x.Key, x.Value)));
@@ -95,9 +130,7 @@ public sealed class MailService: ServiceBase, IMailService {
     }
 
     private async Task<string?> GetMailBodyContent( Enums.EmailTemplate template) {
-        var filePath = template switch {
-            _ => $"{Constants.EmailTemplateFolderPath}template.html"
-        };
+        var filePath = $"{Constants.AssetsDirectoryPath}{template.GetEnumValue<string>()}.html";
 
         try {
             return await File.ReadAllTextAsync(filePath);
@@ -122,25 +155,15 @@ public sealed class MailService: ServiceBase, IMailService {
         }
     }
 
-    public async Task<List<string>?> SendBulkEmails(List<MailBinding> mails) {
+    public async Task<string[]> SendBulkEmails(List<MailBinding> mails) {
         _logger.Log(new LoggerBinding<MailService> { Location = nameof(SendBulkEmails) });
 
         var emailsFailedToSend = new List<string>();
         foreach (var mail in mails) {
-            var isComposed = await Compose(mail);
-            if (!isComposed) {
-                emailsFailedToSend.Add(mail.Id!);
-                continue;
-            }
-
-            try {
-                await _smtpClient.SendMailAsync(_mailMessage);
-            }
-            catch {
-                emailsFailedToSend.Add(mail.Id!);
-            }
+            var isSent = await SendSingleEmail(mail);
+            if (!isSent) emailsFailedToSend.Add(mail.Id!);
         }
 
-        return emailsFailedToSend.Any() ? emailsFailedToSend : default;
+        return emailsFailedToSend.ToArray();
     }
 }

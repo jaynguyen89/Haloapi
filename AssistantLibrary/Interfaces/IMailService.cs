@@ -6,5 +6,5 @@ public interface IMailService {
 
     Task<bool> SendSingleEmail(MailBinding mail);
 
-    Task<List<string>?> SendBulkEmails(List<MailBinding> mails);
+    Task<string[]> SendBulkEmails(List<MailBinding> mails);
 }

@@ -1,0 +1,115 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Activate your account</title>
+    <link href="https://fonts.googleapis.com/css2?family=Play&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js" integrity="sha512-6PM0qYu5KExuNcKt5bURAoT6KCThUmHRewN3zUFNaoI6Di7XJPTMoT6K0nsagZKk2OB4L7E3q1uQKHNHd4stIQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
+    <style>
+        body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            font-family: 'Play', sans-serif;
+            font-size: 10px;
+            font-weight: 400;
+        }
+        
+        .container {
+            width: 90%;
+            height: 100%;
+            padding: 0 1em;
+        }
+        
+        .logo-wrapper {
+            text-align: center;
+            margin: 1.5em auto;
+            padding: 0;
+        }
+        
+        .logo-wrapper > img {
+            width: 6em;
+            height: 6em;
+        }
+        
+        .space-vertical {
+            margin: 1em 0;
+        }
+        
+        .paragraph {
+            font-size: 1.5em;
+        }
+        
+        .text-url {
+            font-size: 13px;
+            padding: 1em;
+            border-radius: 0.3em;
+        }
+        
+        .footer {
+            width: 100%;
+            padding: 0 1em;
+        }
+        
+        .footer-text {
+            margin: 0.75em 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-wrapper">
+            <img src="CLIENT_LOGO_URL" alt="halogen_logo">
+        </div>
+        
+        <h6>To you by <b>EMAIL_ADDRESS</b>,</h6>
+        <h6>A warm welcome to <b>CLIENT_APPLICATION_NAME</b>,</h6>
+        
+        <div class="paragraph space-vertical">
+            Your new account on CLIENT_APPLICATION_NAME has been created successfully.
+            Please click <a href="CLIENT_BASE_URI/activate-account?email=EMAIL_ADDRESS&token=REGISTRATION_TOKEN">here</a> to activate your account.
+        </div>
+        
+        <div class="paragraph space-vertical">
+            If the above link does not work, please copy and paste this link into your preferred web browser:
+            <p class="text-url z-depth-1 grey lighten-4">CLIENT_BASE_URI/activate-account?email=EMAIL_ADDRESS&token=REGISTRATION_TOKEN</p>
+        </div>
+        
+        <br/>
+        <div class="paragraph space-vertical">
+            <b><i class="fa-solid fa-triangle-exclamation orange-text"></i> Please note:</b>
+            <ol>
+                <li>
+                    <b>The activation link only stays valid until VALID_UNTIL_DATETIME.</b>
+                    If you do not activate your account within the validity period,
+                    you have to <a href="CLIENT_BASE_URI/request-activation-email?email=EMAIL_ADDRESS&token=REGISTRATION_TOKEN">request another Account Activation email</a>
+                    to activate your account.
+                </li>
+                <li>
+                    If you have something to ask, please have a look at the <a href="CLIENT_BASE_URI/faqs/account-registration">Account Registration FAQ</a>
+                    or send us a message from <a href="CLIENT_BASE_URI/contact-us">here</a>.
+                </li>
+            </ol>
+        </div>
+
+        <div class="paragraph space-vertical">We hope to see you soon on CLIENT_APPLICATION_NAME!</div>
+        <div class="paragraph space-vertical">
+            Kind regards,<br/>
+            CLIENT_APPLICATION_NAME Supports
+        </div>
+        
+        <div class="footer grey lighten-4">
+            <div class="row" style="margin: 0;">
+                <div class="col m6 s12 footer-text">This is email is automatically sent by CLIENT_APPLICATION_NAME system. Please do not reply.</div>
+                <div class="col m6 s12 footer-text" style="text-align: right">CLIENT_APPLICATION_NAME@CURRENT_YEAR</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

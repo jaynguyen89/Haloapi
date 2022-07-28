@@ -40,13 +40,13 @@ public partial class HalogenDbContext : DbContext {
 
             entity.Property(e => e.EmailAddress).HasMaxLength(100);
 
-            entity.Property(e => e.EmailAddressToken).HasMaxLength(30);
+            entity.Property(e => e.EmailAddressToken).HasMaxLength(50);
 
             entity.Property(e => e.HashPassword).HasMaxLength(100);
 
             entity.Property(e => e.NormalizedUsername).HasMaxLength(50);
 
-            entity.Property(e => e.PasswordSalt).HasMaxLength(30);
+            entity.Property(e => e.PasswordSalt).HasMaxLength(50);
 
             entity.Property(e => e.OneTimePassword).HasMaxLength(15);
 
@@ -283,9 +283,7 @@ public partial class HalogenDbContext : DbContext {
 
             entity.Property(e => e.AccountId).HasMaxLength(65);
 
-            entity.Property(e => e.Privacy).HasMaxLength(1000);
-
-            entity.Property(e => e.Security).HasMaxLength(1000);
+            entity.Property(e => e.Privacy).HasMaxLength(4000);
 
             entity.Property(e => e.UpdatedOn).HasDefaultValueSql("(getdate())");
 
@@ -330,7 +328,7 @@ public partial class HalogenDbContext : DbContext {
 
             entity.Property(e => e.PhoneNumber).HasMaxLength(50);
 
-            entity.Property(e => e.PhoneNumberToken).HasMaxLength(30);
+            entity.Property(e => e.PhoneNumberToken).HasMaxLength(10);
 
             entity.Property(e => e.Websites).HasMaxLength(4000);
 

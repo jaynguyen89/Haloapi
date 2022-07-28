@@ -4,6 +4,7 @@ public static class Constants {
 
     public const string ProjectName = "TradeWork EVO";
 
+    public const string Local = "Local";
     public const string Development = "Development";
     public const string Staging = "Staging";
     public const string Production = "Produciton";
@@ -19,6 +20,15 @@ public static class Constants {
     public const string SingleQuote = "'";
     public const string Plus = "+";
 
+    public const int TicksPerSecond = 1000;
+    public const int SecondsPerMinute = 60;
+    public const int MinutesPerHour = 60;
+    public const int HoursPerDay = 24;
+    public const int DaysPerWeek = 7;
+    public const int DaysPerMonth = 30;
+    public const int MonthsPerQuarter = 3;
+    public const int DaysPerYear = 365;
+
     public const int RandomStringDefaultLength = 40;
 
     public static readonly List<string> InvalidEnds = new() { ".", "-", "_" };
@@ -32,9 +42,7 @@ public static class Constants {
 
     public static int TwoFactorDefaultTolerance = 300; // seconds
     
-    public static readonly string EmailTemplateFolderPath =
-        Path.GetDirectoryName(Directory.GetCurrentDirectory()) +
-        @"/AssistantLibrary/EmailTemplates/";
+    public static readonly string AssetsDirectoryPath = Path.GetDirectoryName(Directory.GetCurrentDirectory()) + @"/AssistantLibrary/Assets/";
     
     public static readonly Dictionary<string, string> ContentTypes = new() {
         { "json", "application/json" },

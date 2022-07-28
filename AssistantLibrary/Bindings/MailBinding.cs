@@ -33,5 +33,5 @@ public sealed class Recipient {
 
     public string EmailAddress { get; set; } = null!;
 
-    public string Name { get; set; } = null!;
+    public string? Name { get; set; } = null!;
 }

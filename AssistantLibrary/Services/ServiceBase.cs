@@ -8,7 +8,7 @@ public class ServiceBase {
 
     protected readonly string _environment;
     protected readonly ILoggerService _logger;
-    protected readonly IOptions<AssistantLibraryOptions> _options;
+    protected readonly AssistantLibraryOptions _options;
 
     internal ServiceBase(
         IEcosystem ecosystem,
@@ -17,6 +17,6 @@ public class ServiceBase {
     ) {
         _environment = ecosystem.GetEnvironment();
         _logger = logger;
-        _options = options;
+        _options = options.Value;
     }
 }
