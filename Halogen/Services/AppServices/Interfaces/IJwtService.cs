@@ -1,6 +1,6 @@
-﻿namespace Halogen.Services.AppServices.Interfaces; 
+﻿namespace Halogen.Services.AppServices.Interfaces;
 
-internal interface IJwtService {
+public interface IJwtService {
     
     string GenerateRequestAuthenticationToken(Dictionary<string, string> claims);
 }

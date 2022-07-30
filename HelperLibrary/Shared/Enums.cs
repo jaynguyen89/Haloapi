@@ -3,8 +3,8 @@
 public static class Enums {
 
     public enum ApiResult {
-        SUCCESS,
-        FAILED
+        SUCCESS = 1,
+        FAILED = 0
     }
 
     public enum LogSeverity {

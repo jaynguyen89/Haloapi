@@ -2,7 +2,7 @@
 
 namespace Halogen.Services.DbServices.Interfaces; 
 
-internal interface IRoleService {
+public interface IRoleService {
 
     Task<string?> InsertNewAccountRole(AccountRole newAccountRole);
     

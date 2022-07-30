@@ -2,7 +2,7 @@
 
 namespace Halogen.Bindings.ApiBindings; 
 
-internal sealed class ClientResponse {
+public sealed class ClientResponse {
 
     public Enums.ApiResult Result { get; set; } = Enums.ApiResult.SUCCESS;
 

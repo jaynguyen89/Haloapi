@@ -7,7 +7,7 @@ using HelperLibrary;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Logger;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Configuration;
 
 namespace AssistantLibrary.Services; 
 
@@ -18,14 +18,9 @@ public sealed class CryptoService: ServiceBase, ICryptoService {
     public CryptoService(
         IEcosystem ecosystem,
         ILoggerService logger,
-        IOptions<AssistantLibraryOptions> options
-    ): base(ecosystem, logger, options) {
-        var rsaKeySize = ecosystem.GetEnvironment() switch {
-            Constants.Development => options.Value.Dev.RsaKeyLength,
-            Constants.Staging => options.Value.Stg.RsaKeyLength,
-            Constants.Production => options.Value.Prod.RsaKeyLength,
-            _ => options.Value.Loc.RsaKeyLength
-        };
+        IConfiguration configuration
+    ): base(ecosystem, logger, configuration) {
+        var rsaKeySize = _configuration.AsEnumerable().Single(x => x.Key.Equals($"{_baseOptionKey}{nameof(AssistantLibraryOptions.Local.RsaKeyLength)}")).Value;
         _rsaKeySize = int.Parse(rsaKeySize);
     }
     

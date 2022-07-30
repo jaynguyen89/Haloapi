@@ -1,9 +1,9 @@
 ﻿using Halogen.Services.AppServices.Interfaces;
 using HelperLibrary.Shared.Logger;
 
-namespace Halogen.Services.AppServices.Services; 
+namespace Halogen.Services.AppServices.Services;
 
-internal class AppServiceBase: IAppServiceBase {
+public class AppServiceBase: IAppServiceBase {
 
     protected readonly ILoggerService _logger;
 

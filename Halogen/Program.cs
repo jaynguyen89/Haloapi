@@ -13,7 +13,6 @@ using HelperLibrary;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Logger;
-using MediaLibrary;
 using MediaLibrary.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -26,17 +25,32 @@ public static class Program {
     
     private const byte ConfigurationsRefreshMinutesInterval = 60;
     private static IConfiguration _configuration = null!;
-    
+
+    private static string Environment { get; set; } = null!;
+    private static string AwsAccessKeyId { get; set; } = null!;
+    private static string AwsSecretAccessKey { get; set; } = null!;
+    private static string AwsRegion { get; set; } = null!;
+
     public static void Main(string[] args) {
         var builder = WebApplication.CreateBuilder(args);
         
         builder.Configuration.AddEnvironmentVariables(nameof(Halogen));
-        var isLocal = builder.Configuration.GetValue<string>($"{nameof(Halogen)}Environment").Equals(Constants.Local);
+        var (environment, awsAccessKeyId, awsSecretAccessKey, awsRegion, awsLogGroup) = (
+            builder.Configuration.GetValue<string>($"{nameof(Halogen)}{Constants.Underscore}Environment"),
+            builder.Configuration.GetValue<string>($"{nameof(Halogen)}{Constants.Underscore}{nameof(HalogenOptions.ServerSettings.AwsAccessKeyId)}"),
+            builder.Configuration.GetValue<string>($"{nameof(Halogen)}{Constants.Underscore}{nameof(HalogenOptions.ServerSettings.AwsSecretAccessKey)}"),
+            builder.Configuration.GetValue<string>($"{nameof(Halogen)}{Constants.Underscore}{nameof(HalogenOptions.ServerSettings.AwsRegion)}"),
+            builder.Configuration.GetValue<string>($"{nameof(Halogen)}{Constants.Underscore}{nameof(HalogenOptions.ServerSettings.AwsLogGroupName)}")
+        );
+
+        Environment = environment;
+        AwsAccessKeyId = awsAccessKeyId;
+        AwsSecretAccessKey = awsSecretAccessKey;
+        AwsRegion = awsRegion;
 
         builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
-        if (isLocal) builder.Configuration.AddJsonFile("appsettings.json", true, true);
+        if (environment.Equals(Constants.Local)) builder.Configuration.AddJsonFile("appsettings.json", true, true);
         else builder.Host
-                    .UseServiceProviderFactory(new AutofacServiceProviderFactory())
                     .ConfigureAppConfiguration(configurations => {
                         configurations.AddSystemsManager(
                             $"{Constants.FSlash}{nameof(Halogen)}",
@@ -68,7 +82,7 @@ public static class Program {
                     });
 
         _configuration = builder.Configuration;
-        var environment = _configuration.GetValue<string>($"{nameof(Halogen)}Environment");
+        builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory(ConfigureContainer));
         
         var shouldCheckCookieConsent = environment switch {
             Constants.Development => bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Development.CookieShouldCheckConsent)}")),
@@ -77,9 +91,12 @@ public static class Program {
             _ => bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CookieShouldCheckConsent)}"))
         };
 
-        builder.Services.Configure<CookiePolicyOptions>(options => options.CheckConsentNeeded = _ => shouldCheckCookieConsent);
+        builder.Services.Configure<CookiePolicyOptions>(options => {
+            options.CheckConsentNeeded = _ => shouldCheckCookieConsent;
+            options.MinimumSameSitePolicy = SameSiteMode.None;
+        });
         builder.Services.AddCors();
-        builder.Services.AddControllers().AddControllersAsServices();
+        builder.Services.AddControllers();//.AddControllersAsServices();
 
         var (apiVersion, apiName, apiDescription) = environment switch {
             Constants.Development => (
@@ -122,7 +139,9 @@ public static class Program {
         builder.Services.AddAuthentication(options => {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-        }).AddJwtBearer(options => {
+        })
+               .AddCookie(options => options.ExpireTimeSpan = TimeSpan.FromMinutes(600))
+               .AddJwtBearer(options => {
             var (requireHttpsMetadata, saveToken) = environment switch {
                 Constants.Development => (
                     _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Development.JwtSettings)}{Constants.Colon}{nameof(HalogenOptions.Development.JwtSettings.RequireHttpsMetadata)}"),
@@ -227,84 +246,47 @@ public static class Program {
             options.DefaultPolicy = defaultAuthorizationPolicyBuilder.RequireAuthenticatedUser().Build();
         });
 
-        var (idleTimeout, isEssential, maxAge, expiration) = environment switch {
+        var (idleTimeout, isEssential, maxAge) = environment switch {
             Constants.Development => (
                 int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Development.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Development.SessionSettings.IdleTimeout)}")),
                 bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Development.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Development.SessionSettings.IsEssential)}")),
-                int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Development.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Development.SessionSettings.MaxAge)}")),
-                int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Development.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Development.SessionSettings.Expiration)}"))
+                int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Development.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Development.SessionSettings.MaxAge)}"))
             ),
             Constants.Staging => (
                 int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Staging.SessionSettings.IdleTimeout)}")),
                 bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Staging.SessionSettings.IsEssential)}")),
-                int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Staging.SessionSettings.MaxAge)}")),
-                int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Staging.SessionSettings.Expiration)}"))
+                int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Staging.SessionSettings.MaxAge)}"))
             ),
             Constants.Production => (
                 int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.SessionSettings.IdleTimeout)}")),
                 bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.SessionSettings.IsEssential)}")),
-                int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.SessionSettings.MaxAge)}")),
-                int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.SessionSettings.Expiration)}"))
+                int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.SessionSettings.MaxAge)}"))
             ),
             _ => (
                 int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings.IdleTimeout)}")),
                 bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings.IsEssential)}")),
-                int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings.MaxAge)}")),
-                int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings.Expiration)}"))
+                int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings.MaxAge)}"))
             )
         };
 
         builder.Services.AddSession(options => {
             options.IdleTimeout = TimeSpan.FromMinutes(idleTimeout);
-            options.Cookie = new CookieBuilder {
-                Domain = nameof(Halogen),
-                HttpOnly = !environment.Equals(Constants.Local),
-                IsEssential = isEssential,
-                MaxAge = TimeSpan.FromDays(maxAge),
-                Expiration = TimeSpan.FromDays(expiration),
-                SameSite = SameSiteMode.None,
-                SecurePolicy = CookieSecurePolicy.Always
-            };
+            options.Cookie.Domain = nameof(Halogen);
+            options.Cookie.HttpOnly = isEssential;
+            options.Cookie.IsEssential = isEssential;
+            options.Cookie.MaxAge = TimeSpan.FromDays(maxAge);
+            options.Cookie.SameSite = SameSiteMode.None;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         });
 
         builder.Services
                .AddMvc(options => options.EnableEndpointRouting = false)
                .AddSessionStateTempDataProvider();
 
-        builder.Services.AddHttpContextAccessor();
-        builder.Services.AddOptions();
-        
-        var (awsAccessKeyId, awsSecretAccessKey, awsRegion, awsLogGroupName) = environment switch {
-            Constants.Development => (
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Development.ServerSettings)}{Constants.Colon}{nameof(HalogenOptions.Development.ServerSettings.AwsAccessKeyId)}"),
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Development.ServerSettings)}{Constants.Colon}{nameof(HalogenOptions.Development.ServerSettings.AwsSecretAccessKey)}"),
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Development.ServerSettings)}{Constants.Colon}{nameof(HalogenOptions.Development.ServerSettings.AwsRegion)}"),
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Development.ServerSettings)}{Constants.Colon}{nameof(HalogenOptions.Development.ServerSettings.AwsLogGroupName)}")
-            ),
-            Constants.Staging => (
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.ServerSettings)}{Constants.Colon}{nameof(HalogenOptions.Staging.ServerSettings.AwsAccessKeyId)}"),
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.ServerSettings)}{Constants.Colon}{nameof(HalogenOptions.Staging.ServerSettings.AwsSecretAccessKey)}"),
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.ServerSettings)}{Constants.Colon}{nameof(HalogenOptions.Staging.ServerSettings.AwsRegion)}"),
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.ServerSettings)}{Constants.Colon}{nameof(HalogenOptions.Staging.ServerSettings.AwsLogGroupName)}")
-            ),
-            Constants.Production => (
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.ServerSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.ServerSettings.AwsAccessKeyId)}"),
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.ServerSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.ServerSettings.AwsSecretAccessKey)}"),
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.ServerSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.ServerSettings.AwsRegion)}"),
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.ServerSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.ServerSettings.AwsLogGroupName)}")
-            ),
-            _ => (
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.ServerSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.ServerSettings.AwsAccessKeyId)}"),
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.ServerSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.ServerSettings.AwsSecretAccessKey)}"),
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.ServerSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.ServerSettings.AwsRegion)}"),
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.ServerSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.ServerSettings.AwsLogGroupName)}")
-            )
-        };
-
         if (!environment.Equals(Constants.Local))
             builder.Services.AddLogging(options => options.AddAWSProvider(new AWSLoggerConfig {
                 Region = awsRegion,
-                LogGroup = awsLogGroupName,
+                LogGroup = awsLogGroup,
                 Credentials = new BasicAWSCredentials(awsAccessKeyId, awsSecretAccessKey)
             }));
 
@@ -371,15 +353,10 @@ public static class Program {
                 options.InstanceName = instanceName;
             });
 
-        builder.Services.Configure<AmazonLibraryOptions>(_configuration.GetSection(nameof(AmazonLibraryOptions)));
-        builder.Services.Configure<AssistantLibraryOptions>(_configuration.GetSection(nameof(AssistantLibraryOptions)));
-        builder.Services.Configure<MediaLibraryOptions>(_configuration.GetSection(nameof(MediaLibraryOptions)));
-        builder.Services.Configure<HalogenOptions>(_configuration.GetSection(nameof(HalogenOptions)));
-
         var app = builder.Build();
-        
-        // app.UseSwagger();
-        // app.UseSwaggerUI(options => options.SwaggerEndpoint("/swagger/v1/swagger.json", $"{apiName} {apiVersion}"));
+
+        app.UseSwagger();
+        app.UseSwaggerUI(options => options.SwaggerEndpoint("/swagger/v1/swagger.json", $"{apiName} {apiVersion}"));
 
         app.UseAuthentication();
         app.UseSession();
@@ -397,7 +374,7 @@ public static class Program {
             var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
             _ = loggerFactory.AddAWSProvider(new AWSLoggerConfig {
                 Region = awsRegion,
-                LogGroup = awsLogGroupName,
+                LogGroup = awsLogGroup,
                 Credentials = new BasicAWSCredentials(awsAccessKeyId, awsSecretAccessKey)
             });
         }
@@ -406,22 +383,31 @@ public static class Program {
 
         app.UseRouting();
         app.UseHttpsRedirection();
+        app.UseCookiePolicy();
         app.UseAuthorization();
-        app.UseSession();
-        
+
         app.MapControllers();
         app.MapControllerRoute("default", "{controller}/{action}/{id?}");
 
         app.Run();
     }
 
-    public static void ConfigureContainer(ContainerBuilder builder) {
+    private static void ConfigureContainer(ContainerBuilder builder) {
         builder.RegisterInstance(_configuration).As<IConfiguration>();
         builder.RegisterType<HttpContextAccessor>().As<IHttpContextAccessor>().SingleInstance();
         
-        var environment = _configuration.GetValue<string>($"{nameof(Halogen)}Environment");
-        builder.RegisterInstance(new Ecosystem { Environment = environment }).As<IEcosystem>();
-        
+        var environment = _configuration.GetValue<string>($"{nameof(Halogen)}{Constants.Underscore}Environment");
+        var useLongerId = bool.Parse(_configuration.GetValue<string>($"{nameof(Halogen)}{Constants.Underscore}{nameof(Ecosystem.UseLongerId)}"));
+        builder.RegisterInstance(new Ecosystem {
+            Environment = environment,
+            UseLongerId = useLongerId,
+            ServerSetting = new Ecosystem.ServerSettings {
+                AwsRegion = AwsRegion,
+                AwsAccessKeyId = AwsAccessKeyId,
+                AwsSecretAccessKey = AwsSecretAccessKey
+            }
+        }).As<IEcosystem>();
+    
         builder.RegisterType<LoggerService>().As<ILoggerService>();
         builder.RegisterAssistantLibraryServices();
         builder.RegisterAmazonLibraryServices();

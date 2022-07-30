@@ -7,9 +7,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Halogen.Services.DbServices.Services; 
 
-internal sealed class RoleService: DbServiceBase, IRoleService {
+public sealed class RoleService: DbServiceBase, IRoleService {
     
-    internal RoleService(
+    public RoleService(
         ILoggerService logger,
         HalogenDbContext dbContext
     ): base(logger, dbContext) { }

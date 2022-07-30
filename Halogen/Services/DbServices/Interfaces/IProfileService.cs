@@ -2,7 +2,7 @@
 
 namespace Halogen.Services.DbServices.Interfaces; 
 
-internal interface IProfileService {
+public interface IProfileService {
 
     Task<string?> InsertNewProfile(Profile newProfile);
 }

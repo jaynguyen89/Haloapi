@@ -1,6 +1,6 @@
 ﻿namespace Halogen.Services.DbServices.Interfaces; 
 
-internal interface IAccountService {
+public interface IAccountService {
 
     Task<bool?> IsEmailAvailableForNewAccount(string emailAddress);
 }

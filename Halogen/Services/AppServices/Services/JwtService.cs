@@ -6,9 +6,9 @@ using HelperLibrary;
 using HelperLibrary.Shared;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Halogen.Services.AppServices.Services; 
+namespace Halogen.Services.AppServices.Services;
 
-internal sealed class JwtService: IJwtService {
+public sealed class JwtService: IJwtService {
     
     private readonly ILogger<JwtService> _logger;
     private readonly IConfiguration _configuration;

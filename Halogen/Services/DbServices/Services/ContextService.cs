@@ -3,7 +3,7 @@ using Halogen.Services.DbServices.Interfaces;
 
 namespace Halogen.Services.DbServices.Services; 
 
-internal sealed class ContextService: IContextService {
+public sealed class ContextService: IContextService {
 
     private readonly ILogger<ContextService> _logger;
     private readonly HalogenDbContext _dbContext;

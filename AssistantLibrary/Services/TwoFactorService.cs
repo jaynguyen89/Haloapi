@@ -5,7 +5,7 @@ using HelperLibrary;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Logger;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Configuration;
 
 namespace AssistantLibrary.Services; 
 
@@ -16,20 +16,18 @@ public sealed class TwoFactorService: ServiceBase, ITwoFactorService {
     public TwoFactorService(
         IEcosystem ecosystem,
         ILoggerService logger,
-        IOptions<AssistantLibraryOptions> options
-    ): base(ecosystem, logger, options) {
+        IConfiguration configuration
+    ): base(ecosystem, logger, configuration) {
         _authenticator = new TwoFactorAuthenticator();
     }
     
     public TwoFactorData GetTwoFactorAuthenticationData(in GetTwoFactorBinding binding) {
         _logger.Log(new LoggerBinding<TwoFactorService> { Location = nameof(GetTwoFactorAuthenticationData) });
         
-        var (projectName, qrImageSize) = _environment switch {
-            Constants.Development => (_options.Dev.ProjectName, _options.Dev.TwoFactorSettings.QrImageSize),
-            Constants.Staging => (_options.Stg.ProjectName, _options.Stg.TwoFactorSettings.QrImageSize),
-            Constants.Production => (_options.Prod.ProjectName, _options.Prod.TwoFactorSettings.QrImageSize),
-            _ => (_options.Loc.ProjectName, _options.Loc.TwoFactorSettings.QrImageSize)
-        };
+        var (projectName, qrImageSize) = (
+            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{nameof(AssistantLibraryOptions)}{Constants.Colon}{nameof(AssistantLibraryOptions.Local.ProjectName)}")).Value,
+            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{_twoFactorBaseOptionKey}{nameof(AssistantLibraryOptions.Local.TwoFactorSettings.QrImageSize)}")).Value
+        );
         
         var setupCodeData = _authenticator.GenerateSetupCode(
             projectName ?? binding.ProjectName,
@@ -47,13 +45,7 @@ public sealed class TwoFactorService: ServiceBase, ITwoFactorService {
 
     public bool VerifyTwoFactorAuthenticationPin(in VerifyTwoFactorBinding binding) {
         _logger.Log(new LoggerBinding<TwoFactorService> { Location = nameof(VerifyTwoFactorAuthenticationPin) });
-
-        var tolerance = _environment switch {
-            Constants.Development => _options.Dev.TwoFactorSettings.ToleranceDuration,
-            Constants.Staging => _options.Stg.TwoFactorSettings.ToleranceDuration,
-            Constants.Production => _options.Prod.TwoFactorSettings.ToleranceDuration,
-            _ => _options.Loc.TwoFactorSettings.ToleranceDuration
-        };
+        var tolerance = _configuration.AsEnumerable().Single(x => x.Key.Equals($"{_twoFactorBaseOptionKey}{nameof(AssistantLibraryOptions.Local.TwoFactorSettings.ToleranceDuration)}")).Value;
         
         return _authenticator.ValidateTwoFactorPIN(
             binding.SecretKey,

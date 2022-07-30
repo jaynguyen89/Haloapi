@@ -7,9 +7,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Halogen.Services.DbServices.Services; 
 
-internal sealed class AuthenticationService: DbServiceBase, IAuthenticationService {
+public sealed class AuthenticationService: DbServiceBase, IAuthenticationService {
 
-    internal AuthenticationService(
+    public AuthenticationService(
         ILoggerService logger,
         HalogenDbContext dbContext
     ): base(logger, dbContext) { }

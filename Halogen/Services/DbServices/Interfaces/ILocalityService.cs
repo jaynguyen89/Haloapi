@@ -1,6 +1,6 @@
 ﻿namespace Halogen.Services.DbServices.Interfaces; 
 
-internal interface ILocalityService {
+public interface ILocalityService {
 
     Task<string[]?> GetTelephoneCodes();
 }

@@ -4,7 +4,7 @@ using AssistantLibrary.Services.ServiceFactory;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Logger;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Configuration;
 
 namespace AssistantLibrary.Services; 
 
@@ -12,49 +12,27 @@ public sealed class SmsServiceFactory: ServiceBase, ISmsServiceFactory {
 
     private readonly IEcosystem _ecosystem;
     private readonly string _activeSmsServiceName;
-    private readonly IOptions<AssistantLibraryOptions> _iOptions;
 
     public SmsServiceFactory(
         IEcosystem ecosystem,
         ILoggerService logger,
-        IOptions<AssistantLibraryOptions> options
-    ): base(ecosystem, logger, options) {
+        IConfiguration configuration
+    ): base(ecosystem, logger, configuration) {
         _ecosystem = ecosystem;
-        _iOptions = options;
-        
-        _activeSmsServiceName = ecosystem.GetEnvironment() switch {
-            Constants.Development => options.Value.Dev.ServiceFactorySettings.ActiveSmsService,
-            Constants.Staging => options.Value.Stg.ServiceFactorySettings.ActiveSmsService,
-            Constants.Production => options.Value.Prod.ServiceFactorySettings.ActiveSmsService,
-            _ => options.Value.Loc.ServiceFactorySettings.ActiveSmsService
-        };
+        _activeSmsServiceName = _configuration.AsEnumerable().Single(x => x.Key.Equals($"{_serviceFactoryBaseOptionKey}{nameof(AssistantLibraryOptions.Local.ServiceFactorySettings.ActiveSmsService)}")).Value;
     }
 
     // Todo: improve this by dynamically get the service using ServiceLocator
     public ISmsService GetActiveSmsService() {
         if (!_activeSmsServiceName.Equals(nameof(ClickatellSmsHttpService)))
-            return new ClickatellSmsRestService(_ecosystem, _logger, _iOptions);
+            return new ClickatellSmsRestService(_ecosystem, _logger, _configuration);
         
-        var (httpEndpoint, apiKey) = _environment switch {
-            Constants.Development => (
-                _options.Dev.ClickatellHttpSettings.HttpEndpoint,
-                _options.Dev.ClickatellHttpSettings.ApiKey
-            ),
-            Constants.Staging => (
-                _options.Stg.ClickatellHttpSettings.HttpEndpoint,
-                _options.Stg.ClickatellHttpSettings.ApiKey
-            ),
-            Constants.Production => (
-                _options.Prod.ClickatellHttpSettings.HttpEndpoint,
-                _options.Prod.ClickatellHttpSettings.ApiKey
-            ),
-            _ => (
-                _options.Loc.ClickatellHttpSettings.HttpEndpoint,
-                _options.Loc.ClickatellHttpSettings.ApiKey
-            )
-        };
+        var (httpEndpoint, apiKey) = (
+            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{_clickatellBaseOptionKey}{nameof(AssistantLibraryOptions.Local.ClickatellHttpSettings.HttpEndpoint)}")).Value,
+            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{_clickatellBaseOptionKey}{nameof(AssistantLibraryOptions.Local.ClickatellHttpSettings.ApiKey)}")).Value
+        );
 
         var clickatellBaseUrl = $"{httpEndpoint}?{nameof(apiKey)}={apiKey}";
-        return new ClickatellSmsHttpService(_ecosystem, _logger, _iOptions, clickatellBaseUrl);
+        return new ClickatellSmsHttpService(_ecosystem, _logger, _configuration, clickatellBaseUrl);
     }
 }

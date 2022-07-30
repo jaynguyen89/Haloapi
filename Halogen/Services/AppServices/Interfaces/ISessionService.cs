@@ -1,6 +1,6 @@
-﻿namespace Halogen.Services.AppServices.Interfaces; 
+﻿namespace Halogen.Services.AppServices.Interfaces;
 
-internal interface ISessionService {
+public interface ISessionService {
 
     void Set(object data, string key);
     

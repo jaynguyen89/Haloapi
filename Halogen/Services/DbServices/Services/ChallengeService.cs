@@ -4,9 +4,9 @@ using HelperLibrary.Shared.Logger;
 
 namespace Halogen.Services.DbServices.Services; 
 
-internal sealed class ChallengeService: DbServiceBase, IChallengeService {
+public sealed class ChallengeService: DbServiceBase, IChallengeService {
     
-    internal ChallengeService(
+    public ChallengeService(
         ILoggerService logger,
         HalogenDbContext dbContext
     ): base(logger, dbContext) { }

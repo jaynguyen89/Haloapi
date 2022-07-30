@@ -7,7 +7,7 @@ using HelperLibrary.Shared;
 
 namespace Halogen.Bindings.ApiBindings; 
 
-internal sealed class RegionalizedPhoneNumber {
+public sealed class RegionalizedPhoneNumber {
 
     private readonly ICacheService _cacheService;
     
@@ -19,7 +19,7 @@ internal sealed class RegionalizedPhoneNumber {
     
     public string PhoneNumber { get; set; } = null!;
 
-    internal RegionalizedPhoneNumber(
+    public RegionalizedPhoneNumber(
         IConfiguration configuration,
         ICacheService cacheService,
         ILocalityService localityService
@@ -29,7 +29,7 @@ internal sealed class RegionalizedPhoneNumber {
         _cacheKey = configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{nameof(HalogenOptions.CacheKeys)}{Constants.Colon}{nameof(HalogenOptions.CacheKeys.TelephoneCodes)}");
     }
 
-    internal async Task<string[]> VerifyPhoneNumberData() {
+    public async Task<string[]> VerifyPhoneNumberData() {
         var errors = new List<string>();
         var telephoneCodes = await _cacheService.GetCacheEntry<string[]>(_cacheKey) ?? await _localityService.GetTelephoneCodes() ?? Constants.TelephoneCodes;
 

@@ -7,7 +7,7 @@ using HelperLibrary;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Logger;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Configuration;
 
 namespace AssistantLibrary.Services; 
 
@@ -22,85 +22,48 @@ public sealed class MailService: ServiceBase, IMailService {
     public MailService(
         IEcosystem ecosystem,
         ILoggerService logger,
-        IOptions<AssistantLibraryOptions> options
-    ): base(ecosystem, logger, options) {
+        IConfiguration configuration
+    ): base(ecosystem, logger, configuration) {
         _smtpClient = new SmtpClient();
         ConfigureSmtpClient();
-
-        var (defaultSenderEmailAddress, defaultSenderName) = ecosystem.GetEnvironment() switch {
-            Constants.Development => (options.Value.Dev.MailServiceSettings.DefaultSenderAddress, options.Value.Dev.MailServiceSettings.DefaultSenderName),
-            Constants.Staging => (options.Value.Stg.MailServiceSettings.DefaultSenderAddress, options.Value.Stg.MailServiceSettings.DefaultSenderName),
-            Constants.Production => (options.Value.Prod.MailServiceSettings.DefaultSenderAddress, options.Value.Prod.MailServiceSettings.DefaultSenderName),
-            _ => (options.Value.Loc.MailServiceSettings.DefaultSenderAddress, options.Value.Loc.MailServiceSettings.DefaultSenderName)
-        };
+        
+        var (defaultSenderEmailAddress, defaultSenderName) = (
+            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{_mailServiceBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.DefaultSenderAddress)}")).Value,
+            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{_mailServiceBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.DefaultSenderName)}")).Value
+        );
 
         _defaultSenderEmailAddress = defaultSenderEmailAddress;
         _defaultSenderName = defaultSenderName;
-        
-        var (halogenLogoUrl, clientBaseUri, clientApplicationName) = ecosystem.GetEnvironment() switch {
-            Constants.Development => (
-                options.Value.Dev.MailServiceSettings.DefaultPlaceholderValues.HalogenLogoUrl,
-                options.Value.Dev.MailServiceSettings.DefaultPlaceholderValues.ClientBaseUri,
-                options.Value.Dev.MailServiceSettings.DefaultPlaceholderValues.ClientApplicationName
-            ),
-            Constants.Staging => (
-                options.Value.Stg.MailServiceSettings.DefaultPlaceholderValues.HalogenLogoUrl,
-                options.Value.Stg.MailServiceSettings.DefaultPlaceholderValues.ClientBaseUri,
-                options.Value.Stg.MailServiceSettings.DefaultPlaceholderValues.ClientApplicationName
-            ),
-            Constants.Production => (
-                options.Value.Prod.MailServiceSettings.DefaultPlaceholderValues.HalogenLogoUrl,
-                options.Value.Prod.MailServiceSettings.DefaultPlaceholderValues.ClientBaseUri,
-                options.Value.Prod.MailServiceSettings.DefaultPlaceholderValues.ClientApplicationName
-            ),
-            _ => (
-                options.Value.Loc.MailServiceSettings.DefaultPlaceholderValues.HalogenLogoUrl,
-                options.Value.Loc.MailServiceSettings.DefaultPlaceholderValues.ClientBaseUri,
-                options.Value.Loc.MailServiceSettings.DefaultPlaceholderValues.ClientApplicationName
-            )
-        };
 
+        var defaultPlaceholdersBaseOptionKey = $"{_mailServiceBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.DefaultPlaceholders)}{Constants.Colon}";
+        var (halogenLogoUrl, clientBaseUri, clientApplicationName) = (
+            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{defaultPlaceholdersBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.DefaultPlaceholders.HalogenLogoUrl)}")).Value,
+            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{defaultPlaceholdersBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.DefaultPlaceholders.ClientBaseUri)}")).Value,
+            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{defaultPlaceholdersBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.DefaultPlaceholders.ClientApplicationName)}")).Value
+        );
+        
         _defaultBodyPlaceholderValues = new Tuple<string, string, string>(halogenLogoUrl, clientBaseUri, clientApplicationName);
         _mailMessage = new MailMessage();
     }
     
     private void ConfigureSmtpClient() {
-        var (serverHost, serverPort, useSsl, emailAddress, password) = _environment switch {
-            Constants.Development => (
-                _options.Dev.MailServiceSettings.MailServerHost,
-                int.Parse(_options.Dev.MailServiceSettings.MailServerPort),
-                bool.Parse(_options.Dev.MailServiceSettings.UseSsl),
-                _options.Dev.MailServiceSettings.ServerCredentails.EmailAddress,
-                _options.Dev.MailServiceSettings.ServerCredentails.Password
-            ),
-            Constants.Staging => (
-                _options.Stg.MailServiceSettings.MailServerHost,
-                int.Parse(_options.Stg.MailServiceSettings.MailServerPort),
-                bool.Parse(_options.Stg.MailServiceSettings.UseSsl),
-                _options.Stg.MailServiceSettings.ServerCredentails.EmailAddress,
-                _options.Stg.MailServiceSettings.ServerCredentails.Password
-            ),
-            Constants.Production => (
-                _options.Prod.MailServiceSettings.MailServerHost,
-                int.Parse(_options.Prod.MailServiceSettings.MailServerPort),
-                bool.Parse(_options.Prod.MailServiceSettings.UseSsl),
-                _options.Prod.MailServiceSettings.ServerCredentails.EmailAddress,
-                _options.Prod.MailServiceSettings.ServerCredentails.Password
-            ),
-            _ => (
-                _options.Loc.MailServiceSettings.MailServerHost,
-                int.Parse(_options.Loc.MailServiceSettings.MailServerPort),
-                bool.Parse(_options.Loc.MailServiceSettings.UseSsl),
-                _options.Loc.MailServiceSettings.ServerCredentails.EmailAddress,
-                _options.Loc.MailServiceSettings.ServerCredentails.Password
-            )
-        };
+        var serverCredentialsBaseOptionKey = $"{_mailServiceBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.ServerCredentials)}{Constants.Colon}";
+        var (serverHost, serverPort, useSsl, timeout, emailAddress, password) = (
+            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{_mailServiceBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.MailServerHost)}")).Value,
+            int.Parse(_configuration.AsEnumerable().Single(x => x.Key.Equals($"{_mailServiceBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.MailServerPort)}")).Value),
+            bool.Parse(_configuration.AsEnumerable().Single(x => x.Key.Equals($"{_mailServiceBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.UseSsl)}")).Value),
+            int.Parse(_configuration.AsEnumerable().Single(x => x.Key.Equals($"{_mailServiceBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.Timeout)}")).Value),
+            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{serverCredentialsBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.ServerCredentials.EmailAddress)}")).Value,
+            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{serverCredentialsBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.ServerCredentials.Password)}")).Value
+        );
 
         _smtpClient.Host = serverHost;
         _smtpClient.Port = serverPort;
         _smtpClient.EnableSsl = useSsl;
         _smtpClient.UseDefaultCredentials = useSsl;
         _smtpClient.Credentials = new NetworkCredential(emailAddress, password);
+        _smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
+        _smtpClient.Timeout = timeout;
     }
 
     private async Task<bool> Compose(MailBinding mail) {

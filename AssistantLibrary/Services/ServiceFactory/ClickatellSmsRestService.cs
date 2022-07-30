@@ -2,7 +2,7 @@
 using AssistantLibrary.Interfaces.IServiceFactory;
 using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Logger;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Configuration;
 
 namespace AssistantLibrary.Services.ServiceFactory;
 
@@ -11,8 +11,8 @@ public sealed class ClickatellSmsRestService: ServiceBase, ISmsService, IClickat
     public ClickatellSmsRestService(
         IEcosystem ecosystem,
         ILoggerService logger,
-        IOptions<AssistantLibraryOptions> options
-    ): base(ecosystem, logger, options) {
+        IConfiguration configuration
+    ): base(ecosystem, logger, configuration) {
         
     }
 

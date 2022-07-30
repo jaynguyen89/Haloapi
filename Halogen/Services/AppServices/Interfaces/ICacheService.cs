@@ -1,8 +1,8 @@
 ﻿using Halogen.Bindings.ServiceBindings;
 
-namespace Halogen.Services.AppServices.Interfaces; 
+namespace Halogen.Services.AppServices.Interfaces;
 
-internal interface ICacheService {
+public interface ICacheService {
 
     bool IsEnabled { get; set; }
     

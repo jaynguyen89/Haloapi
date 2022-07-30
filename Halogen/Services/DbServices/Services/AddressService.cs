@@ -4,9 +4,9 @@ using HelperLibrary.Shared.Logger;
 
 namespace Halogen.Services.DbServices.Services; 
 
-internal sealed class AddressService: DbServiceBase, IAddressService {
+public sealed class AddressService: DbServiceBase, IAddressService {
     
-    internal AddressService(
+    public AddressService(
         ILoggerService logger,
         HalogenDbContext dbContext
     ): base(logger, dbContext) { }

@@ -2,14 +2,16 @@
 namespace Halogen.Parsers;
     
 public sealed class HalogenOptions {
-    
-    public Local Loc { get; set; }
-    public Development Dev { get; set; }
-    public Staging Stg { get; set; }
-    public Production Prod { get; set; }
-    
+
     public class CacheKeys {
         public string TelephoneCodes { get; set; }
+    }
+
+    public sealed class ServerSettings {
+        public string AwsAccessKeyId { get; set; }
+        public string AwsSecretAccessKey { get; set; }
+        public string AwsRegion { get; set; }
+        public string AwsLogGroupName { get; set; }
     }
 
     public class Local {
@@ -19,13 +21,6 @@ public sealed class HalogenOptions {
         public ServiceSettings ServiceSettings { get; set; }
         public TwoFactorSettings TwoFactorSettings { get; set; }
         public SecuritySettings SecuritySettings { get; set; }
-
-        public sealed class ServerSettings {
-            public string AwsAccessKeyId { get; set; }
-            public string AwsSecretAccessKey { get; set; }
-            public string AwsRegion { get; set; }
-            public string AwsLogGroupName { get; set; }
-        }
 
         public sealed class SwaggerInfo {
             public string Version { get; set; }
@@ -56,7 +51,6 @@ public sealed class HalogenOptions {
             public string IdleTimeout { get; set; }
             public string IsEssential { get; set; }
             public string MaxAge { get; set; }
-            public string Expiration { get; set; }
             public string CorsOrigins { get; set; }
         }
         

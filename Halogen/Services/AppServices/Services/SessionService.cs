@@ -2,13 +2,13 @@
 using HelperLibrary.Shared.Logger;
 using Newtonsoft.Json;
 
-namespace Halogen.Services.AppServices.Services; 
+namespace Halogen.Services.AppServices.Services;
 
-internal sealed class SessionService: AppServiceBase, ISessionService {
+public sealed class SessionService: AppServiceBase, ISessionService {
 
     private readonly ISession _session;
-    
-    internal SessionService(
+
+    public SessionService(
         IHttpContextAccessor httpContextAccessor,
         ILoggerService logger
     ) : base(logger) {

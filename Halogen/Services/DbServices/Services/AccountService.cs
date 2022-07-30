@@ -6,9 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Halogen.Services.DbServices.Services; 
 
-internal sealed class AccountService: DbServiceBase, IAccountService {
+public sealed class AccountService: DbServiceBase, IAccountService {
     
-    internal AccountService(
+    public AccountService(
         ILoggerService logger,
         HalogenDbContext dbContext
     ): base(logger, dbContext) { }

@@ -7,9 +7,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Halogen.Services.DbServices.Services; 
 
-internal sealed class ProfileService: DbServiceBase, IProfileService {
+public sealed class ProfileService: DbServiceBase, IProfileService {
     
-    internal ProfileService(
+    public ProfileService(
         ILoggerService logger,
         HalogenDbContext dbContext
     ): base(logger, dbContext) { }

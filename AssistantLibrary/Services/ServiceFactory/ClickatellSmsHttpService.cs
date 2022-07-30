@@ -6,8 +6,8 @@ using HelperLibrary;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Logger;
-using Microsoft.Extensions.Options;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace AssistantLibrary.Services.ServiceFactory;
 
@@ -19,29 +19,23 @@ public sealed class ClickatellSmsHttpService: ServiceBase, ISmsService, IClickat
     public ClickatellSmsHttpService(
         IEcosystem ecosystem,
         ILoggerService logger,
-        IOptions<AssistantLibraryOptions> options,
+        IConfiguration configuration,
         string clickatellBaseUrl
-    ): base(ecosystem, logger, options) {
+    ): base(ecosystem, logger, configuration) {
         _httpClient = new HttpClient();
         _clickatellBaseUrl = clickatellBaseUrl;
     }
 
     public async Task<string[]?> SendSingleSms(SingleSmsBinding binding) {
         _logger.Log(new LoggerBinding<ClickatellSmsHttpService> { Location = nameof(SendSingleSms) });
-        
-        var contentType = _environment switch {
-            Constants.Development => _options.Dev.ClickatellHttpSettings.RequestContentType,
-            Constants.Staging => _options.Stg.ClickatellHttpSettings.RequestContentType,
-            Constants.Production => _options.Prod.ClickatellHttpSettings.RequestContentType,
-            _ => _options.Loc.ClickatellHttpSettings.RequestContentType
-        };
-        
+
+        var contentType = _configuration.AsEnumerable().Single(x => x.Key.Equals($"{_clickatellBaseOptionKey}{nameof(AssistantLibraryOptions.Local.ClickatellHttpSettings.RequestContentType)}")).Value;
         _httpClient.DefaultRequestHeaders.Accept.Clear();
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(Constants.ContentTypes[contentType]));
 
         var encodedContent = Regex.Replace(binding.SmsContent, Constants.MonoSpace, Constants.Plus);
         if (_environment.Equals(Constants.Local)) {
-            var receiverPhoneNumber = _options.Dev.ClickatellHttpSettings.DevTestPhoneNumber;
+            var receiverPhoneNumber = _configuration.AsEnumerable().Single(x => x.Key.Equals($"{_clickatellBaseOptionKey}{nameof(AssistantLibraryOptions.Local.ClickatellHttpSettings.DevTestPhoneNumber)}")).Value;
             var requestUrl = $"{_clickatellBaseUrl}&to={receiverPhoneNumber}&content={encodedContent}";
             
             _httpClient.BaseAddress = new Uri(requestUrl);

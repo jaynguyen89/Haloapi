@@ -4,12 +4,12 @@ using HelperLibrary.Shared.Logger;
 
 namespace Halogen.Services.DbServices.Services; 
 
-internal class DbServiceBase: IDbServiceBase {
+public class DbServiceBase: IDbServiceBase {
 
     protected readonly ILoggerService _logger;
     protected readonly HalogenDbContext _dbContext;
 
-    internal DbServiceBase(
+    protected DbServiceBase(
         ILoggerService logger,
         HalogenDbContext dbContext
     ) {

@@ -1,7 +1,7 @@
 ﻿#pragma warning disable 8618
 namespace Halogen.Bindings.ApiBindings; 
 
-internal sealed class HttpHeaderKeys {
+public sealed class HttpHeaderKeys {
 #pragma warning disable CS0649
     public string RecaptchaToken;
 

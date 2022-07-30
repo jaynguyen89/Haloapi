@@ -4,7 +4,7 @@ namespace Halogen.DbModels;
 
 public partial class Account {
 
-    internal static Account CreateNewAccount(bool useLongerId, string emailAddress, string salt, string hashedPassword, int verificationTokenLength) => new() {
+    public static Account CreateNewAccount(bool useLongerId, string emailAddress, string salt, string hashedPassword, int verificationTokenLength) => new() {
         Id = StringHelpers.NewGuid(useLongerId),
         UniqueIdentifier = StringHelpers.NewGuid(),
         EmailAddress = emailAddress,

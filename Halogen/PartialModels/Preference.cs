@@ -7,7 +7,7 @@ namespace Halogen.DbModels;
 
 public partial class Preference {
 
-    internal static Preference CreatePreferenceForNewAccount(bool useLongerId, string accountId) => new() {
+    public static Preference CreatePreferenceForNewAccount(bool useLongerId, string accountId) => new() {
         Id = StringHelpers.NewGuid(useLongerId),
         AccountId = accountId,
         ApplicationTheme = (byte)Enums.ApplicationTheme.BLUE,

@@ -5,9 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Halogen.Services.DbServices.Services; 
 
-internal sealed class LocalityService: DbServiceBase, ILocalityService {
+public sealed class LocalityService: DbServiceBase, ILocalityService {
     
-    internal LocalityService(
+    public LocalityService(
         ILoggerService logger,
         HalogenDbContext dbContext
     ): base(logger, dbContext) { }

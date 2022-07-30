@@ -7,7 +7,6 @@ using HelperLibrary.Shared.Logger;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Extensions.Options;
 
 namespace Halogen.Attributes; 
 
@@ -21,18 +20,19 @@ internal sealed class RecaptchaAuthorize: AuthorizeAttribute, IAuthorizationFilt
     internal RecaptchaAuthorize(
         IEcosystem ecosystem,
         ILoggerService logger,
-        IOptions<HalogenOptions> options,
+        IConfiguration configuration,
         IAssistantService assistantService
     ) {
         _logger = logger;
         _assistantService = assistantService;
         
+        var environment = ecosystem.GetEnvironment();
         _recaptchaEnabled = bool.Parse(
-            ecosystem.GetEnvironment() switch {
-                Constants.Development => options.Value.Dev.ServiceSettings.RecaptchaEnabled,
-                Constants.Staging => options.Value.Stg.ServiceSettings.RecaptchaEnabled,
-                Constants.Production => options.Value.Prod.ServiceSettings.RecaptchaEnabled,
-                _ => options.Value.Loc.ServiceSettings.RecaptchaEnabled
+            environment switch {
+                Constants.Development => configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Development.ServiceSettings)}{Constants.Colon}{nameof(HalogenOptions.Development.ServiceSettings.TwoFactorEnabled)}"),
+                Constants.Staging => configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.ServiceSettings)}{Constants.Colon}{nameof(HalogenOptions.Staging.ServiceSettings.TwoFactorEnabled)}"),
+                Constants.Production => configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.ServiceSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.ServiceSettings.TwoFactorEnabled)}"),
+                _ => configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings.TwoFactorEnabled)}")
             }
         );
     }

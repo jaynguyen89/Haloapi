@@ -1,6 +1,6 @@
 ﻿namespace Halogen.Bindings.ServiceBindings; 
 
-internal sealed class CacheEntry {
+public sealed class CacheEntry {
 
     internal string Key { get; set; } = null!;
 

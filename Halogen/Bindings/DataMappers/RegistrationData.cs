@@ -5,7 +5,7 @@ using HelperLibrary.Shared;
 
 namespace Halogen.Bindings.DataMappers; 
 
-internal sealed class RegistrationData {
+public sealed class RegistrationData {
 
     public string? EmailAddress { get; set; }
     
@@ -15,7 +15,7 @@ internal sealed class RegistrationData {
     
     public string PasswordConfirm { get; set; } = null!;
 
-    internal async Task<string[]> VerifyRegistrationData() {
+    public async Task<string[]> VerifyRegistrationData() {
         var errors = new List<string>();
 
         EmailAddress = Regex.Replace(EmailAddress?.Trim().ToLower() ?? string.Empty, Constants.MultiSpace, string.Empty);

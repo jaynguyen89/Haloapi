@@ -2,35 +2,35 @@
 
 namespace Halogen.Bindings.ApiBindings; 
 
-internal class VisibilityPolicy {
+public class VisibilityPolicy {
         
     public Enums.Visibility Visibility { get; set; }
 }
 
-internal interface IPolicyWithDataFormat {
+public interface IPolicyWithDataFormat {
         
     byte DataFormat { get; set; }
 }
 
-internal interface IPolicyWithSingleTarget {
+public interface IPolicyWithSingleTarget {
     
     string VisibleToTargetId { get; set; }
         
     string TargetTypeName { get; set; }
 }
 
-internal interface IPolicyWithMultipleTargets {
+public interface IPolicyWithMultipleTargets {
     
     string[] VisibleToTargetIds { get; set; }
         
     string TargetTypeName { get; set; }
 }
 
-internal interface IPolicyWithMultipleTypedTargets {
+public interface IPolicyWithMultipleTypedTargets {
     
     TypedTarget[] TypedTargets { get; set; }
     
-    internal sealed class TypedTarget {
+    public sealed class TypedTarget {
         
         public string[] VisibleToTargetIds { get; set; }
         

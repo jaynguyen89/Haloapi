@@ -3,11 +3,6 @@ namespace AssistantLibrary;
     
 public sealed class AssistantLibraryOptions {
 
-    public Local Loc { get; set; }
-    public Development Dev { get; set; }
-    public Staging Stg { get; set; }
-    public Production Prod { get; set; }
-    
     public class Local {
         public string? ProjectName { get; set; }
         public string RsaKeyLength { get; set; }
@@ -41,21 +36,22 @@ public sealed class MailServiceSettings {
     public string MailServerHost { get; set; }
     public string MailServerPort { get; set; }
     public string UseSsl { get; set; }
-    public Credentials ServerCredentails { get; set; }
+    public string Timeout { get; set; }
+    public Credentials ServerCredentials { get; set; }
     public string DefaultSenderAddress { get; set; }
     public string DefaultSenderName { get; set; }
-    public DefaultPlaceholders DefaultPlaceholderValues { get; set; }
-    
-    public sealed class Credentials {
-        public string EmailAddress { get; set; }
-        public string Password { get; set; }
-    }
+    public DefaultPlaceholders DefaultPlaceholders { get; set; }
+}
 
-    public sealed class DefaultPlaceholders {
-        public string HalogenLogoUrl { get; set; }
-        public string ClientBaseUri { get; set; }
-        public string ClientApplicationName { get; set; }
-    }
+public sealed class Credentials {
+    public string EmailAddress { get; set; }
+    public string Password { get; set; }
+}
+
+public sealed class DefaultPlaceholders {
+    public string HalogenLogoUrl { get; set; }
+    public string ClientBaseUri { get; set; }
+    public string ClientApplicationName { get; set; }
 }
 
 public sealed class ServiceFactorySettings {

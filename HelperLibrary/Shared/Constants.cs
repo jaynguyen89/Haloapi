@@ -19,6 +19,7 @@ public static class Constants {
     public const string DoubleQuote = "\"";
     public const string SingleQuote = "'";
     public const string Plus = "+";
+    public const string Underscore = "_";
 
     public const int TicksPerSecond = 1000;
     public const int SecondsPerMinute = 60;

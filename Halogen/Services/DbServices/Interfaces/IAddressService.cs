@@ -1,5 +1,5 @@
 ﻿namespace Halogen.Services.DbServices.Interfaces; 
 
-internal interface IAddressService {
+public interface IAddressService {
     
 }

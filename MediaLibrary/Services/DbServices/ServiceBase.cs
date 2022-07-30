@@ -1,17 +1,18 @@
 ﻿using HelperLibrary.Shared.Logger;
+using Microsoft.Extensions.Configuration;
 
 namespace MediaLibrary.Services.DbServices; 
 
 internal class ServiceBase {
 
     protected readonly ILoggerService _logger;
-    protected readonly MediaLibraryOptions _option;
+    protected readonly IConfiguration _configuration;
 
     internal ServiceBase(
         ILoggerService logger,
-        MediaLibraryOptions options
+        IConfiguration configuration
     ) {
         _logger = logger;
-        _option = options;
+        _configuration = configuration;
     }
 }

@@ -7,9 +7,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Halogen.Services.DbServices.Services; 
 
-internal sealed class PreferenceService: DbServiceBase, IPreferenceService {
+public sealed class PreferenceService: DbServiceBase, IPreferenceService {
     
-    internal PreferenceService(
+    public PreferenceService(
         ILoggerService logger,
         HalogenDbContext dbContext
     ): base(logger, dbContext) { }

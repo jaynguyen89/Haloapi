@@ -7,7 +7,7 @@ using AssistantLibrary.Interfaces;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Logger;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using QRCoder;
 
@@ -18,19 +18,17 @@ public sealed class AssistantService: ServiceBase, IAssistantService {
     public AssistantService(
         IEcosystem ecosystem,
         ILoggerService logger,
-        IOptions<AssistantLibraryOptions> options
-    ): base(ecosystem, logger, options) { }
+        IConfiguration configuration
+    ): base(ecosystem, logger, configuration) { }
     
     public async Task<RecaptchaResponse?> IsHumanActivity(string clientToken) {
         _logger.Log(new LoggerBinding<AssistantService> { Location = nameof(IsHumanActivity) });
         var httpClient = new HttpClient();
-
-        var (secretKey, endpoint, contentType) = _environment switch {
-            Constants.Development => (_options.Dev.RecaptchaSettings.SecretKey, _options.Dev.RecaptchaSettings.Endpoint, _options.Dev.RecaptchaSettings.RequestContentType),
-            Constants.Staging => (_options.Stg.RecaptchaSettings.SecretKey, _options.Stg.RecaptchaSettings.Endpoint, _options.Stg.RecaptchaSettings.RequestContentType),
-            Constants.Production => (_options.Prod.RecaptchaSettings.SecretKey, _options.Prod.RecaptchaSettings.Endpoint, _options.Prod.RecaptchaSettings.RequestContentType),
-            _ => (_options.Loc.RecaptchaSettings.SecretKey, _options.Loc.RecaptchaSettings.Endpoint, _options.Loc.RecaptchaSettings.RequestContentType)
-        };
+        var (secretKey, endpoint, contentType) = (
+            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{_recaptchaBaseOptionKey}{nameof(AssistantLibraryOptions.Local.RecaptchaSettings.SecretKey)}")).Value,
+            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{_recaptchaBaseOptionKey}{nameof(AssistantLibraryOptions.Local.RecaptchaSettings.Endpoint)}")).Value,
+            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{_recaptchaBaseOptionKey}{nameof(AssistantLibraryOptions.Local.RecaptchaSettings.RequestContentType)}")).Value
+        );
 
         httpClient.BaseAddress = new Uri(endpoint);
         httpClient.DefaultRequestHeaders.Accept.Clear();
@@ -44,40 +42,14 @@ public sealed class AssistantService: ServiceBase, IAssistantService {
 
     public byte[] GenerateQrImage(string information, FileStream? image) {
         _logger.Log(new LoggerBinding<AssistantService> { Location = nameof(GenerateQrImage) });
-        var (size, darkColor, lightColor, eccLevel, withLogo, logoName) = _environment switch {
-            Constants.Development => (
-                int.Parse(_options.Dev.QrGeneratorSettings.ImageSize),
-                _options.Dev.QrGeneratorSettings.DarkColor,
-                _options.Dev.QrGeneratorSettings.LightColor,
-                Enum.Parse<QRCodeGenerator.ECCLevel>(_options.Dev.QrGeneratorSettings.EccLevel),
-                bool.Parse(_options.Dev.QrGeneratorSettings.WithLogo),
-                _options.Dev.QrGeneratorSettings.LogoName
-            ),
-            Constants.Staging => (
-                int.Parse(_options.Stg.QrGeneratorSettings.ImageSize),
-                _options.Stg.QrGeneratorSettings.DarkColor,
-                _options.Stg.QrGeneratorSettings.LightColor,
-                Enum.Parse<QRCodeGenerator.ECCLevel>(_options.Stg.QrGeneratorSettings.EccLevel),
-                bool.Parse(_options.Stg.QrGeneratorSettings.WithLogo),
-                _options.Stg.QrGeneratorSettings.LogoName
-            ),
-            Constants.Production => (
-                int.Parse(_options.Prod.QrGeneratorSettings.ImageSize),
-                _options.Prod.QrGeneratorSettings.DarkColor,
-                _options.Prod.QrGeneratorSettings.LightColor,
-                Enum.Parse<QRCodeGenerator.ECCLevel>(_options.Prod.QrGeneratorSettings.EccLevel),
-                bool.Parse(_options.Prod.QrGeneratorSettings.WithLogo),
-                _options.Prod.QrGeneratorSettings.LogoName
-            ),
-            _ => (
-                int.Parse(_options.Loc.QrGeneratorSettings.ImageSize),
-                _options.Loc.QrGeneratorSettings.DarkColor,
-                _options.Loc.QrGeneratorSettings.LightColor,
-                Enum.Parse<QRCodeGenerator.ECCLevel>(_options.Loc.QrGeneratorSettings.EccLevel),
-                bool.Parse(_options.Loc.QrGeneratorSettings.WithLogo),
-                _options.Loc.QrGeneratorSettings.LogoName
-            )
-        };
+        var (size, darkColor, lightColor, eccLevel, withLogo, logoName) = (
+            int.Parse(_configuration.AsEnumerable().Single(x => x.Key.Equals($"{_qrGeneratorBaseOptionKey}{nameof(AssistantLibraryOptions.Local.QrGeneratorSettings.ImageSize)}")).Value),
+            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{_qrGeneratorBaseOptionKey}{nameof(AssistantLibraryOptions.Local.QrGeneratorSettings.DarkColor)}")).Value,
+            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{_qrGeneratorBaseOptionKey}{nameof(AssistantLibraryOptions.Local.QrGeneratorSettings.LightColor)}")).Value,
+            Enum.Parse<QRCodeGenerator.ECCLevel>(_configuration.AsEnumerable().Single(x => x.Key.Equals($"{_qrGeneratorBaseOptionKey}{nameof(AssistantLibraryOptions.Local.QrGeneratorSettings.EccLevel)}")).Value),
+            bool.Parse(_configuration.AsEnumerable().Single(x => x.Key.Equals($"{_qrGeneratorBaseOptionKey}{nameof(AssistantLibraryOptions.Local.QrGeneratorSettings.WithLogo)}")).Value),
+            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{_qrGeneratorBaseOptionKey}{nameof(AssistantLibraryOptions.Local.QrGeneratorSettings.LogoName)}")).Value
+        );
 
         var qrGenerator = new QRCodeGenerator();
         var qrData = qrGenerator.CreateQrCode(information, eccLevel);

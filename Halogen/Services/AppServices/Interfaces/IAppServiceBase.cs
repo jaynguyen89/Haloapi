@@ -1,5 +1,5 @@
 ﻿namespace Halogen.Services.AppServices.Interfaces; 
 
-internal interface IAppServiceBase {
+public interface IAppServiceBase {
     
 }

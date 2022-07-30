@@ -4,15 +4,19 @@ using Halogen.Services.AppServices.Interfaces;
 using Halogen.Services.AppServices.Services;
 using Halogen.Services.DbServices.Interfaces;
 using Halogen.Services.DbServices.Services;
+using HelperLibrary.Shared;
+using HelperLibrary.Shared.Ecosystem;
+using HelperLibrary.Shared.Logger;
 
 namespace Halogen.Services;
 
 public static class ServiceCollection {
     
     public static void RegisterHalogenServices(this ContainerBuilder builder) {
+        builder.RegisterType<HttpContextAccessor>().As<IHttpContextAccessor>().SingleInstance();
         builder.RegisterType<HalogenDbContext>();
         builder.RegisterType<RedisCache>().As<ICacheService>();
-        builder.RegisterType<IJwtService>().As<JwtService>();
+        builder.RegisterType<JwtService>().As<IJwtService>();
         builder.RegisterType<SessionService>().As<ISessionService>();
         
         builder.RegisterType<ContextService>().As<IContextService>();

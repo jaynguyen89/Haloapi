@@ -15,7 +15,7 @@ internal sealed class RedisCache: ICacheService {
 
     private readonly IDistributedCache _redisCache;
 
-    internal RedisCache(IDistributedCache redisCache, IConfiguration configuration) {
+    public RedisCache(IDistributedCache redisCache, IConfiguration configuration) {
         _redisCache = redisCache;
         
         var environment = configuration.GetValue<string>($"{nameof(Halogen)}Environment");
