@@ -11,13 +11,13 @@ using Microsoft.AspNetCore.Mvc.Filters;
 namespace Halogen.Attributes; 
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
-internal sealed class RecaptchaAuthorize: AuthorizeAttribute, IAuthorizationFilter {
+public sealed class RecaptchaAuthorize: AuthorizeAttribute, IAuthorizationFilter {
 
     private readonly bool _recaptchaEnabled;
     private readonly ILoggerService _logger;
     private readonly IAssistantService _assistantService;
 
-    internal RecaptchaAuthorize(
+    public RecaptchaAuthorize(
         IEcosystem ecosystem,
         ILoggerService logger,
         IConfiguration configuration,

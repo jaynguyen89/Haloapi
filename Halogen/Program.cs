@@ -7,6 +7,7 @@ using AssistantLibrary;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using AWS.Logger;
+using Halogen.Attributes;
 using Halogen.Parsers;
 using Halogen.Services;
 using HelperLibrary;
@@ -16,6 +17,7 @@ using HelperLibrary.Shared.Logger;
 using MediaLibrary.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
@@ -96,7 +98,7 @@ public static class Program {
             options.MinimumSameSitePolicy = SameSiteMode.None;
         });
         builder.Services.AddCors();
-        builder.Services.AddControllers();//.AddControllersAsServices();
+        builder.Services.AddControllers();
 
         var (apiVersion, apiName, apiDescription) = environment switch {
             Constants.Development => (
@@ -352,6 +354,9 @@ public static class Program {
                 options.Configuration = connectionString;
                 options.InstanceName = instanceName;
             });
+
+        builder.Services.AddScoped<RecaptchaAuthorize>();
+        builder.Services.AddScoped<TwoFactorAuthorize>();
 
         var app = builder.Build();
 

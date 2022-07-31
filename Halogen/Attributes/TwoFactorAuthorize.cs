@@ -14,14 +14,14 @@ using Microsoft.AspNetCore.Mvc.Filters;
 namespace Halogen.Attributes; 
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
-internal sealed class TwoFactorAuthorize: AuthorizeAttribute, IAuthorizationFilter {
+public sealed class TwoFactorAuthorize: AuthorizeAttribute, IAuthorizationFilter {
 
     private readonly bool _twoFactorEnabled;
     private readonly ILoggerService _logger;
     private readonly ISessionService _sessionService;
     private readonly ITwoFactorService _twoFactorService;
     
-    internal TwoFactorAuthorize(
+    public TwoFactorAuthorize(
         IEcosystem ecosystem,
         ILoggerService logger,
         IConfiguration configuration,

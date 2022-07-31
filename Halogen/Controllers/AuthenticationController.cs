@@ -1,6 +1,7 @@
 ﻿using System.Net.Mail;
 using AssistantLibrary.Bindings;
 using AssistantLibrary.Interfaces;
+using AssistantLibrary.Interfaces.IServiceFactory;
 using Halogen.Bindings.ApiBindings;
 using Halogen.Parsers;
 using HelperLibrary.Shared;
@@ -27,6 +28,9 @@ public sealed class AuthenticationController: AppController {
     private readonly IProfileService _profileService;
     private readonly IRoleService _roleService;
     private readonly IPreferenceService _preferenceService;
+    private readonly ISmsService _clickatellSmsHttpService;
+    private readonly IAssistantService _assistantService;
+    private readonly ITwoFactorService _twoFactorService;
 
     private readonly int _saltMinLength;
     private readonly int _saltMaxLength;
@@ -64,7 +68,10 @@ public sealed class AuthenticationController: AppController {
         IAccountService accountService,
         IProfileService profileService,
         IRoleService roleService,
-        IPreferenceService preferenceService
+        IPreferenceService preferenceService,
+        IAssistantService assistantService,
+        ISmsServiceFactory smsServiceFactory,
+        ITwoFactorService twoFactorService
     ) : base(ecosystem, logger, configuration) {
         _contextService = contextService;
         _authenticationService = authenticationService;
@@ -74,6 +81,9 @@ public sealed class AuthenticationController: AppController {
         _profileService = profileService;
         _roleService = roleService;
         _preferenceService = preferenceService;
+        _assistantService = assistantService;
+        _clickatellSmsHttpService = smsServiceFactory.GetActiveSmsService();
+        _twoFactorService = twoFactorService;
         ParseSecuritySettings(
             out _saltMinLength, out _saltMaxLength, out _tfaKeyMinLength, out _tfaKeyMaxLength,
             out _emailTokenMinLength, out _emailTokenMaxLength, out _emailTokenValidityDuration, out _emailTokenValidityDurationUnit,

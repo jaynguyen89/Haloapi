@@ -23,4 +23,26 @@ public static class DataValidators {
 
     public static List<string>? VerifyPhoneNumber(this string phoneNumber, int length = 9) =>
         !new Regex($@"^[\d]{length}$").IsMatch(phoneNumber) ? new List<string> { "Phone Number is not in a valid format (eg. 411222333)." } : default;
+
+    public static List<string> VerifyPassword(this string password) {
+        var errors = new List<string>();
+        
+        var lengthTest = new Regex(@".{8,}");
+        if (!lengthTest.IsMatch(password)) errors.Add($"{nameof(password).UpperCaseFirstChar()} length should be at least 8 characters.");
+
+        var hasNumberTest = new Regex(@"[\d]+");
+        if (!hasNumberTest.IsMatch(password)) errors.Add($"{nameof(password).UpperCaseFirstChar()} should contain at least 1 number.");
+
+        var hasUppercaseCharTest = new Regex(@"[A-Z]+");
+        if (!hasUppercaseCharTest.IsMatch(password)) errors.Add($"{nameof(password).UpperCaseFirstChar()} should contain at least 1 uppercase character.");
+        
+        var hasLowercaseCharTest = new Regex(@"[a-z]+");
+        if (!hasLowercaseCharTest.IsMatch(password)) errors.Add($"{nameof(password).UpperCaseFirstChar()} should contain at least 1 lowercase character.");
+
+        var specialChars = Constants.SpecialChars.Select(x => x.First()).ToArray();
+        if (password.IndexOfAny(specialChars) == -1) errors.Add($"{nameof(password).UpperCaseFirstChar()} should contain at least 1 special character.");
+
+        if (password.IndexOf(Constants.MonoSpace, StringComparison.Ordinal) != -1) errors.Add($"{nameof(password).UpperCaseFirstChar()} should not contain whitespaces.");
+        return errors;
+    }
 }

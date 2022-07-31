@@ -41,4 +41,6 @@ public sealed class RegionalizedPhoneNumber {
 
         return errors.ToArray();
     }
+
+    public override string ToString() => $"{Constants.Plus}{RegionCode}{Constants.MonoSpace}{PhoneNumber}";
 }

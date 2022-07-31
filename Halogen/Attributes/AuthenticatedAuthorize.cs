@@ -11,12 +11,12 @@ using Microsoft.AspNetCore.Mvc.Filters;
 namespace Halogen.Attributes; 
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
-internal sealed class AuthenticatedAuthorize: AuthorizeAttribute, IAuthorizationFilter {
+public sealed class AuthenticatedAuthorize: AuthorizeAttribute, IAuthorizationFilter {
 
     private readonly ILoggerService _logger;
     private readonly ISessionService _sessionService;
 
-    internal AuthenticatedAuthorize(
+    public AuthenticatedAuthorize(
         ILoggerService logger,
         ISessionService sessionService
     ) {

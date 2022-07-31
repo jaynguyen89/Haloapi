@@ -4,9 +4,6 @@ using Halogen.Services.AppServices.Interfaces;
 using Halogen.Services.AppServices.Services;
 using Halogen.Services.DbServices.Interfaces;
 using Halogen.Services.DbServices.Services;
-using HelperLibrary.Shared;
-using HelperLibrary.Shared.Ecosystem;
-using HelperLibrary.Shared.Logger;
 
 namespace Halogen.Services;
 

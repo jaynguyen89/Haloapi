@@ -16,7 +16,7 @@ public sealed class AccountService: DbServiceBase, IAccountService {
     public async Task<bool?> IsEmailAvailableForNewAccount(string emailAddress) {
         _logger.Log(new LoggerBinding<AccountService> { Location = nameof(IsEmailAvailableForNewAccount) });
         try {
-            return await _dbContext.Accounts.AnyAsync(x => x.EmailAddress.Equals(emailAddress));
+            return !await _dbContext.Accounts.AnyAsync(x => x.EmailAddress.Equals(emailAddress));
         }
         catch (ArgumentNullException e) {
             _logger.Log(new LoggerBinding<AccountService> { Location = nameof(IsEmailAvailableForNewAccount), Severity = Enums.LogSeverity.ERROR, Data = e });

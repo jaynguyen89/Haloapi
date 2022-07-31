@@ -11,11 +11,11 @@ using Newtonsoft.Json;
 namespace Halogen.Attributes; 
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
-internal sealed class RoleAuthorize: AuthorizeAttribute, IAuthorizationFilter {
+public sealed class RoleAuthorize: AuthorizeAttribute, IAuthorizationFilter {
     
     private readonly Enums.Role[] _authorizedRoles;
 
-    internal RoleAuthorize(params Enums.Role[] authorizedRoles) {
+    public RoleAuthorize(params Enums.Role[] authorizedRoles) {
         _authorizedRoles = authorizedRoles;
     }
 

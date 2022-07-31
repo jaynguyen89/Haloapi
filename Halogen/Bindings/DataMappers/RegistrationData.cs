@@ -28,6 +28,9 @@ public sealed class RegistrationData {
         if (PhoneNumber is not null) errors = errors.Concat(await PhoneNumber.VerifyPhoneNumberData()).ToList();
         if (!Password.Equals(PasswordConfirm)) errors.Add($"{nameof(Password)} and {nameof(PasswordConfirm).ToHumanStyled()} do not matched.");
 
+        var passwordErrors = Password.VerifyPassword();
+        if (passwordErrors.Any()) errors = errors.Concat(passwordErrors).ToList();
+
         return errors.ToArray();
     }
 }
