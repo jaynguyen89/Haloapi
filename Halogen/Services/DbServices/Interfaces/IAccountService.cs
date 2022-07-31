@@ -2,5 +2,5 @@
 
 public interface IAccountService {
 
-    Task<bool?> IsEmailAvailableForNewAccount(string emailAddress);
+    Task<bool?> IsEmailAddressAvailableForNewAccount(string emailAddress);
 }

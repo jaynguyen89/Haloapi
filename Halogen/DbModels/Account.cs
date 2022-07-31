@@ -19,7 +19,7 @@ namespace Halogen.DbModels
 
         public string Id { get; set; } = null!;
         public string UniqueIdentifier { get; set; } = null!;
-        public string EmailAddress { get; set; } = null!;
+        public string? EmailAddress { get; set; }
         public string? EmailAddressToken { get; set; }
         public DateTime? EmailAddressTokenTimestamp { get; set; }
         public bool EmailConfirmed { get; set; }

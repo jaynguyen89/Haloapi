@@ -1,7 +1,6 @@
 ﻿using AssistantLibrary.Interfaces;
 using AssistantLibrary.Interfaces.IServiceFactory;
 using AssistantLibrary.Services.ServiceFactory;
-using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Logger;
 using Microsoft.Extensions.Configuration;

@@ -14,9 +14,9 @@ public interface IPolicyWithDataFormat {
 
 public interface IPolicyWithSingleTarget {
     
-    string VisibleToTargetId { get; set; }
+    string? VisibleToTargetId { get; set; }
         
-    string TargetTypeName { get; set; }
+    string? TargetTypeName { get; set; }
 }
 
 public interface IPolicyWithMultipleTargets {
@@ -31,9 +31,9 @@ public interface IPolicyWithMultipleTypedTargets {
     TypedTarget[] TypedTargets { get; set; }
     
     public sealed class TypedTarget {
-        
-        public string[] VisibleToTargetIds { get; set; }
-        
-        public string TargetTypeName { get; set; }
+
+        public string[] VisibleToTargetIds { get; set; } = null!;
+
+        public string TargetTypeName { get; set; } = null!;
     }
 }

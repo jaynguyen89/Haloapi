@@ -21,6 +21,7 @@ public sealed class HalogenOptions {
         public ServiceSettings ServiceSettings { get; set; }
         public TwoFactorSettings TwoFactorSettings { get; set; }
         public SecuritySettings SecuritySettings { get; set; }
+        public SmsContents SmsContents { get; set; }
 
         public sealed class SwaggerInfo {
             public string Version { get; set; }
@@ -121,4 +122,9 @@ public sealed class SecuritySettings {
     public string LockOutThreshold { get; set; }
     public string LockOutDuration { get; set; }
     public string LockOutDurationUnit { get; set; }
+}
+
+public sealed class SmsContents {
+    public string AccountActivationSms { get; set; }
+    public string TwoFactorPinSms { get; set; }
 }

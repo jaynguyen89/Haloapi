@@ -11,6 +11,7 @@ public class ServiceBase {
     protected readonly ILoggerService _logger;
     protected readonly IConfiguration _configuration;
 
+    protected readonly string _clientApplicationName;
     protected readonly string _baseOptionKey;
     protected readonly string _clickatellBaseOptionKey;
     protected readonly string _twoFactorBaseOptionKey;
@@ -27,10 +28,15 @@ public class ServiceBase {
         _environment = ecosystem.GetEnvironment();
         _logger = logger;
         _configuration = configuration;
+
         ParseBaseOptionKeys(
             out _baseOptionKey, out _clickatellBaseOptionKey, out _twoFactorBaseOptionKey, out _serviceFactoryBaseOptionKey,
             out _mailServiceBaseOptionKey, out _recaptchaBaseOptionKey, out _qrGeneratorBaseOptionKey
         );
+        
+        var defaultPlaceholdersBaseOptionKey = $"{_mailServiceBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.DefaultPlaceholders)}{Constants.Colon}";
+        _clientApplicationName = _configuration.AsEnumerable().Single(x =>
+            x.Key.Equals($"{defaultPlaceholdersBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.DefaultPlaceholders.ClientApplicationName)}")).Value;
     }
 
     private void ParseBaseOptionKeys(

@@ -13,13 +13,13 @@ public sealed class AccountService: DbServiceBase, IAccountService {
         HalogenDbContext dbContext
     ): base(logger, dbContext) { }
     
-    public async Task<bool?> IsEmailAvailableForNewAccount(string emailAddress) {
-        _logger.Log(new LoggerBinding<AccountService> { Location = nameof(IsEmailAvailableForNewAccount) });
+    public async Task<bool?> IsEmailAddressAvailableForNewAccount(string emailAddress) {
+        _logger.Log(new LoggerBinding<AccountService> { Location = nameof(IsEmailAddressAvailableForNewAccount) });
         try {
-            return !await _dbContext.Accounts.AnyAsync(x => x.EmailAddress.Equals(emailAddress));
+            return !await _dbContext.Accounts.AnyAsync(x => Equals(x.EmailAddress, emailAddress));
         }
         catch (ArgumentNullException e) {
-            _logger.Log(new LoggerBinding<AccountService> { Location = nameof(IsEmailAvailableForNewAccount), Severity = Enums.LogSeverity.ERROR, Data = e });
+            _logger.Log(new LoggerBinding<AccountService> { Location = nameof(IsEmailAddressAvailableForNewAccount), Severity = Enums.LogSeverity.ERROR, Data = e });
             return default;
         }
     }

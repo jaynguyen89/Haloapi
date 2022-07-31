@@ -17,7 +17,7 @@ public sealed class MailService: ServiceBase, IMailService {
     private readonly string _defaultSenderEmailAddress;
     private readonly string _defaultSenderName;
     private MailMessage _mailMessage;
-    private readonly Tuple<string, string, string> _defaultBodyPlaceholderValues;
+    private readonly Tuple<string, string> _defaultBodyPlaceholderValues;
 
     public MailService(
         IEcosystem ecosystem,
@@ -36,13 +36,12 @@ public sealed class MailService: ServiceBase, IMailService {
         _defaultSenderName = defaultSenderName;
 
         var defaultPlaceholdersBaseOptionKey = $"{_mailServiceBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.DefaultPlaceholders)}{Constants.Colon}";
-        var (halogenLogoUrl, clientBaseUri, clientApplicationName) = (
+        var (halogenLogoUrl, clientBaseUri) = (
             _configuration.AsEnumerable().Single(x => x.Key.Equals($"{defaultPlaceholdersBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.DefaultPlaceholders.HalogenLogoUrl)}")).Value,
-            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{defaultPlaceholdersBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.DefaultPlaceholders.ClientBaseUri)}")).Value,
-            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{defaultPlaceholdersBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.DefaultPlaceholders.ClientApplicationName)}")).Value
+            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{defaultPlaceholdersBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.DefaultPlaceholders.ClientBaseUri)}")).Value
         );
-        
-        _defaultBodyPlaceholderValues = new Tuple<string, string, string>(halogenLogoUrl, clientBaseUri, clientApplicationName);
+
+        _defaultBodyPlaceholderValues = new Tuple<string, string>(halogenLogoUrl, clientBaseUri);
         _mailMessage = new MailMessage();
     }
     
@@ -84,7 +83,7 @@ public sealed class MailService: ServiceBase, IMailService {
         _mailMessage.IsBodyHtml = true;
         _mailMessage.Priority = mail.Priority;
 
-        bodyContent = bodyContent!.SetDefaultEmailBodyValues(_defaultBodyPlaceholderValues);
+        bodyContent = bodyContent!.SetDefaultEmailBodyValues(new Tuple<string, string, string>(_defaultBodyPlaceholderValues.Item1, _defaultBodyPlaceholderValues.Item2, _clientApplicationName));
         _ = mail.Placeholders.Select(x => bodyContent = Regex.Replace(bodyContent!, $@"^{x.Key}$", x.Value));
         _mailMessage.Body = bodyContent;
         

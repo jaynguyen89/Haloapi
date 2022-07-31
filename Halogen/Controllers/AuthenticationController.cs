@@ -56,6 +56,8 @@ public sealed class AuthenticationController: AppController {
     private readonly int _lockOutThreshold;
     private readonly int _lockOutDuration;
     private readonly Enums.TimeUnit _lockOutDurationUnit;
+    private readonly string _accountActivationSmsContent;
+    private readonly string _twoFactorPinSmsContent;
 
     public AuthenticationController(
         IEcosystem ecosystem,
@@ -90,7 +92,8 @@ public sealed class AuthenticationController: AppController {
             out _otpMinLength, out _otpMaxLength, out _otpValidityDuration, out _otpValidityDurationUnit,
             out _recoveryTokenMinLength, out _recoveryTokenMaxLength, out _recoveryTokenValidityDuration, out _recoveryTokenValidityDurationUnit,
             out _phoneTokenMinLength, out _phoneTokenMaxLength, out _phoneTokenValidityDuration, out _phoneTokenValidityDurationUnit,
-            out _loginFailedThreshold, out _lockOutThreshold, out _lockOutDuration, out _lockOutDurationUnit
+            out _loginFailedThreshold, out _lockOutThreshold, out _lockOutDuration, out _lockOutDurationUnit,
+            out _accountActivationSmsContent, out _twoFactorPinSmsContent
         );
     }
 
@@ -100,9 +103,10 @@ public sealed class AuthenticationController: AppController {
         out int otpMinLength, out int otpMaxLength, out int otpValidityDuration, out Enums.TimeUnit otpValidityDurationUnit,
         out int recoveryTokenMinLength, out int recoveryTokenMaxLength, out int recoveryTokenValidityDuration, out Enums.TimeUnit recoveryTokenValidityDurationUnit,
         out int phoneTokenMinLength, out int phoneTokenMaxLength, out int phoneTokenValidityDuration, out Enums.TimeUnit phoneTokenValidityDurationUnit,
-        out int loginFailedThreshold, out int lockOutThreshold, out int lockOutDuration, out Enums.TimeUnit lockOutDurationUnit
+        out int loginFailedThreshold, out int lockOutThreshold, out int lockOutDuration, out Enums.TimeUnit lockOutDurationUnit,
+        out string accountActivationSmsContent, out string twoFactorPinSmsContent
     ) {
-        var baseOptionKey = _environment switch {
+        var baseSecuritySettingsOptionKey = _environment switch {
             Constants.Development => $"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Development.SecuritySettings)}{Constants.Colon}",
             Constants.Staging => $"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Staging.SecuritySettings)}{Constants.Colon}",
             Constants.Production => $"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Production.SecuritySettings)}{Constants.Colon}",
@@ -113,61 +117,74 @@ public sealed class AuthenticationController: AppController {
             saltMinLength, saltMaxLength, tfaKeyMinLength, tfaKeyMaxLength,
             emailTokenMinLength, emailTokenMaxLength, emailTokenValidityDuration, emailTokenValidityDurationUnit
         ) = (
-            int.Parse(_configuration.GetValue<string>($"{baseOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.SaltMinLength)}")),
-            int.Parse(_configuration.GetValue<string>($"{baseOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.SaltMaxLength)}")),
-            int.Parse(_configuration.GetValue<string>($"{baseOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.TfaKeyMinLength)}")),
-            int.Parse(_configuration.GetValue<string>($"{baseOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.TfaKeyMaxLength)}")),
-            int.Parse(_configuration.GetValue<string>($"{baseOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.EmailTokenMinLength)}")),
-            int.Parse(_configuration.GetValue<string>($"{baseOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.EmailTokenMaxLength)}")),
-            int.Parse(_configuration.GetValue<string>($"{baseOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.EmailTokenValidityDuration)}")),
-            _configuration.GetValue<string>($"{baseOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.EmailTokenValidityDurationUnit)}").ToEnum(Enums.TimeUnit.HOUR)
+            int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.SaltMinLength)}")),
+            int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.SaltMaxLength)}")),
+            int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.TfaKeyMinLength)}")),
+            int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.TfaKeyMaxLength)}")),
+            int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.EmailTokenMinLength)}")),
+            int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.EmailTokenMaxLength)}")),
+            int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.EmailTokenValidityDuration)}")),
+            _configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.EmailTokenValidityDurationUnit)}").ToEnum(Enums.TimeUnit.HOUR)
         );
         
         (
             otpMinLength, otpMaxLength, otpValidityDuration, otpValidityDurationUnit,
             recoveryTokenMinLength, recoveryTokenMaxLength, recoveryTokenValidityDuration, recoveryTokenValidityDurationUnit
         ) = (
-            int.Parse(_configuration.GetValue<string>($"{baseOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.OtpMinLength)}")),
-            int.Parse(_configuration.GetValue<string>($"{baseOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.OtpMaxLength)}")),
-            int.Parse(_configuration.GetValue<string>($"{baseOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.OtpValidityDuration)}")),
-            _configuration.GetValue<string>($"{baseOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.OtpValidityDurationUnit)}").ToEnum(Enums.TimeUnit.HOUR),
-            int.Parse(_configuration.GetValue<string>($"{baseOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.RecoveryTokenMinLength)}")),
-            int.Parse(_configuration.GetValue<string>($"{baseOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.RecoveryTokenMaxLength)}")),
-            int.Parse(_configuration.GetValue<string>($"{baseOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.RecoveryTokenValidityDuration)}")),
-            _configuration.GetValue<string>($"{baseOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.RecoveryTokenValidityDurationUnit)}").ToEnum(Enums.TimeUnit.HOUR)
+            int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.OtpMinLength)}")),
+            int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.OtpMaxLength)}")),
+            int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.OtpValidityDuration)}")),
+            _configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.OtpValidityDurationUnit)}").ToEnum(Enums.TimeUnit.HOUR),
+            int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.RecoveryTokenMinLength)}")),
+            int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.RecoveryTokenMaxLength)}")),
+            int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.RecoveryTokenValidityDuration)}")),
+            _configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.RecoveryTokenValidityDurationUnit)}").ToEnum(Enums.TimeUnit.HOUR)
         );
         
         (
             phoneTokenMinLength, phoneTokenMaxLength, phoneTokenValidityDuration, phoneTokenValidityDurationUnit,
             loginFailedThreshold, lockOutThreshold, lockOutDuration, lockOutDurationUnit
         ) = (
-            int.Parse(_configuration.GetValue<string>($"{baseOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.PhoneTokenMinLength)}")),
-            int.Parse(_configuration.GetValue<string>($"{baseOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.PhoneTokenMaxLength)}")),
-            int.Parse(_configuration.GetValue<string>($"{baseOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.PhoneTokenValidityDuration)}")),
-            _configuration.GetValue<string>($"{baseOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.PhoneTokenValidityDurationUnit)}").ToEnum(Enums.TimeUnit.HOUR),
-            int.Parse(_configuration.GetValue<string>($"{baseOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.LoginFailedThreshold)}")),
-            int.Parse(_configuration.GetValue<string>($"{baseOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.LockOutThreshold)}")),
-            int.Parse(_configuration.GetValue<string>($"{baseOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.LockOutDuration)}")),
-            _configuration.GetValue<string>($"{baseOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.LockOutDurationUnit)}").ToEnum(Enums.TimeUnit.HOUR)
+            int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.PhoneTokenMinLength)}")),
+            int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.PhoneTokenMaxLength)}")),
+            int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.PhoneTokenValidityDuration)}")),
+            _configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.PhoneTokenValidityDurationUnit)}").ToEnum(Enums.TimeUnit.HOUR),
+            int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.LoginFailedThreshold)}")),
+            int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.LockOutThreshold)}")),
+            int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.LockOutDuration)}")),
+            _configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.LockOutDurationUnit)}").ToEnum(Enums.TimeUnit.HOUR)
+        );
+        
+        (accountActivationSmsContent, twoFactorPinSmsContent) = (
+            _configuration.GetValue<string>($"{_smsContentsOptionKey}{nameof(HalogenOptions.Local.SmsContents.AccountActivationSms)}"),
+            _configuration.GetValue<string>($"{_smsContentsOptionKey}{nameof(HalogenOptions.Local.SmsContents.TwoFactorPinSms)}")
         );
     }
 
     [ServiceFilter(typeof(RecaptchaAuthorize))]
     [HttpPost("register-by-email-address")]
-    public async Task<JsonResult> RegisterAccountByEmailAddress(RegistrationData registrationData) {
-        _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(RegisterAccountByEmailAddress) });
+    public async Task<JsonResult> RegisterAccount(RegistrationData registrationData) {
+        _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(RegisterAccount) });
 
         var errors = await registrationData.VerifyRegistrationData();
         if (errors.Any()) return new JsonResult(new ClientResponse { Result = Enums.ApiResult.FAILED, Data = errors });
 
-        var isEmailAvailable = await _accountService.IsEmailAvailableForNewAccount(registrationData.EmailAddress!);
-        if (!isEmailAvailable.HasValue) return new JsonResult(new ClientResponse { Result = Enums.ApiResult.FAILED });
-        if (!isEmailAvailable.Value) return new JsonResult(new ClientResponse { Result = Enums.ApiResult.FAILED, Data = new { isEmailAvailable }});
+        var registerByEmailAddress = registrationData.EmailAddress.IsString();
+        if (registerByEmailAddress) {
+            var isEmailAvailable = await _accountService.IsEmailAddressAvailableForNewAccount(registrationData.EmailAddress!);
+            if (!isEmailAvailable.HasValue) return new JsonResult(new ClientResponse { Result = Enums.ApiResult.FAILED });
+            if (!isEmailAvailable.Value) return new JsonResult(new ClientResponse { Result = Enums.ApiResult.FAILED, Data = new { isEmailAvailable } });
+        }
+        else {
+            var isPhoneNumberAvailable = await _profileService.IsPhoneNumberAvailableForNewAccount(registrationData.PhoneNumber!.ToString());
+            if (!isPhoneNumberAvailable.HasValue) return new JsonResult(new ClientResponse { Result = Enums.ApiResult.FAILED });
+            if (!isPhoneNumberAvailable.Value) return new JsonResult(new ClientResponse { Result = Enums.ApiResult.FAILED, Data = new { isPhoneNumberAvailable } });
+        }
 
         var (verificationTokenLength, saltLength) = GetTokenLengthsForNewAccount();
         var (hashedPassword, salt) = _cryptoService.GenerateHashAndSalt(registrationData.Password, saltLength);
 
-        var newAccount = Account.CreateNewAccount(_useLongerId, registrationData.EmailAddress!, salt, hashedPassword, verificationTokenLength);
+        var newAccount = Account.CreateNewAccount(_useLongerId, registrationData.EmailAddress, salt, hashedPassword, verificationTokenLength);
         await _contextService.StartTransaction();
 
         var accountId = await _authenticationService.InsertNewAccount(newAccount);
@@ -176,10 +193,9 @@ public sealed class AuthenticationController: AppController {
             return new JsonResult(new ClientResponse { Result = Enums.ApiResult.FAILED });
         }
         
-        var profileId = await _profileService.InsertNewProfile(new Profile {
-            Id = StringHelpers.NewGuid(_useLongerId),
-            AccountId = accountId
-        });
+        var newProfile = Profile.CreateNewProfile(_useLongerId, accountId, registerByEmailAddress, _phoneTokenMinLength, _phoneTokenMaxLength, registrationData.PhoneNumber);
+        
+        var profileId = await _profileService.InsertNewProfile(newProfile);
         if (profileId is null) {
             await _contextService.RevertTransaction();
             return new JsonResult(new ClientResponse { Result = Enums.ApiResult.FAILED });
@@ -209,18 +225,43 @@ public sealed class AuthenticationController: AppController {
             return new JsonResult(new ClientResponse { Result = Enums.ApiResult.FAILED });
         }
 
-        var accountActivationEmailExpiry = newAccount.EmailAddressTokenTimestamp!.Value
-            .Compute(_emailTokenValidityDuration, _emailTokenValidityDurationUnit)
-            .Format(Enums.DateFormat.DDMMYYYYS, Enums.TimeFormat.HHMMTTC);
-        
-        var isAccountActivationEmailSent = await SendAccountActivationEmail(newAccount.EmailAddress, newAccount.EmailAddressToken!, accountActivationEmailExpiry!);
-        if (!isAccountActivationEmailSent) {
-            await _contextService.RevertTransaction();
-            return new JsonResult(new ClientResponse { Result = Enums.ApiResult.FAILED });
+        if (registerByEmailAddress) {
+            var accountActivationEmailExpiry = newAccount.EmailAddressTokenTimestamp!.Value
+                                                         .Compute(_emailTokenValidityDuration, _emailTokenValidityDurationUnit)
+                                                         .Format(Enums.DateFormat.DDMMYYYYS, Enums.TimeFormat.HHMMTTC);
+
+            var isAccountActivationEmailSent = await SendAccountActivationEmail(newAccount.EmailAddress!, newAccount.EmailAddressToken!, accountActivationEmailExpiry!);
+            if (!isAccountActivationEmailSent) {
+                await _contextService.RevertTransaction();
+                return new JsonResult(new ClientResponse { Result = Enums.ApiResult.FAILED });
+            }
+        }
+        else {
+            var smsContent = _accountActivationSmsContent
+                             .Replace("ACCOUNT_ACTIVATION_TOKEN", newProfile.PhoneNumberToken)
+                             .Replace("VALIDITY_DURATION", $"{_phoneTokenValidityDuration} {_phoneTokenValidityDurationUnit}");
+            var smsBinding = new SingleSmsBinding {
+                SmsContent = smsContent,
+                Receivers = new List<string> { registrationData.PhoneNumber!.ToString() }
+            };
+
+            var smsResult = await _clickatellSmsHttpService.SendSingleSms(smsBinding);
+            if (smsResult is null || smsResult.Any()) {
+                await _contextService.RevertTransaction();
+                return new JsonResult(new ClientResponse { Result = Enums.ApiResult.FAILED });
+            }
         }
 
         await _contextService.ConfirmTransaction();
-        return new JsonResult(new ClientResponse { Result = Enums.ApiResult.SUCCESS });
+        return new JsonResult(new ClientResponse {
+            Result = Enums.ApiResult.SUCCESS,
+            Data = new {
+                accountId,
+                registerByEmailAddress,
+                phoneTokenValidityDuration = _phoneTokenValidityDuration,
+                phoneTokenValidityDurationUnit = _phoneTokenValidityDurationUnit
+            }
+        });
     }
 
     private async Task<bool> SendAccountActivationEmail(string emailAddress, string verificationToken, string emailExpiryTimestamp) {
