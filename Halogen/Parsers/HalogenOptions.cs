@@ -15,6 +15,7 @@ public sealed class HalogenOptions {
     }
 
     public class Local {
+        public string ClientApplicationName { get; set; }
         public string CookieShouldCheckConsent { get; set; }
         public string RecaptchaEnabled { get; set; }
         public DbSettings DbSettings { get; set; }
@@ -126,5 +127,7 @@ public sealed class SecuritySettings {
 
 public sealed class SmsContents {
     public string AccountActivationSms { get; set; }
+    public string AccountRecoverySms { get; set; }
     public string TwoFactorPinSms { get; set; }
+    public string OneTimePasswordSms { get; set; }
 }

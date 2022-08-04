@@ -92,7 +92,7 @@ public sealed class MailService: ServiceBase, IMailService {
     }
 
     private async Task<string?> GetMailBodyContent( Enums.EmailTemplate template) {
-        var filePath = $"{Constants.AssetsDirectoryPath}{template.GetEnumValue<string>()}.html";
+        var filePath = $"{Constants.AssetsDirectoryPath}{template.GetValue()}.html";
 
         try {
             return await File.ReadAllTextAsync(filePath);

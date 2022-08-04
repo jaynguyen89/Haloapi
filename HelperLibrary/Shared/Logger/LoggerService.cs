@@ -14,15 +14,15 @@ public sealed class LoggerService: ILoggerService {
         var logString = binding.GetLogString();
 
         var loggingExpression = binding.Severity switch {
-            Enums.LogSeverity.INFORMATION => (Func<object?>)(() => {
+            Enums.LogSeverity.Information => (Func<object?>)(() => {
                 _logger.LogInformation(logString);
                 return default;
             }),
-            Enums.LogSeverity.DEBUGGING => () => {
+            Enums.LogSeverity.Debugging => () => {
                 _logger.LogDebug(logString);
                 return default;
             },
-            Enums.LogSeverity.ERROR => () => {
+            Enums.LogSeverity.Error => () => {
                 _logger.LogCritical(logString);
                 return default;
             },

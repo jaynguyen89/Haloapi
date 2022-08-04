@@ -1,5 +1,6 @@
 ﻿using Halogen.DbContexts;
 using Halogen.Services.DbServices.Interfaces;
+using HelperLibrary.Shared;
 using HelperLibrary.Shared.Logger;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +15,15 @@ public sealed class LocalityService: DbServiceBase, ILocalityService {
 
     public async Task<string[]?> GetTelephoneCodes() {
         _logger.Log(new LoggerBinding<LocalityService> { Location = nameof(GetTelephoneCodes) });
-        return await _dbContext.Localities.Select(locality => locality.TelephoneCode).ToArrayAsync();
+        try {
+            return await _dbContext.Localities.Select(locality => locality.TelephoneCode).ToArrayAsync();
+        }
+        catch (ArgumentNullException e) {
+            _logger.Log(new LoggerBinding<LocalityService> {
+                Location = $"{nameof(GetTelephoneCodes)}.{nameof(ArgumentNullException)}",
+                Severity = Enums.LogSeverity.Error, Data = e
+            });
+            return default;
+        }
     }
 }

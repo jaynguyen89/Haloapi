@@ -10,27 +10,27 @@ public partial class Preference {
     public static Preference CreatePreferenceForNewAccount(bool useLongerId, string accountId) => new() {
         Id = StringHelpers.NewGuid(useLongerId),
         AccountId = accountId,
-        ApplicationTheme = (byte)Enums.ApplicationTheme.BLUE,
-        ApplicationLanguage = (byte)Enums.Language.ENGLISH,
+        ApplicationTheme = (byte)Enums.ApplicationTheme.Blue,
+        ApplicationLanguage = (byte)Enums.Language.English,
         DateFormat = (byte)Enums.DateFormat.DDMMYYYYS,
         TimeFormat = (byte)Enums.TimeFormat.HHMMTTC,
-        NumberFormat = (byte)Enums.NumberFormat.COMMA_FOR_THOUSANDS,
-        UnitSystem = (byte)Enums.UnitSystem.INTERNATIONAL_UNIT_SYSTEM,
+        NumberFormat = (byte)Enums.NumberFormat.CommaForThousands,
+        UnitSystem = (byte)Enums.UnitSystem.InternationalUnitSystem,
         Privacy = JsonConvert.SerializeObject(new PrivacyPreference {
             ProfilePreference = new PrivacyPreference.ProfilePolicy(),
             NamePreference = new PrivacyPreference.PrivacyPolicy {
-                DataFormat = (byte)Enums.NameFormat.SHOW_FULL_NAME,
-                Visibility = Enums.Visibility.VISIBLE_TO_PUBLIC
+                DataFormat = (byte)Enums.NameFormat.ShowFullName,
+                Visibility = Enums.Visibility.VisibleToPublic
             },
             BirthPreference = new PrivacyPreference.PrivacyPolicy {
-                DataFormat = (byte)Enums.BirthFormat.SHOW_MONTH_YEAR_ONLY,
-                Visibility = Enums.Visibility.VISIBLE_TO_PUBLIC
+                DataFormat = (byte)Enums.BirthFormat.ShowMonthYearOnly,
+                Visibility = Enums.Visibility.VisibleToPublic
             },
             CareerPreference = new PrivacyPreference.PrivacyPolicy {
-                DataFormat = (byte)Enums.CareerFormat.SHOW_JOB_TITLE_ONLY,
-                Visibility = Enums.Visibility.VISIBLE_TO_PUBLIC,
+                DataFormat = (byte)Enums.CareerFormat.ShowJobTitleOnly,
+                Visibility = Enums.Visibility.VisibleToPublic,
             },
-            PhoneNumberVisibility = Enums.Visibility.VISIBLE_TO_SELF
+            PhoneNumberVisibility = Enums.Visibility.VisibleToSelf
         })
     };
 }

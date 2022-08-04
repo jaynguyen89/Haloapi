@@ -23,7 +23,10 @@ public sealed class PreferenceService: DbServiceBase, IPreferenceService {
             return result != 0 ? newPreference.Id : default;
         }
         catch (DbUpdateException e) {
-            _logger.Log(new LoggerBinding<PreferenceService> { Location = nameof(InsertNewPreference), Severity = Enums.LogSeverity.ERROR, Data = e });
+            _logger.Log(new LoggerBinding<PreferenceService> {
+                Location = $"{nameof(InsertNewPreference)}.{nameof(DbUpdateException)}",
+                Severity = Enums.LogSeverity.Error, Data = e
+            });
             return default;
         }
     }

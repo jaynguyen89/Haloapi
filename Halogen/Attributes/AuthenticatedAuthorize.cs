@@ -33,8 +33,8 @@ public sealed class AuthenticatedAuthorize: AuthorizeAttribute, IAuthorizationFi
 
         if (!Equals(authenticatedUser!.AccountId, accountIdFromRequest.ToString()))
             context.Result = new UnauthorizedObjectResult(new ClientResponse {
-                Result = Enums.ApiResult.FAILED,
-                Data = $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.INVALID_USER.GetEnumValue<string>()}"
+                Result = Enums.ApiResult.Failed,
+                Data = $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InvalidUser.GetValue()}"
             });
 
         var (_, bearerTokenHeader) = requestHeaders.Single(x => x.Key.ToLower().Equals(nameof(HttpHeaderKeys.Authorization).ToLower()));
@@ -42,21 +42,21 @@ public sealed class AuthenticatedAuthorize: AuthorizeAttribute, IAuthorizationFi
         
         if (!Equals(authenticatedUser.BearerToken, clientBearerToken))
             context.Result = new UnauthorizedObjectResult(new ClientResponse {
-                Result = Enums.ApiResult.FAILED,
-                Data = $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.MISMATCHED_BEARER_TOKEN.GetEnumValue<string>()}"
+                Result = Enums.ApiResult.Failed,
+                Data = $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.MismatchedBearerToken.GetValue()}"
             });
 
         var (_, clientAuthorizationToken) = requestHeaders.Single(x => x.Key.ToLower().Equals(nameof(HttpHeaderKeys.AuthorizationToken).ToLower()));
         if (!Equals(authenticatedUser.AuthorizationToken, clientAuthorizationToken.ToString()))
             context.Result = new UnauthorizedObjectResult(new ClientResponse {
-                Result = Enums.ApiResult.FAILED,
-                Data = $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.MISMATCHED_AUTH_TOKEN.GetEnumValue<string>()}"
+                Result = Enums.ApiResult.Failed,
+                Data = $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.MismatchedAuthToken.GetValue()}"
             });
         
         if (authenticatedUser.AuthorizedTimestamp + authenticatedUser.ValidityDuration < DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())
             context.Result = new UnauthorizedObjectResult(new ClientResponse {
-                Result = Enums.ApiResult.FAILED,
-                Data = $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.AUTHORIZATION_EXPIRED.GetEnumValue<string>()}"
+                Result = Enums.ApiResult.Failed,
+                Data = $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.AuthorizationExpired.GetValue()}"
             });
     }
 }

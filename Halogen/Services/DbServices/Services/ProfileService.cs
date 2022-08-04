@@ -25,7 +25,10 @@ public sealed class ProfileService: DbServiceBase, IProfileService {
             return result != 0 ? newProfile.Id : default;
         }
         catch (DbUpdateException e) {
-            _logger.Log(new LoggerBinding<ProfileService> { Location = nameof(InsertNewProfile), Severity = Enums.LogSeverity.ERROR, Data = e });
+            _logger.Log(new LoggerBinding<ProfileService> {
+                Location = $"{nameof(InsertNewProfile)}.{nameof(DbUpdateException)}",
+                Severity = Enums.LogSeverity.Error, Data = e
+            });
             return default;
         }
     }
@@ -41,7 +44,48 @@ public sealed class ProfileService: DbServiceBase, IProfileService {
             return !profilePhoneNumbers.Any(x => x.Equals(phoneNumber));
         }
         catch (ArgumentNullException e) {
-            _logger.Log(new LoggerBinding<ProfileService> { Location = nameof(IsPhoneNumberAvailableForNewAccount), Severity = Enums.LogSeverity.ERROR, Data = e });
+            _logger.Log(new LoggerBinding<ProfileService> {
+                Location = $"{nameof(IsPhoneNumberAvailableForNewAccount)}.{nameof(ArgumentNullException)}",
+                Severity = Enums.LogSeverity.Error, Data = e
+            });
+            return default;
+        }
+    }
+
+    public async Task<Profile?> GetProfileByAccountId(string accountId) {
+        _logger.Log(new LoggerBinding<ProfileService> { Location = nameof(GetProfileByAccountId) });
+        try {
+            return await _dbContext.Profiles.SingleAsync(x => x.AccountId.Equals(accountId));
+        }
+        catch (ArgumentNullException e) {
+            _logger.Log(new LoggerBinding<ProfileService> {
+                Location = $"{nameof(GetProfileByAccountId)}.{nameof(ArgumentNullException)}",
+                Severity = Enums.LogSeverity.Error, Data = e
+            });
+            return default;
+        }
+        catch (InvalidOperationException e) {
+            _logger.Log(new LoggerBinding<ProfileService> {
+                Location = $"{nameof(GetProfileByAccountId)}.{nameof(InvalidOperationException)}",
+                Severity = Enums.LogSeverity.Error, Data = e
+            });
+            return default;
+        }
+    }
+
+    public async Task<bool?> UpdateProfile(Profile profile) {
+        _logger.Log(new LoggerBinding<ProfileService> { Location = nameof(UpdateProfile) });
+        _dbContext.Profiles.Update(profile);
+        
+        try {
+            var result = await _dbContext.SaveChangesAsync();
+            return result == 1;
+        }
+        catch (DbUpdateException e) {
+            _logger.Log(new LoggerBinding<ProfileService> {
+                Location = $"{nameof(UpdateProfile)}.{nameof(DbUpdateException)}",
+                Severity = Enums.LogSeverity.Error, Data = e
+            });
             return default;
         }
     }

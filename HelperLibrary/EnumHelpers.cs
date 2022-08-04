@@ -24,7 +24,7 @@ public static class EnumHelpers {
     /// To get StringValue and ByteValue of enums having CompositeValue attribute.
     /// Or to get StringValue of enums having Value attribute.
     /// </summary>
-    public static T? GetEnumValue<T>(this Enum any) {
+    public static T? GetCompositeValue<T>(this Enum any) {
         var enumType = any.GetType();
         var enumFields = enumType.GetField(any.ToString());
 
@@ -47,6 +47,18 @@ public static class EnumHelpers {
             : byte.MinValue;
             
         return (T) Convert.ChangeType(byteValue, TypeCode.Byte);
+    }
+
+    public static string? GetValue(this Enum any) {
+        var enumType = any.GetType();
+        var enumFields = enumType.GetField(any.ToString());
+        
+        if (enumFields is null) return default;
+        
+        return enumFields.GetCustomAttributes(typeof(ValueAttribute), false)
+            is CompositeValueAttribute[] { Length: > 0 } attributesForStringValue
+            ? attributesForStringValue[0].StringValue
+            : string.Empty;
     }
 
     public static T ToEnum<T>(this string any, T defaultValue)

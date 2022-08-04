@@ -1,4 +1,5 @@
 ﻿using Halogen.DbContexts;
+using Halogen.DbModels;
 using Halogen.Services.DbServices.Interfaces;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Logger;
@@ -19,7 +20,41 @@ public sealed class AccountService: DbServiceBase, IAccountService {
             return !await _dbContext.Accounts.AnyAsync(x => Equals(x.EmailAddress, emailAddress));
         }
         catch (ArgumentNullException e) {
-            _logger.Log(new LoggerBinding<AccountService> { Location = nameof(IsEmailAddressAvailableForNewAccount), Severity = Enums.LogSeverity.ERROR, Data = e });
+            _logger.Log(new LoggerBinding<AccountService> {
+                Location = $"{nameof(IsEmailAddressAvailableForNewAccount)}.{nameof(ArgumentNullException)}",
+                Severity = Enums.LogSeverity.Error, Data = e
+            });
+            return default;
+        }
+    }
+
+    public async Task<Account?> GetAccountById(string accountId) {
+        _logger.Log(new LoggerBinding<AccountService> { Location = nameof(GetAccountById) });
+        try {
+            return await _dbContext.Accounts.FindAsync(accountId);
+        }
+        catch (Exception e) {
+            _logger.Log(new LoggerBinding<AccountService> {
+                Location = $"{nameof(GetAccountById)}.{nameof(Exception)}",
+                Severity = Enums.LogSeverity.Error, Data = e
+            });
+            return default;
+        }
+    }
+
+    public async Task<bool?> UpdateAccount(Account account) {
+        _logger.Log(new LoggerBinding<AccountService> { Location = nameof(UpdateAccount) });
+        _dbContext.Accounts.Update(account);
+
+        try {
+            var result = await _dbContext.SaveChangesAsync();
+            return result == 1;
+        }
+        catch (DbUpdateException e) {
+            _logger.Log(new LoggerBinding<AccountService> {
+                Location = $"{nameof(UpdateAccount)}.{nameof(DbUpdateException)}",
+                Severity = Enums.LogSeverity.Error, Data = e
+            });
             return default;
         }
     }

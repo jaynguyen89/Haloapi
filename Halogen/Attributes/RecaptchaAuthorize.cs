@@ -46,6 +46,6 @@ public sealed class RecaptchaAuthorize: AuthorizeAttribute, IAuthorizationFilter
 
         var isHuman = _assistantService.IsHumanActivity(recaptchaToken).Result;
         if (isHuman is null || !isHuman.Result)
-            context.Result = new UnauthorizedObjectResult(new ClientResponse { Result = Enums.ApiResult.FAILED, Data = nameof(RecaptchaAuthorize) });
+            context.Result = new UnauthorizedObjectResult(new ClientResponse { Result = Enums.ApiResult.Failed, Data = nameof(RecaptchaAuthorize) });
     }
 }

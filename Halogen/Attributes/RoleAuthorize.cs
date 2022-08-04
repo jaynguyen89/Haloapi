@@ -27,14 +27,14 @@ public sealed class RoleAuthorize: AuthorizeAttribute, IAuthorizationFilter {
         var authenticatedUser = JsonConvert.DeserializeObject<Authorization>(session.GetString(nameof(Authorization)) ?? string.Empty);
         if (authenticatedUser is null)
             context.Result = new UnauthorizedObjectResult(new ClientResponse {
-                Result = Enums.ApiResult.FAILED,
-                Data = $"{nameof(RoleAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.INVALID_USER.GetEnumValue<string>()}"
+                Result = Enums.ApiResult.Failed,
+                Data = $"{nameof(RoleAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InvalidUser.GetValue()}"
             });
         
         if (!_authorizedRoles.Any(authenticatedUser!.Roles.Contains))
             context.Result = new UnauthorizedObjectResult(new ClientResponse {
-                Result = Enums.ApiResult.FAILED,
-                Data = $"{nameof(RoleAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.INVALID_ROLE.GetEnumValue<string>()}"
+                Result = Enums.ApiResult.Failed,
+                Data = $"{nameof(RoleAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InvalidRole.GetValue()}"
             });
     }
 }

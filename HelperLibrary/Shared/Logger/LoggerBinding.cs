@@ -4,7 +4,7 @@ namespace HelperLibrary.Shared.Logger;
 
 public sealed class LoggerBinding<T> {
 
-    public Enums.LogSeverity Severity { get; set; } = Enums.LogSeverity.INFORMATION;
+    public Enums.LogSeverity Severity { get; set; } = Enums.LogSeverity.Information;
 
     public string Location { get; set; } = null!;
 
@@ -15,6 +15,7 @@ public sealed class LoggerBinding<T> {
     public object? Data { get; set; }
 
     public string GetLogString() =>
-        $"{(IsPrivate ? "private " : "")}{typeof(T).Name}.{Location}: {Message}" +
+        $"<<{Severity.GetValue()!.ToUpper()}>> {(IsPrivate ? "private " : "")}" +
+        $"{typeof(T).Name}.{Location}: {Message}" +
         $"{(Data is null ? string.Empty : $"\nData = {JsonConvert.SerializeObject(Data)}")}";
 }

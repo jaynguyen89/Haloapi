@@ -23,7 +23,10 @@ public sealed class RoleService: DbServiceBase, IRoleService {
             return result != 0 ? newAccountRole.Id : default;
         }
         catch (DbUpdateException e) {
-            _logger.Log(new LoggerBinding<RoleService> { Location = nameof(InsertNewAccountRole), Severity = Enums.LogSeverity.ERROR, Data = e });
+            _logger.Log(new LoggerBinding<RoleService> {
+                Location = $"{nameof(InsertNewAccountRole)}.{nameof(DbUpdateException)}",
+                Severity = Enums.LogSeverity.Error, Data = e
+            });
             return default;
         }
     }
@@ -34,11 +37,17 @@ public sealed class RoleService: DbServiceBase, IRoleService {
             return await _dbContext.Roles.SingleAsync(x => x.Name.Equals(roleName));
         }
         catch (ArgumentNullException e) {
-            _logger.Log(new LoggerBinding<RoleService> { Location = nameof(GetRoleByName), Severity = Enums.LogSeverity.ERROR, Data = e });
+            _logger.Log(new LoggerBinding<RoleService> {
+                Location = $"{nameof(GetRoleByName)}.{nameof(ArgumentNullException)}",
+                Severity = Enums.LogSeverity.Error, Data = e
+            });
             return default;
         }
         catch (InvalidOperationException e) {
-            _logger.Log(new LoggerBinding<RoleService> { Location = nameof(GetRoleByName), Severity = Enums.LogSeverity.ERROR, Data = e });
+            _logger.Log(new LoggerBinding<RoleService> {
+                Location = $"{nameof(GetRoleByName)}.{nameof(InvalidOperationException)}",
+                Severity = Enums.LogSeverity.Error, Data = e
+            });
             return default;
         }
     }

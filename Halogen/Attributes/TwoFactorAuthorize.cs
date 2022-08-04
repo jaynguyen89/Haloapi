@@ -50,8 +50,8 @@ public sealed class TwoFactorAuthorize: AuthorizeAttribute, IAuthorizationFilter
         var twoFactorSecretKey = _sessionService.Get<string>(nameof(HttpHeaderKeys.TwoFactorToken));
         if (!twoFactorSecretKey.IsString())
             context.Result = new UnauthorizedObjectResult(new ClientResponse {
-                Result = Enums.ApiResult.FAILED,
-                Data = $"{nameof(TwoFactorAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.NO_TWO_FACTOR_TOKEN.GetEnumValue<string>()}"
+                Result = Enums.ApiResult.Failed,
+                Data = $"{nameof(TwoFactorAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.NoTwoFactorToken.GetValue()}"
             });
 
         var (_, twoFactorToken) = context.HttpContext.Request.Headers.Single(x => x.Key.ToLower().Equals(nameof(HttpHeaderKeys.TwoFactorToken).ToLower()));
@@ -61,8 +61,8 @@ public sealed class TwoFactorAuthorize: AuthorizeAttribute, IAuthorizationFilter
         });
         
         if (!isTwoFactorTokenValid) context.Result = new UnauthorizedObjectResult(new ClientResponse {
-            Result = Enums.ApiResult.FAILED,
-            Data = $"{nameof(TwoFactorAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.INVALID_TWO_FACTOR_TOKEN.GetEnumValue<string>()}"
+            Result = Enums.ApiResult.Failed,
+            Data = $"{nameof(TwoFactorAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InvalidTwoFactorToken.GetValue()}"
         });
     }
 }
