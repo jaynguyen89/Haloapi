@@ -1,6 +1,7 @@
 ﻿using Halogen.DbContexts;
 using Halogen.DbModels;
 using Halogen.Services.DbServices.Interfaces;
+using HelperLibrary;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Logger;
 using Microsoft.EntityFrameworkCore;
@@ -46,6 +47,24 @@ public sealed class RoleService: DbServiceBase, IRoleService {
         catch (InvalidOperationException e) {
             _logger.Log(new LoggerBinding<RoleService> {
                 Location = $"{nameof(GetRoleByName)}.{nameof(InvalidOperationException)}",
+                Severity = Enums.LogSeverity.Error, Data = e
+            });
+            return default;
+        }
+    }
+
+    public async Task<Enums.Role[]?> GetAllAccountRoles(string accountId) {
+        _logger.Log(new LoggerBinding<RoleService> { Location = nameof(GetAllAccountRoles) });
+        try {
+            return await _dbContext.AccountRoles
+                                   .Where(x => x.AccountId.Equals(accountId))
+                                   .Select(x => x.Role.Name)
+                                   .Select(x => x.ToEnum(Enums.Role.Customer))
+                                   .ToArrayAsync();
+        }
+        catch (ArgumentNullException e) {
+            _logger.Log(new LoggerBinding<RoleService> {
+                Location = $"{nameof(GetAllAccountRoles)}.{nameof(ArgumentNullException)}",
                 Severity = Enums.LogSeverity.Error, Data = e
             });
             return default;

@@ -89,4 +89,27 @@ public sealed class ProfileService: DbServiceBase, IProfileService {
             return default;
         }
     }
+
+    public async Task<Profile?> GetProfileByPhoneNumber(RegionalizedPhoneNumber phoneNumber) {
+        _logger.Log(new LoggerBinding<ProfileService> { Location = nameof(GetProfileByPhoneNumber) });
+        var serializedPhoneNumber = JsonConvert.SerializeObject(phoneNumber);
+
+        try {
+            return await _dbContext.Profiles.SingleOrDefaultAsync(x => Equals(x.PhoneNumber, serializedPhoneNumber));
+        }
+        catch (ArgumentNullException e) {
+            _logger.Log(new LoggerBinding<ProfileService> {
+                Location = $"{nameof(GetProfileByPhoneNumber)}.{nameof(ArgumentNullException)}",
+                Severity = Enums.LogSeverity.Error, Data = e
+            });
+            return default;
+        }
+        catch (InvalidOperationException e) {
+            _logger.Log(new LoggerBinding<ProfileService> {
+                Location = $"{nameof(GetProfileByPhoneNumber)}.{nameof(InvalidOperationException)}",
+                Severity = Enums.LogSeverity.Error, Data = e
+            });
+            return default;
+        }
+    }
 }

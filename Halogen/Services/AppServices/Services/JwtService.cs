@@ -27,32 +27,12 @@ public sealed class JwtService: IJwtService {
         var jwtClaims = claims.Select(claim => new Claim(claim.Key, claim.Value));
         
         var environment = _configuration.GetValue<string>($"{nameof(Halogen)}Environment");
-        var (issuers, audiences, signingKeys, expiration) = environment switch {
-            Constants.Development => (
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Development.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Development.JwtSettings.TokenValidationParameters.ValidIssuers)}"),
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Development.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Development.JwtSettings.TokenValidationParameters.ValidAudiences)}"),
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Development.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Development.JwtSettings.TokenValidationParameters.IssuerSigningKeys)}"),
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Development.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Development.JwtSettings.TokenValidationParameters.Expiration)}")
-            ),
-            Constants.Staging => (
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Staging.JwtSettings.TokenValidationParameters.ValidIssuers)}"),
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Staging.JwtSettings.TokenValidationParameters.ValidAudiences)}"),
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Staging.JwtSettings.TokenValidationParameters.IssuerSigningKeys)}"),
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Staging.JwtSettings.TokenValidationParameters.Expiration)}")
-            ),
-            Constants.Production => (
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.TokenValidationParameters.ValidIssuers)}"),
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.TokenValidationParameters.ValidAudiences)}"),
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.TokenValidationParameters.IssuerSigningKeys)}"),
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Production.JwtSettings.TokenValidationParameters.Expiration)}")
-            ),
-            _ => (
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters.ValidIssuers)}"),
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters.ValidAudiences)}"),
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters.IssuerSigningKeys)}"),
-                _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters.Expiration)}")
-            )
-        };
+        var (issuers, audiences, signingKeys, expiration) = (
+            _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters.ValidIssuers)}"),
+            _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters.ValidAudiences)}"),
+            _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters.IssuerSigningKeys)}"),
+            _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters)}{Constants.Colon}{nameof(HalogenOptions.Local.JwtSettings.TokenValidationParameters.Expiration)}")
+        );
 
         var jwtToken = new JwtSecurityToken(
             issuers.Split(Constants.Semicolon)[0],

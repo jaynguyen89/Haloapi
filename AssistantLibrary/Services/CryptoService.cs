@@ -4,7 +4,6 @@ using AssistantLibrary.Bindings;
 using AssistantLibrary.Interfaces;
 using BCrypt;
 using HelperLibrary;
-using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Logger;
 using Microsoft.Extensions.Configuration;
@@ -114,5 +113,42 @@ public sealed class CryptoService: ServiceBase, ICryptoService {
         catch {
             return default;
         }
+    }
+
+    [Obsolete("Derived cryptographic types are obsolete. Use the Create method on the base type instead.")]
+    public async Task<string> CreateSha512Hash(string plainText) {
+        _logger.Log(new LoggerBinding<CryptoService> { Location = nameof(CreateSha512Hash) });
+        
+        var plainTextStream = new MemoryStream();
+        await plainTextStream.WriteAsync(plainText.EncodeDataUtf8());
+
+        var sha512 = new SHA512Managed();
+        var result = await sha512.ComputeHashAsync(plainTextStream);
+
+        return result.DecodeUtf8<string>()!;
+    }
+    
+    public async Task<string> CreateHmacSha521Hash(string plainText) {
+        _logger.Log(new LoggerBinding<CryptoService> { Location = nameof(CreateHmacSha521Hash) });
+        
+        var plainTextStream = new MemoryStream();
+        await plainTextStream.WriteAsync(plainText.EncodeDataUtf8());
+
+        var sha512 = new HMACSHA512();
+        var result = await sha512.ComputeHashAsync(plainTextStream);
+
+        return result.DecodeUtf8<string>()!;
+    }
+
+    public async Task<string> CreateHmacMd5Hash(string plainText) {
+        _logger.Log(new LoggerBinding<CryptoService> { Location = nameof(CreateHmacMd5Hash) });
+        
+        var plainTextStream = new MemoryStream();
+        await plainTextStream.WriteAsync(plainText.EncodeDataUtf8());
+
+        var md5 = new HMACMD5();
+        var result = await md5.ComputeHashAsync(plainTextStream);
+        
+        return result.DecodeUtf8<string>()!;
     }
 }

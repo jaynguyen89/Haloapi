@@ -1,5 +1,6 @@
 ﻿using AssistantLibrary.Interfaces;
 using Halogen.Bindings.ApiBindings;
+using Halogen.Bindings.ServiceBindings;
 using Halogen.Parsers;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
@@ -27,14 +28,7 @@ public sealed class RecaptchaAuthorize: AuthorizeAttribute, IAuthorizationFilter
         _assistantService = assistantService;
         
         var environment = ecosystem.GetEnvironment();
-        _recaptchaEnabled = bool.Parse(
-            environment switch {
-                Constants.Development => configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Development.ServiceSettings)}{Constants.Colon}{nameof(HalogenOptions.Development.ServiceSettings.TwoFactorEnabled)}"),
-                Constants.Staging => configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.ServiceSettings)}{Constants.Colon}{nameof(HalogenOptions.Staging.ServiceSettings.TwoFactorEnabled)}"),
-                Constants.Production => configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.ServiceSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.ServiceSettings.TwoFactorEnabled)}"),
-                _ => configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings.TwoFactorEnabled)}")
-            }
-        );
+        _recaptchaEnabled = bool.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings.TwoFactorEnabled)}"));
     }
 
     public void OnAuthorization(AuthorizationFilterContext context) {

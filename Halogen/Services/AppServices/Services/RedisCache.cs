@@ -19,28 +19,11 @@ internal sealed class RedisCache: ICacheService {
         _redisCache = redisCache;
         
         var environment = configuration.GetValue<string>($"{nameof(Halogen)}Environment");
-        var (isEnabled, slidingExpiration, absoluteExpiration) = environment switch {
-            Constants.Development => (
-                bool.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Development.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Development.CacheSettings.IsEnabled)}")),
-                int.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Development.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Development.CacheSettings.SlidingExpiration)}")),
-                int.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Development.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Development.CacheSettings.AbsoluteExpiration)}"))
-            ),
-            Constants.Staging => (
-                bool.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Staging.CacheSettings.IsEnabled)}")),
-                int.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Staging.CacheSettings.SlidingExpiration)}")),
-                int.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Staging.CacheSettings.AbsoluteExpiration)}"))
-            ),
-            Constants.Production => (
-                bool.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.CacheSettings.IsEnabled)}")),
-                int.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.CacheSettings.SlidingExpiration)}")),
-                int.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.CacheSettings.AbsoluteExpiration)}"))
-            ),
-            _ => (
-                bool.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.IsEnabled)}")),
-                int.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.SlidingExpiration)}")),
-                int.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.AbsoluteExpiration)}"))
-            )
-        };
+        var (isEnabled, slidingExpiration, absoluteExpiration) = (
+            bool.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.IsEnabled)}")),
+            int.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.SlidingExpiration)}")),
+            int.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.AbsoluteExpiration)}"))
+        );
 
         IsEnabled = isEnabled;
         SlidingExpiration = slidingExpiration;

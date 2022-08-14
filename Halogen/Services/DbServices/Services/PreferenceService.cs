@@ -30,4 +30,25 @@ public sealed class PreferenceService: DbServiceBase, IPreferenceService {
             return default;
         }
     }
+
+    public async Task<Preference?> GetPreferenceByAccountId(string accountId) {
+        _logger.Log(new LoggerBinding<PreferenceService> { Location = nameof(GetPreferenceByAccountId) });
+        try {
+            return await _dbContext.Preferences.SingleOrDefaultAsync(x => x.AccountId.Equals(accountId));
+        }
+        catch (ArgumentNullException e) {
+            _logger.Log(new LoggerBinding<PreferenceService> {
+                Location = $"{nameof(GetPreferenceByAccountId)}.{nameof(ArgumentNullException)}",
+                Severity = Enums.LogSeverity.Error, Data = e
+            });
+            return default;
+        }
+        catch (InvalidOperationException e) {
+            _logger.Log(new LoggerBinding<PreferenceService> {
+                Location = $"{nameof(GetPreferenceByAccountId)}.{nameof(InvalidOperationException)}",
+                Severity = Enums.LogSeverity.Error, Data = e
+            });
+            return default;
+        }
+    }
 }

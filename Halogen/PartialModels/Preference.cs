@@ -17,51 +17,21 @@ public partial class Preference {
         NumberFormat = (byte)Enums.NumberFormat.CommaForThousands,
         UnitSystem = (byte)Enums.UnitSystem.InternationalUnitSystem,
         Privacy = JsonConvert.SerializeObject(new PrivacyPreference {
-            ProfilePreference = new PrivacyPreference.ProfilePolicy(),
-            NamePreference = new PrivacyPreference.PrivacyPolicy {
+            ProfilePreference = new ProfilePolicy(),
+            NamePreference = new PrivacyPolicy {
                 DataFormat = (byte)Enums.NameFormat.ShowFullName,
                 Visibility = Enums.Visibility.VisibleToPublic
             },
-            BirthPreference = new PrivacyPreference.PrivacyPolicy {
+            BirthPreference = new PrivacyPolicy {
                 DataFormat = (byte)Enums.BirthFormat.ShowMonthYearOnly,
                 Visibility = Enums.Visibility.VisibleToPublic
             },
-            CareerPreference = new PrivacyPreference.PrivacyPolicy {
+            CareerPreference = new PrivacyPolicy {
                 DataFormat = (byte)Enums.CareerFormat.ShowJobTitleOnly,
                 Visibility = Enums.Visibility.VisibleToPublic,
             },
-            PhoneNumberVisibility = Enums.Visibility.VisibleToSelf
+            PhoneNumberVisibility = Enums.Visibility.VisibleToSelf,
+            SecurityPreference = new SecurityPolicy()
         })
     };
-}
-
-internal sealed class PrivacyPreference {
-
-    public ProfilePolicy ProfilePreference { get; set; } = null!;
-
-    public PrivacyPolicy NamePreference { get; set; } = null!;
-
-    public PrivacyPolicy BirthPreference { get; set; } = null!;
-
-    public PrivacyPolicy CareerPreference { get; set; } = null!;
-
-    public Enums.Visibility PhoneNumberVisibility { get; set; }
-    
-    internal sealed class PrivacyPolicy: VisibilityPolicy, IPolicyWithDataFormat, IPolicyWithSingleTarget {
-
-        public byte DataFormat { get; set; }
-
-        public string? VisibleToTargetId { get; set; }
-
-        public string? TargetTypeName { get; set; }
-    }
-    
-    internal sealed class ProfilePolicy {
-        
-        public bool HiddenToSearchEngines { get; set; }
-        
-        public bool HiddenToStrangers { get; set; }
-        
-        public string? ReachableByTypeName { get; set; }
-    }
 }

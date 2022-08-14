@@ -34,6 +34,14 @@ public static class Enums {
         AccountRecovery
     }
 
+    public enum HashAlgorithm {
+        BCrypt,
+        Rsa,
+        Sha512,
+        Md5,
+        HmacSha512
+    }
+
     public enum TimeUnit {
         [Value("Millisecond")]
         Millisecond,

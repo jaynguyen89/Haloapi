@@ -59,7 +59,7 @@ public sealed class MailService: ServiceBase, IMailService {
         _smtpClient.Host = serverHost;
         _smtpClient.Port = serverPort;
         _smtpClient.EnableSsl = useSsl;
-        _smtpClient.UseDefaultCredentials = useSsl;
+        _smtpClient.UseDefaultCredentials = !useSsl;
         _smtpClient.Credentials = new NetworkCredential(emailAddress, password);
         _smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
         _smtpClient.Timeout = timeout;
@@ -84,7 +84,7 @@ public sealed class MailService: ServiceBase, IMailService {
         _mailMessage.Priority = mail.Priority;
 
         bodyContent = bodyContent!.SetDefaultEmailBodyValues(new Tuple<string, string, string>(_defaultBodyPlaceholderValues.Item1, _defaultBodyPlaceholderValues.Item2, _clientApplicationName));
-        _ = mail.Placeholders.Select(x => bodyContent = Regex.Replace(bodyContent!, $@"^{x.Key}$", x.Value));
+        _ = mail.Placeholders.Select(x => bodyContent = Regex.Replace(bodyContent!, $@"\b{x.Key}\b", x.Value));
         _mailMessage.Body = bodyContent;
         
         mail.Attachments?.ForEach(x => _mailMessage.Attachments.Add(new Attachment(x.Key, x.Value)));
@@ -112,7 +112,11 @@ public sealed class MailService: ServiceBase, IMailService {
             await _smtpClient.SendMailAsync(_mailMessage);
             return true;
         }
-        catch {
+        catch (Exception e) {
+            _logger.Log(new LoggerBinding<MailService> {
+                Location = $"{nameof(SendSingleEmail)}.{nameof(Exception)}",
+                Severity = Enums.LogSeverity.Error, Data = e
+            });
             return false;
         }
     }

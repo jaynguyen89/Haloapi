@@ -13,6 +13,7 @@ namespace Halogen.DbModels
         public string? DeviceLocation { get; set; }
         public string? IpAddress { get; set; }
         public string? OperatingSystem { get; set; }
+        public string? BrowserType { get; set; }
         public DateTime AddedOn { get; set; }
         public bool IsTrusted { get; set; }
 

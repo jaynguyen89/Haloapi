@@ -46,13 +46,15 @@ public partial class HalogenDbContext : DbContext {
 
             entity.Property(e => e.NormalizedUsername).HasMaxLength(50);
 
-            entity.Property(e => e.PasswordSalt).HasMaxLength(50);
+            entity.Property(e => e.PasswordSalt).HasMaxLength(30);
 
             entity.Property(e => e.OneTimePassword).HasMaxLength(15);
 
             entity.Property(e => e.RecoveryToken).HasMaxLength(50);
 
-            entity.Property(e => e.TwoFaSecretKey).HasMaxLength(50);
+            entity.Property(e => e.TwoFactorKeys).HasMaxLength(50);
+            
+            entity.Property(e => e.TwoFactorVerifyingTokens).HasMaxLength(200);
 
             entity.Property(e => e.UniqueIdentifier).HasMaxLength(40);
 
@@ -406,6 +408,8 @@ public partial class HalogenDbContext : DbContext {
             entity.Property(e => e.AccountId).HasMaxLength(65);
 
             entity.Property(e => e.AddedOn).HasDefaultValueSql("(getdate())");
+            
+            entity.Property(e => e.BrowserType).HasMaxLength(50);
 
             entity.Property(e => e.DeviceLocation).HasMaxLength(200);
 

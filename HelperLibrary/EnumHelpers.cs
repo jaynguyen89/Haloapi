@@ -56,7 +56,7 @@ public static class EnumHelpers {
         if (enumFields is null) return default;
         
         return enumFields.GetCustomAttributes(typeof(ValueAttribute), false)
-            is CompositeValueAttribute[] { Length: > 0 } attributesForStringValue
+            is ValueAttribute[] { Length: > 0 } attributesForStringValue
             ? attributesForStringValue[0].StringValue
             : string.Empty;
     }

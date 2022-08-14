@@ -1,5 +1,5 @@
 ﻿#pragma warning disable 8618
-namespace Halogen.Bindings.ApiBindings; 
+namespace Halogen.Bindings.ServiceBindings; 
 
 public sealed class HttpHeaderKeys {
 #pragma warning disable CS0649

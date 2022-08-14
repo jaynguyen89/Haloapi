@@ -12,9 +12,11 @@ public static class DateTimeHelpers {
         return age;
     }
 
-    public static DateTime Compute(this DateTime dateTime, int value, Enums.TimeUnit unit) {
+    public static long ToTimestamp(this DateTime any) => ((DateTimeOffset)any).ToUnixTimeMilliseconds();
+
+    public static DateTime Compute(this DateTime dateTime, int value, Enums.TimeUnit unit, bool addition = true) {
         var valueInMilliseconds = ToMilliseconds(value, unit);
-        return dateTime.AddMilliseconds(valueInMilliseconds);
+        return dateTime.AddMilliseconds(addition ? valueInMilliseconds : valueInMilliseconds * -1);
     }
 
     public static long ToMilliseconds(this int value, Enums.TimeUnit unit) => unit switch {

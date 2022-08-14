@@ -9,4 +9,6 @@ public interface IAccountService {
     Task<Account?> GetAccountById(string accountId);
     
     Task<bool?> UpdateAccount(Account account);
+    
+    Task<Account?> GetAccountByEmailAddress(string emailAddress);
 }

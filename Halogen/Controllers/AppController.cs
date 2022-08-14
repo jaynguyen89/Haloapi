@@ -1,4 +1,7 @@
-﻿using Halogen.Parsers;
+﻿using Halogen.Bindings.ApiBindings;
+using Halogen.DbModels;
+using Halogen.Parsers;
+using HelperLibrary;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Logger;
@@ -10,10 +13,12 @@ public class AppController: ControllerBase {
 
     protected readonly ILoggerService _logger;
     protected readonly IConfiguration _configuration;
+    protected readonly CookieOptions _cookieOptions;
     protected readonly string _clientApplicationName;
 
     protected readonly string _environment;
     protected readonly bool _useLongerId;
+    protected readonly string _baseSessionSettingsOptionKey;
     protected readonly string _baseSecuritySettingsOptionKey;
     protected readonly string _smsContentsOptionKey;
 
@@ -29,23 +34,32 @@ public class AppController: ControllerBase {
         _configuration = configuration;
 
         _clientApplicationName = configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Development.ClientApplicationName)}");
-        (_baseSecuritySettingsOptionKey, _smsContentsOptionKey) = _environment switch {
-            Constants.Development => (
-                $"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Development.SecuritySettings)}{Constants.Colon}",
-                $"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Development.SmsContents)}{Constants.Colon}"
-            ),
-            Constants.Staging => (
-                $"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Staging.SecuritySettings)}{Constants.Colon}",
-                $"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Staging.SmsContents)}{Constants.Colon}"
-            ),
-            Constants.Production => (
-                $"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Production.SecuritySettings)}{Constants.Colon}",
-                $"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Production.SmsContents)}{Constants.Colon}"
-            ),
-            _ => (
-                $"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Local.SecuritySettings)}{Constants.Colon}",
-                $"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Local.SmsContents)}{Constants.Colon}"
-            )
+        (_baseSessionSettingsOptionKey, _baseSecuritySettingsOptionKey, _smsContentsOptionKey) = (
+            $"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings)}{Constants.Colon}",
+            $"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Local.SecuritySettings)}{Constants.Colon}",
+            $"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Local.SmsContents)}{Constants.Colon}"
+        );
+        
+        var (isEssential, maxAge, expiration) = (
+            bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings.IsEssential)}")),
+            int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings.MaxAge)}")),
+            int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings.Expiration)}"))
+        );
+
+        _cookieOptions = new CookieOptions {
+            Domain = nameof(Halogen),
+            Path = Constants.FSlash,
+            MaxAge = TimeSpan.FromDays(maxAge),
+            IsEssential = isEssential,
+            HttpOnly = true,
+            Expires = DateTimeOffset.FromUnixTimeMilliseconds(expiration.ToMilliseconds(Enums.TimeUnit.Day)),
+            SameSite = SameSiteMode.None,
+            Secure = isEssential
         };
+    }
+
+    protected bool IsDeviceTrusted(DeviceInformation device, TrustedDevice[] trustedDevices) {
+        //Todo: check if the device is of trusted device
+        return true;
     }
 }

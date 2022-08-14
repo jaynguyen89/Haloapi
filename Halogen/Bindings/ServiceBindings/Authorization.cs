@@ -2,7 +2,7 @@
 
 namespace Halogen.Bindings.ServiceBindings; 
 
-public sealed class Authorization {
+public class Authorization {
 
     public string AccountId { get; set; } = null!;
 
@@ -11,6 +11,8 @@ public sealed class Authorization {
     public string BearerToken { get; set; } = null!;
 
     public string AuthorizationToken { get; set; } = null!;
+
+    public string RefreshToken { get; set; } = null!;
     
     public long AuthorizedTimestamp { get; set; }
     

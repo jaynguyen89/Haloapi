@@ -5,4 +5,6 @@ namespace Halogen.Services.DbServices.Interfaces;
 public interface IPreferenceService {
 
     Task<string?> InsertNewPreference(Preference newPreference);
+    
+    Task<Preference?> GetPreferenceByAccountId(string accountId);
 }

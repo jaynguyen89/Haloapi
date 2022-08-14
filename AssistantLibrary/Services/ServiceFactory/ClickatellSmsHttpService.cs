@@ -33,8 +33,8 @@ public sealed class ClickatellSmsHttpService: ServiceBase, ISmsService, IClickat
         _httpClient.DefaultRequestHeaders.Accept.Clear();
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(Constants.ContentTypes[contentType]));
 
-        var smsContent = Regex.Replace(binding.SmsContent, $@"^CLIENT_APPLICATION_NAME$", _clientApplicationName);
-        var encodedContent = Regex.Replace(smsContent, Constants.MonoSpace, Constants.Plus);
+        var smsContent = Regex.Replace(binding.SmsContent, $@"\bCLIENT_APPLICATION_NAME\b", _clientApplicationName);
+        var encodedContent = Uri.EscapeDataString(smsContent); //Regex.Replace(smsContent, Constants.MonoSpace, Constants.Plus);
         if (_environment.Equals(Constants.Local)) {
             var receiverPhoneNumber = _configuration.AsEnumerable().Single(x => x.Key.Equals($"{_clickatellBaseOptionKey}{nameof(AssistantLibraryOptions.Local.ClickatellHttpSettings.DevTestPhoneNumber)}")).Value;
             var requestUrl = $"{_clickatellBaseUrl}&to={receiverPhoneNumber}&content={encodedContent}";
@@ -52,7 +52,6 @@ public sealed class ClickatellSmsHttpService: ServiceBase, ISmsService, IClickat
 
                                                var httpResponse = await _httpClient.GetAsync($"", HttpCompletionOption.ResponseContentRead);
                                                return httpResponse.IsSuccessStatusCode ? string.Empty : x;
-
                                            })
                                            .Select(x => x.Result)
                                            .AsQueryable();

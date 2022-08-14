@@ -10,7 +10,7 @@ public partial class Profile {
         AccountId = accountId,
         PhoneNumber = !registerByEmailAddress ? JsonConvert.SerializeObject(phoneNumber) : default,
         PhoneNumberToken = !registerByEmailAddress
-            ? StringHelpers.GenerateRandomString(NumberHelpers.GetRandomNumberInRangeInclusive(phoneTokenMinLength, phoneTokenMaxLength), true)
+            ? StringHelpers.GenerateRandomString(NumberHelpers.GetRandomNumberInRangeInclusive(phoneTokenMinLength, phoneTokenMaxLength))
             : default,
         PhoneNumberTokenTimestamp = !registerByEmailAddress ? new DateTime() : default
     };

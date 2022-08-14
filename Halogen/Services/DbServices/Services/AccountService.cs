@@ -58,4 +58,25 @@ public sealed class AccountService: DbServiceBase, IAccountService {
             return default;
         }
     }
+
+    public async Task<Account?> GetAccountByEmailAddress(string emailAddress) {
+        _logger.Log(new LoggerBinding<AccountService> { Location = nameof(GetAccountByEmailAddress) });
+        try {
+            return await _dbContext.Accounts.SingleOrDefaultAsync(x => Equals(x.EmailAddress, emailAddress));
+        }
+        catch (ArgumentNullException e) {
+            _logger.Log(new LoggerBinding<AccountService> {
+                Location = $"{nameof(GetAccountByEmailAddress)}.{nameof(ArgumentNullException)}",
+                Severity = Enums.LogSeverity.Error, Data = e
+            });
+            return default;
+        }
+        catch (InvalidOperationException e) {
+            _logger.Log(new LoggerBinding<AccountService> {
+                Location = $"{nameof(GetAccountByEmailAddress)}.{nameof(InvalidOperationException)}",
+                Severity = Enums.LogSeverity.Error, Data = e
+            });
+            return default;
+        }
+    }
 }

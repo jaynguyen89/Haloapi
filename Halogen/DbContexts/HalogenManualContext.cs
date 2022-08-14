@@ -12,30 +12,18 @@ public partial class HalogenDbContext {
     public HalogenDbContext(IEcosystem ecosystem, IConfiguration configuration) {
         var environment = ecosystem.GetEnvironment();
         var (serverEndpoint, dbName, username, password) = environment switch {
-            Constants.Development => (
-                configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Development.DbSettings)}{Constants.Colon}{nameof(HalogenOptions.Development.DbSettings.ServerEndpoint)}"),
-                configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Development.DbSettings)}{Constants.Colon}{nameof(HalogenOptions.Development.DbSettings.DbName)}"),
-                configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Development.DbSettings)}{Constants.Colon}{nameof(HalogenOptions.Development.DbSettings.Username)}"),
-                configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Development.DbSettings)}{Constants.Colon}{nameof(HalogenOptions.Development.DbSettings.Password)}")
-            ),
-            Constants.Staging => (
-                configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.DbSettings)}{Constants.Colon}{nameof(HalogenOptions.Staging.DbSettings.ServerEndpoint)}"),
-                configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.DbSettings)}{Constants.Colon}{nameof(HalogenOptions.Staging.DbSettings.DbName)}"),
-                configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.DbSettings)}{Constants.Colon}{nameof(HalogenOptions.Staging.DbSettings.Username)}"),
-                configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Staging.DbSettings)}{Constants.Colon}{nameof(HalogenOptions.Staging.DbSettings.Password)}")
-            ),
-            Constants.Production => (
-                configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.DbSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.DbSettings.ServerEndpoint)}"),
-                configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.DbSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.DbSettings.DbName)}"),
-                configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.DbSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.DbSettings.Username)}"),
-                configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Production.DbSettings)}{Constants.Colon}{nameof(HalogenOptions.Production.DbSettings.Password)}")
-            ),
-            _ => (
+            Constants.Local => (
                 configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings.ServerEndpoint)}"),
                 configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings.DbName)}"),
                 string.Empty,
                 string.Empty
-            )
+            ),
+            _ => (
+                configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings.ServerEndpoint)}"),
+                configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings.DbName)}"),
+                configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings.Username)}"),
+                configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings.Password)}")
+            ),
         };
 
         _connectionString = environment.Equals(Constants.Local)

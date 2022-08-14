@@ -1,4 +1,5 @@
-﻿using Halogen.DbModels;
+﻿using Halogen.Bindings.ApiBindings;
+using Halogen.DbModels;
 
 namespace Halogen.Services.DbServices.Interfaces; 
 
@@ -11,4 +12,6 @@ public interface IProfileService {
     Task<Profile?> GetProfileByAccountId(string accountId);
     
     Task<bool?> UpdateProfile(Profile profile);
+    
+    Task<Profile?> GetProfileByPhoneNumber(RegionalizedPhoneNumber phoneNumber);
 }

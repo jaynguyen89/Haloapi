@@ -53,7 +53,10 @@ public sealed class HalogenOptions {
             public string IdleTimeout { get; set; }
             public string IsEssential { get; set; }
             public string MaxAge { get; set; }
+            public string Expiration { get; set; }
             public string CorsOrigins { get; set; }
+            public string AuthenticationValidityDuration { get; set; }
+            public string AuthenticationValidityDurationUnit { get; set; }
         }
         
         public sealed class CacheSettings {

@@ -30,7 +30,8 @@ namespace Halogen.DbModels
         public string? OneTimePassword { get; set; }
         public DateTime? OneTimePasswordTimestamp { get; set; }
         public bool TwoFactorEnabled { get; set; }
-        public string? TwoFaSecretKey { get; set; }
+        public string? TwoFactorKeys { get; set; }
+        public string? TwoFactorVerifyingTokens { get; set; }
         public string? RecoveryToken { get; set; }
         public DateTime? RecoveryTokenTimestamp { get; set; }
         public byte LoginFailedCount { get; set; }

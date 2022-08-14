@@ -38,7 +38,7 @@ public static class StringHelpers {
     
     public static string RemoveAllSpecialChars(this string any) => Regex.Replace(any, "[^a-zA-Z0-9]+", string.Empty, RegexOptions.Compiled);
     
-    public static string GenerateRandomString(int length = Constants.RandomStringDefaultLength, bool includeSpecialChars = false, bool caseSensitive = false) {
+    public static string GenerateRandomString(int length = Constants.RandomStringDefaultLength, bool includeSpecialChars = false, bool caseSensitive = true) {
         const string sChars = "QWERTYUIOPASDFGHJKKLZXCVBNMqwertyuiopasdfghjklzxcvbnm1234567890!@$%-_+.*|:<>";
         const string nChars = "QWERTYUIOPASDFGHJKKLZXCVBNMqwertyuiopasdfghjklzxcvbnm1234567890";
         const string scChars = "QWERTYUIOPASDFGHJKKLZXCVBNM1234567890!@$%-_+.*|:<>";
@@ -55,6 +55,13 @@ public static class StringHelpers {
         );
 
         return randomString;
+    }
+
+    public static string SplitToGroups(this string any, int numberOfGroups, string separator = Constants.Hyphen) {
+        var groupLength = any.Length / numberOfGroups;
+        return Enumerable.Range(0, numberOfGroups)
+                         .Select(x => any.Substring(x + groupLength, groupLength))
+                         .Aggregate((x, y) => $"{x}{separator}{y}");
     }
 
     public static string ShortOrLong(this string any, params int[] bounds) => any.Length < bounds[0] ? "short" : (any.Length > bounds[1] ? "long" : string.Empty);

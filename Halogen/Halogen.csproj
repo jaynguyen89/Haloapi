@@ -45,6 +45,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Bindings\ViewModels" />
     <Folder Include="Controllers\" />
     <Folder Include="Attributes\" />
     <Folder Include="DbModels\" />
