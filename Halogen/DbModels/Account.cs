@@ -23,8 +23,8 @@ namespace Halogen.DbModels
         public string? EmailAddressToken { get; set; }
         public DateTime? EmailAddressTokenTimestamp { get; set; }
         public bool EmailConfirmed { get; set; }
-        public string Username { get; set; } = null!;
-        public string NormalizedUsername { get; set; } = null!;
+        public string? Username { get; set; }
+        public string? NormalizedUsername { get; set; }
         public string PasswordSalt { get; set; } = null!;
         public string HashPassword { get; set; } = null!;
         public string? OneTimePassword { get; set; }
