@@ -11,24 +11,26 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Halogen", "Halogen.csproj",
 		{C8B6C555-8C63-4FB4-8CEA-71A69FBF23B3} = {C8B6C555-8C63-4FB4-8CEA-71A69FBF23B3}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AmazonLibrary", "..\AmazonLibrary\AmazonLibrary.csproj", "{1EB2C059-2F2E-4A44-9A91-74FA2393E238}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AmazonLibrary", "..\AmazonLibrary\AmazonLibrary.csproj", "{1EB2C059-2F2E-4A44-9A91-74FA2393E238}"
 	ProjectSection(ProjectDependencies) = postProject
 		{664B691B-4504-4971-A687-C39BA0D81E44} = {664B691B-4504-4971-A687-C39BA0D81E44}
 		{C8B6C555-8C63-4FB4-8CEA-71A69FBF23B3} = {C8B6C555-8C63-4FB4-8CEA-71A69FBF23B3}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssistantLibrary", "..\AssistantLibrary\AssistantLibrary.csproj", "{C8B6C555-8C63-4FB4-8CEA-71A69FBF23B3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AssistantLibrary", "..\AssistantLibrary\AssistantLibrary.csproj", "{C8B6C555-8C63-4FB4-8CEA-71A69FBF23B3}"
 	ProjectSection(ProjectDependencies) = postProject
 		{664B691B-4504-4971-A687-C39BA0D81E44} = {664B691B-4504-4971-A687-C39BA0D81E44}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelperLibrary", "..\HelperLibrary\HelperLibrary.csproj", "{664B691B-4504-4971-A687-C39BA0D81E44}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HelperLibrary", "..\HelperLibrary\HelperLibrary.csproj", "{664B691B-4504-4971-A687-C39BA0D81E44}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaLibrary", "..\MediaLibrary\MediaLibrary.csproj", "{8281AD60-C0A4-4B78-AEAE-4A3CAA364C15}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MediaLibrary", "..\MediaLibrary\MediaLibrary.csproj", "{8281AD60-C0A4-4B78-AEAE-4A3CAA364C15}"
 	ProjectSection(ProjectDependencies) = postProject
 		{664B691B-4504-4971-A687-C39BA0D81E44} = {664B691B-4504-4971-A687-C39BA0D81E44}
 		{C8B6C555-8C63-4FB4-8CEA-71A69FBF23B3} = {C8B6C555-8C63-4FB4-8CEA-71A69FBF23B3}
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HaloUnitTest", "..\HaloUnitTest\HaloUnitTest.csproj", "{718EE4F7-1BC1-49DD-9FCF-B2B10CE695EB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -56,6 +58,10 @@ Global
 		{8281AD60-C0A4-4B78-AEAE-4A3CAA364C15}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8281AD60-C0A4-4B78-AEAE-4A3CAA364C15}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8281AD60-C0A4-4B78-AEAE-4A3CAA364C15}.Release|Any CPU.Build.0 = Release|Any CPU
+		{718EE4F7-1BC1-49DD-9FCF-B2B10CE695EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{718EE4F7-1BC1-49DD-9FCF-B2B10CE695EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{718EE4F7-1BC1-49DD-9FCF-B2B10CE695EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{718EE4F7-1BC1-49DD-9FCF-B2B10CE695EB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
