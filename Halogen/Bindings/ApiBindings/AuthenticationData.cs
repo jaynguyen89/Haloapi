@@ -15,7 +15,7 @@ public class LoginInformation {
 
         EmailAddress = Regex.Replace(EmailAddress?.Trim().ToLower() ?? string.Empty, Constants.MultiSpace, string.Empty);
 
-        if (!EmailAddress.IsString() && PhoneNumber is null) errors.Add($"Neither {nameof(EmailAddress).ToHumanStyled()} nor {nameof(PhoneNumber)} has been provided.");
+        if (!EmailAddress.IsString() && PhoneNumber is null) errors.Add($"Neither {nameof(EmailAddress).Lucidify()} nor {nameof(PhoneNumber)} has been provided.");
         if (errors.Any()) return errors;
 
         if (EmailAddress.IsString()) errors = errors.Concat(EmailAddress.VerifyEmailAddress()).ToList();
@@ -27,11 +27,9 @@ public class LoginInformation {
 
 public class AuthenticationData: LoginInformation {
 
-    public string? EmailAddress { get; set; }
-
-    public RegionalizedPhoneNumber? PhoneNumber { get; set; }
-
     public string Password { get; set; } = null!;
+    
+    public bool IsTrusted { get; set; }
     
     public DeviceInformation? DeviceInformation { get; set; }
 

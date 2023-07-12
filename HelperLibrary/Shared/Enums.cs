@@ -2,11 +2,6 @@
 
 public static class Enums {
 
-    public enum ApiResult {
-        Success = 1,
-        Failed = 0
-    }
-
     public enum LogSeverity {
         [Value("Information")]
         Information,
@@ -15,12 +10,21 @@ public static class Enums {
         [Value("Error")]
         Error,
         [Value("Caution")]
-        Caution // means something the needs to be refactored or reworked
+        Caution, // means something the needs to be refactored or reworked
     }
-    
+
+    public enum ContentType {
+        Json,
+        Form,
+        Xml,
+        Mixed,
+        Alt,
+        Base64,
+    }
+
     public enum TokenDestination {
         Sms,
-        Email
+        Email,
     }
 
     /// <summary>
@@ -31,7 +35,7 @@ public static class Enums {
         EmailRegistration,
         PhoneRegistration,
         OneTimePassword,
-        AccountRecovery
+        AccountRecovery,
     }
 
     public enum HashAlgorithm {
@@ -39,7 +43,7 @@ public static class Enums {
         Rsa,
         Sha512,
         Md5,
-        HmacSha512
+        HmacSha512,
     }
 
     public enum TimeUnit {
@@ -60,7 +64,7 @@ public static class Enums {
         [Value("Quarter")]
         Quarter,
         [Value("Year")]
-        Year
+        Year,
     }
 
     public enum AuthorizationFailure {
@@ -77,7 +81,7 @@ public static class Enums {
         [Value("Missing Two-Factor Token")]
         NoTwoFactorToken,
         [Value("Mismatched Two-Factor Token")]
-        InvalidTwoFactorToken
+        InvalidTwoFactorToken,
     }
 
     public enum Role {
@@ -90,7 +94,7 @@ public static class Enums {
         [Value("Staff")]
         Staff,
         [Value("Moderator")]
-        Moderator
+        Moderator,
     }
 
     public enum DateFormat {
@@ -131,7 +135,7 @@ public static class Enums {
         [Value("{0:#,##}")]
         NoSeparatorCommaForDecimal,
         [Value("{0:#.##}")]
-        NoSeparatorDotForDecimal
+        NoSeparatorDotForDecimal,
     }
 
     public enum LocalityRegion {
@@ -146,12 +150,12 @@ public static class Enums {
         [CompositeValue("Oceania", 4)]
         Oceania,
         [CompositeValue("South America", 5)]
-        SouthAmerica
+        SouthAmerica,
     }
 
     public enum DivisionType {
         State,
-        Province
+        Province,
     }
 
     public enum AddressVariant {
@@ -160,7 +164,7 @@ public static class Enums {
         [Value("Western")]
         Western,
         [Value("Eastern")]
-        Eastern
+        Eastern,
     }
 
     public enum ApplicationTheme {
@@ -178,14 +182,16 @@ public static class Enums {
         White,
         [CompositeValue("Tourmaline", 6)]
         Red,
-        [CompositeValue("Amethyst", 7)]
+        [CompositeValue("Morganite", 7)]
+        Pink,
+        [CompositeValue("Amethyst", 8)]
         Violet,
-        [CompositeValue("Aquamarine", 8)]
+        [CompositeValue("Aquamarine", 9)]
         Cyan,
-        [CompositeValue("Alexandrite", 9)]
+        [CompositeValue("Alexandrite", 10)]
         Teal,
-        [CompositeValue("Sodalite", 10)]
-        Indigo
+        [CompositeValue("Sodalite", 11)]
+        Indigo,
     }
 
     public enum Language {
@@ -208,14 +214,14 @@ public static class Enums {
         [Value("Thailand")]
         Thailand,
         [Value("Korean")]
-        Korean
+        Korean,
     }
 
     public enum UnitSystem {
         [Value("International Unit System")]
         InternationalUnitSystem,
         [Value("English Unit System")]
-        EnglishUnitSystem
+        EnglishUnitSystem,
     }
 
     public enum NameFormat {
@@ -228,7 +234,7 @@ public static class Enums {
         [Value("Show nick name")]
         ShowNickName,
         [Value("Show initials")]
-        ShowInitials
+        ShowInitials,
     }
 
     public enum BirthFormat {
@@ -247,7 +253,7 @@ public static class Enums {
         [Value("Show month and year with age")]
         ShowMonthYearAndAge,
         [Value("Show age only")]
-        ShowAgeOnly
+        ShowAgeOnly,
     }
 
     public enum CareerFormat {
@@ -256,7 +262,7 @@ public static class Enums {
         [Value("Show company information only")]
         ShowCompanyOnly,
         [Value("Show job title only")]
-        ShowJobTitleOnly
+        ShowJobTitleOnly,
     }
 
     public enum Visibility {
@@ -267,7 +273,7 @@ public static class Enums {
         [Value("Visible to a group")]
         VisibleToAGroup,
         [Value("Visible to self")]
-        VisibleToSelf
+        VisibleToSelf,
     }
 
     public enum EmailTemplate {
@@ -276,6 +282,6 @@ public static class Enums {
         [Value("AccountRecoveryEmail")]
         AccountRecoveryEmail,
         [Value("OneTimePasswordEmail")]
-        OneTimePasswordEmail
+        OneTimePasswordEmail,
     }
 }

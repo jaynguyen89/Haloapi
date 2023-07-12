@@ -1,12 +1,12 @@
-﻿using Halogen.Bindings.ApiBindings;
-using Halogen.Bindings.ServiceBindings;
+﻿using System.Net;
+using Halogen.Bindings.ViewModels;
 using HelperLibrary;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Logger;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Newtonsoft.Json;
+using Authorization = Halogen.Bindings.ServiceBindings.Authorization;
 
 namespace Halogen.Attributes; 
 
@@ -26,15 +26,9 @@ public sealed class RoleAuthorize: AuthorizeAttribute, IAuthorizationFilter {
         var session = context.HttpContext.Session;
         var authenticatedUser = JsonConvert.DeserializeObject<Authorization>(session.GetString(nameof(Authorization)) ?? string.Empty);
         if (authenticatedUser is null)
-            context.Result = new UnauthorizedObjectResult(new ClientResponse {
-                Result = Enums.ApiResult.Failed,
-                Data = $"{nameof(RoleAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InvalidUser.GetValue()}"
-            });
+            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(RoleAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InvalidUser.GetValue()}");
         
         if (!_authorizedRoles.Any(authenticatedUser!.Roles.Contains))
-            context.Result = new UnauthorizedObjectResult(new ClientResponse {
-                Result = Enums.ApiResult.Failed,
-                Data = $"{nameof(RoleAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InvalidRole.GetValue()}"
-            });
+            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(RoleAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InvalidRole.GetValue()}");
     }
 }

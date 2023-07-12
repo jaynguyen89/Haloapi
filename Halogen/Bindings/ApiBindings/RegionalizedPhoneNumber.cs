@@ -36,11 +36,13 @@ public sealed class RegionalizedPhoneNumber {
         RegionCode = Regex.Replace(RegionCode.Trim(), Constants.MultiSpace, string.Empty);
         PhoneNumber = Regex.Replace(PhoneNumber.Trim(), Constants.MultiSpace, string.Empty);
         
-        if (!telephoneCodes.Any(x => x.Equals(RegionCode))) errors.Add($"{nameof(RegionCode).ToHumanStyled()} is not found or haven't been supported yet.");
+        if (!telephoneCodes.Any(x => x.Equals(RegionCode))) errors.Add($"{nameof(RegionCode).Lucidify()} is not found or haven't been supported yet.");
         errors = errors.Concat(PhoneNumber.VerifyPhoneNumber() ?? new List<string>()).ToList();
 
         return errors.ToArray();
     }
 
     public override string ToString() => $"{Constants.Plus}{RegionCode}{Constants.MonoSpace}{PhoneNumber}";
+    
+    public string Lucidify() => $"{Constants.Plus}{RegionCode}{Constants.MonoSpace}{PhoneNumber}";
 }

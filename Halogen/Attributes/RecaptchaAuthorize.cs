@@ -1,12 +1,12 @@
-﻿using AssistantLibrary.Interfaces;
-using Halogen.Bindings.ApiBindings;
+﻿using System.Net;
+using AssistantLibrary.Interfaces;
+using Halogen.Bindings.ViewModels;
 using Halogen.Bindings.ServiceBindings;
 using Halogen.Parsers;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Logger;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace Halogen.Attributes; 
@@ -40,6 +40,6 @@ public sealed class RecaptchaAuthorize: AuthorizeAttribute, IAuthorizationFilter
 
         var isHuman = _assistantService.IsHumanActivity(recaptchaToken).Result;
         if (isHuman is null || !isHuman.Result)
-            context.Result = new UnauthorizedObjectResult(new ClientResponse { Result = Enums.ApiResult.Failed, Data = nameof(RecaptchaAuthorize) });
+            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, nameof(RecaptchaAuthorize));
     }
 }

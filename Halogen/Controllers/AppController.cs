@@ -54,7 +54,7 @@ public class AppController: ControllerBase {
             HttpOnly = true,
             Expires = DateTimeOffset.FromUnixTimeMilliseconds(expiration.ToMilliseconds(Enums.TimeUnit.Day)),
             SameSite = SameSiteMode.None,
-            Secure = isEssential
+            Secure = isEssential,
         };
     }
 

@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using System.Net.Mail;
-using System.Text.RegularExpressions;
 using AssistantLibrary.Bindings;
 using AssistantLibrary.Interfaces;
 using HelperLibrary;
@@ -84,7 +83,7 @@ public sealed class MailService: ServiceBase, IMailService {
         _mailMessage.Priority = mail.Priority;
 
         bodyContent = bodyContent!.SetDefaultEmailBodyValues(new Tuple<string, string, string>(_defaultBodyPlaceholderValues.Item1, _defaultBodyPlaceholderValues.Item2, _clientApplicationName));
-        _ = mail.Placeholders.Select(x => bodyContent = Regex.Replace(bodyContent!, $@"\b{x.Key}\b", x.Value));
+        bodyContent = mail.Placeholders.Aggregate(bodyContent, (current, entry) => current.Replace(entry.Key, entry.Value));
         _mailMessage.Body = bodyContent;
         
         mail.Attachments?.ForEach(x => _mailMessage.Attachments.Add(new Attachment(x.Key, x.Value)));
@@ -115,7 +114,7 @@ public sealed class MailService: ServiceBase, IMailService {
         catch (Exception e) {
             _logger.Log(new LoggerBinding<MailService> {
                 Location = $"{nameof(SendSingleEmail)}.{nameof(Exception)}",
-                Severity = Enums.LogSeverity.Error, Data = e
+                Severity = Enums.LogSeverity.Error, Data = e,
             });
             return false;
         }

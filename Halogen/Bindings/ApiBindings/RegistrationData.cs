@@ -9,10 +9,10 @@ public sealed class RegistrationData: AuthenticationData {
     public async Task<string[]> VerifyRegistrationData() {
         var errors = await VerifyAuthenticationData();
         
-        if (!Password.IsString() || !PasswordConfirm.IsString()) errors.Add($"Both {nameof(Password)} and {nameof(PasswordConfirm).ToHumanStyled()} must be provided.");
+        if (!Password.IsString() || !PasswordConfirm.IsString()) errors.Add($"Both {nameof(Password)} and {nameof(PasswordConfirm).Lucidify()} must be provided.");
         if (errors.Any()) return errors.ToArray();
         
-        if (!Password.Equals(PasswordConfirm)) errors.Add($"{nameof(Password)} and {nameof(PasswordConfirm).ToHumanStyled()} do not matched.");
+        if (!Password.Equals(PasswordConfirm)) errors.Add($"{nameof(Password)} and {nameof(PasswordConfirm).Lucidify()} do not matched.");
 
         var passwordErrors = Password.VerifyPassword();
         if (passwordErrors.Any()) errors = errors.Concat(passwordErrors).ToList();

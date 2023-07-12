@@ -1,6 +1,7 @@
-﻿using AssistantLibrary.Bindings;
+﻿using System.Net;
+using AssistantLibrary.Bindings;
 using AssistantLibrary.Interfaces;
-using Halogen.Bindings.ApiBindings;
+using Halogen.Bindings.ViewModels;
 using Halogen.Bindings.ServiceBindings;
 using Halogen.Parsers;
 using Halogen.Services.AppServices.Interfaces;
@@ -9,7 +10,6 @@ using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Logger;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace Halogen.Attributes; 
@@ -43,10 +43,7 @@ public sealed class TwoFactorAuthorize: AuthorizeAttribute, IAuthorizationFilter
 
         var twoFactorSecretKey = _sessionService.Get<string>(nameof(HttpHeaderKeys.TwoFactorToken));
         if (!twoFactorSecretKey.IsString())
-            context.Result = new UnauthorizedObjectResult(new ClientResponse {
-                Result = Enums.ApiResult.Failed,
-                Data = $"{nameof(TwoFactorAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.NoTwoFactorToken.GetValue()}"
-            });
+            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(TwoFactorAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.NoTwoFactorToken.GetValue()}");
 
         var (_, twoFactorToken) = context.HttpContext.Request.Headers.Single(x => x.Key.ToLower().Equals(nameof(HttpHeaderKeys.TwoFactorToken).ToLower()));
         var isTwoFactorTokenValid = _twoFactorService.VerifyTwoFactorAuthenticationPin(new VerifyTwoFactorBinding {
@@ -54,9 +51,7 @@ public sealed class TwoFactorAuthorize: AuthorizeAttribute, IAuthorizationFilter
             SecretKey = twoFactorSecretKey!
         });
         
-        if (!isTwoFactorTokenValid) context.Result = new UnauthorizedObjectResult(new ClientResponse {
-            Result = Enums.ApiResult.Failed,
-            Data = $"{nameof(TwoFactorAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InvalidTwoFactorToken.GetValue()}"
-        });
+        if (!isTwoFactorTokenValid)
+            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(TwoFactorAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InvalidTwoFactorToken.GetValue()}");
     }
 }

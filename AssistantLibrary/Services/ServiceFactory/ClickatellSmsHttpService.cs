@@ -50,7 +50,7 @@ public sealed class ClickatellSmsHttpService: ServiceBase, ISmsService, IClickat
                                                var requestUrl = $"{_clickatellBaseUrl}&to={x}&content={encodedContent}";
                                                _httpClient.BaseAddress = new Uri(requestUrl);
 
-                                               var httpResponse = await _httpClient.GetAsync($"", HttpCompletionOption.ResponseContentRead);
+                                               var httpResponse = await _httpClient.GetAsync(string.Empty, HttpCompletionOption.ResponseContentRead);
                                                return httpResponse.IsSuccessStatusCode ? string.Empty : x;
                                            })
                                            .Select(x => x.Result)

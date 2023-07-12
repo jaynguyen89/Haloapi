@@ -28,7 +28,7 @@ public static class StringHelpers {
      * Splits a Camel-Case string at capital letters and returns spaced string.
      * Eg. ThisIsAnExample -> This Is An Example
      */
-    public static string ToHumanStyled(this string any) => string.Join(Constants.MonoSpace, Regex.Split(any, @"(?<!^)(?=[A-Z])"));
+    public static string Lucidify(this string any) => string.Join(Constants.MonoSpace, Regex.Split(any, @"(?<!^)(?=[A-Z])"));
 
     public static string CapitalizeFirstLetterOfEachWord(this string sentence) => Regex.Replace(sentence, @"(^\w)|(\s\w)", m => m.Value.ToUpper());
 

@@ -1,6 +1,6 @@
 ﻿using System.Net;
 using Halogen.Attributes;
-using Halogen.Bindings.ApiBindings;
+using Halogen.Bindings.ViewModels;
 using Halogen.Services.DbServices.Interfaces;
 using HelperLibrary;
 using HelperLibrary.Shared;
@@ -30,14 +30,14 @@ public sealed class AccountController: AppController {
 
     [ServiceFilter(typeof(RecaptchaAuthorize))]
     [HttpGet("check-email-availability/{emailAddress}")]
-    public async Task<JsonResult> IsEmailAddressAvailable([FromRoute] string emailAddress) {
+    public async Task<IActionResult> IsEmailAddressAvailable([FromRoute] string emailAddress) {
         _logger.Log(new LoggerBinding<AccountController> { Location = nameof(IsEmailAddressAvailable) });
 
-        if (!emailAddress.IsString()) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.BadRequest));
+        if (!emailAddress.IsString()) return new ErrorResponse(HttpStatusCode.BadRequest);
 
         var isEmailAvailable = await _accountService.IsEmailAddressAvailableForNewAccount(emailAddress);
         return !isEmailAvailable.HasValue
-            ? new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError))
-            : new JsonResult(new ClientResponse { Result = Enums.ApiResult.Success, Data = isEmailAvailable.Value });
+            ? new ErrorResponse()
+            : new SuccessResponse(new { isEmailAvailable = isEmailAvailable.Value });
     }
 }

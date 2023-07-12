@@ -12,6 +12,7 @@ using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Logger;
 using Microsoft.AspNetCore.Mvc;
 using Halogen.Attributes;
+using Halogen.Bindings.ViewModels;
 using Halogen.DbModels;
 using Halogen.Services.AppServices.Interfaces;
 using Halogen.Services.DbServices.Interfaces;
@@ -186,22 +187,22 @@ public sealed class AuthenticationController: AppController {
 
     [ServiceFilter(typeof(RecaptchaAuthorize))]
     [HttpPost("register-account")]
-    public async Task<JsonResult> RegisterAccount([FromBody] RegistrationData registrationData) {
+    public async Task<IActionResult> RegisterAccount([FromBody] RegistrationData registrationData) {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(RegisterAccount) });
 
         var errors = await registrationData.VerifyRegistrationData();
-        if (errors.Any()) return new JsonResult(new ClientResponse { Result = Enums.ApiResult.Failed, Data = errors });
+        if (errors.Any()) return new ErrorResponse(HttpStatusCode.BadRequest, errors);
 
         var registerByEmailAddress = registrationData.EmailAddress.IsString();
         if (registerByEmailAddress) {
             var isEmailAvailable = await _accountService.IsEmailAddressAvailableForNewAccount(registrationData.EmailAddress!);
-            if (!isEmailAvailable.HasValue) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
-            if (!isEmailAvailable.Value) return new JsonResult(new ClientResponse { Result = Enums.ApiResult.Failed, Data = new { isEmailAvailable } });
+            if (!isEmailAvailable.HasValue) return new ErrorResponse();
+            if (!isEmailAvailable.Value) return new ErrorResponse(HttpStatusCode.Conflict, new { isEmailAvailable });
         }
         else {
             var isPhoneNumberAvailable = await _profileService.IsPhoneNumberAvailableForNewAccount(registrationData.PhoneNumber!.ToString());
-            if (!isPhoneNumberAvailable.HasValue) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
-            if (!isPhoneNumberAvailable.Value) return new JsonResult(new ClientResponse { Result = Enums.ApiResult.Failed, Data = new { isPhoneNumberAvailable } });
+            if (!isPhoneNumberAvailable.HasValue) return new ErrorResponse();
+            if (!isPhoneNumberAvailable.Value) return new ErrorResponse(HttpStatusCode.Conflict, new { isPhoneNumberAvailable });
         }
 
         var (verificationTokenLength, saltLength) = GetTokenLengthsForNewAccount();
@@ -213,7 +214,7 @@ public sealed class AuthenticationController: AppController {
         var accountId = await _authenticationService.InsertNewAccount(newAccount);
         if (accountId is null) {
             await _contextService.RevertTransaction();
-            return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
+            return new ErrorResponse();
         }
         
         var newProfile = Profile.CreateNewProfile(_useLongerId, accountId, registerByEmailAddress, _phoneTokenMinLength, _phoneTokenMaxLength, registrationData.PhoneNumber);
@@ -221,13 +222,13 @@ public sealed class AuthenticationController: AppController {
         var profileId = await _profileService.InsertNewProfile(newProfile);
         if (profileId is null) {
             await _contextService.RevertTransaction();
-            return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
+            return new ErrorResponse();
         }
 
         var role = await _roleService.GetRoleByName(Enums.Role.Customer.GetValue()!);
         if (role is null) {
             await _contextService.RevertTransaction();
-            return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
+            return new ErrorResponse();
         }
 
         var accountRoleId = await _roleService.InsertNewAccountRole(new AccountRole {
@@ -238,14 +239,14 @@ public sealed class AuthenticationController: AppController {
         });
         if (accountRoleId is null) {
             await _contextService.RevertTransaction();
-            return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
+            return new ErrorResponse();
         }
 
         var defaultPreference = Preference.CreatePreferenceForNewAccount(_useLongerId, accountId);
         var preferenceId = await _preferenceService.InsertNewPreference(defaultPreference);
         if (preferenceId is null) {
             await _contextService.RevertTransaction();
-            return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
+            return new ErrorResponse();
         }
 
         if (registerByEmailAddress) {
@@ -261,14 +262,14 @@ public sealed class AuthenticationController: AppController {
                 Placeholders = new Dictionary<string, string> {
                     { "EMAIL_ADDRESS", newAccount.EmailAddress! },
                     { "REGISTRATION_TOKEN", Uri.EscapeDataString(newAccount.EmailAddressToken!) },
-                    { "VALID_UNTIL_DATETIME", accountActivationEmailExpiry }
+                    { "VALID_UNTIL_DATETIME", accountActivationEmailExpiry },
                 }
             };
 
             var isAccountActivationEmailSent = await _mailService.SendSingleEmail(mailBinding);
             if (!isAccountActivationEmailSent) {
                 await _contextService.RevertTransaction();
-                return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
+                return new ErrorResponse();
             }
         }
         else {
@@ -283,53 +284,56 @@ public sealed class AuthenticationController: AppController {
             var smsResult = await _clickatellSmsHttpService.SendSingleSms(smsBinding);
             if (smsResult is null || smsResult.Any()) {
                 await _contextService.RevertTransaction();
-                return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
+                return new ErrorResponse();
             }
         }
 
         await _contextService.ConfirmTransaction();
-        return new JsonResult(new ClientResponse {
-            Result = Enums.ApiResult.Success,
-            Data = new {
+        return new SuccessResponse(
+            HttpStatusCode.Created,
+            new {
                 accountId,
                 registerByEmailAddress,
-                phoneTokenValidityDuration = _phoneTokenValidityDuration,
-                phoneTokenValidityDurationUnit = _phoneTokenValidityDurationUnit
+                tokenValidityDuration = registerByEmailAddress ? _emailTokenValidityDuration : _phoneTokenValidityDuration,
+                tokenValidityDurationUnit = registerByEmailAddress ? _emailTokenValidityDurationUnit :  _phoneTokenValidityDurationUnit,
             }
-        });
+        );
     }
 
     [ServiceFilter(typeof(RecaptchaAuthorize))]
-    [HttpGet("forward-token/{tokenType:int}/{destination:int}")]
-    public async Task<JsonResult> ForwardToken([FromHeader] string accountId, [FromRoute] int tokenType, [FromRoute] int destination) {
+    [HttpGet("forward-token")]
+    public async Task<IActionResult> ForwardToken([FromHeader] string accountId, [FromQuery] int tokenType, [FromQuery] int destination) {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(ForwardToken) });
 
-        if (tokenType < 0 || destination < 0 || tokenType > Enum.GetNames<Enums.TokenType>().Length || destination > Enum.GetNames<Enums.TokenDestination>().Length)
-            return new JsonResult(new StatusCodeResult((int)HttpStatusCode.RequestedRangeNotSatisfiable));
+        if (tokenType < 0 || tokenType > Enum.GetNames<Enums.TokenType>().Length)
+            return new ErrorResponse(HttpStatusCode.RequestedRangeNotSatisfiable, nameof(tokenType));
+        
+        if (destination < 0 || destination > Enum.GetNames<Enums.TokenDestination>().Length)
+            return new ErrorResponse(HttpStatusCode.RequestedRangeNotSatisfiable, nameof(destination));
         
         var account = await _accountService.GetAccountById(accountId);
-        if (account is null) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
+        if (account is null) return new ErrorResponse();
         
         var profile = await _profileService.GetProfileByAccountId(accountId);
-        if (profile is null) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
+        if (profile is null) return new ErrorResponse();
 
         var tokenData = tokenType switch {
-            (byte)Enums.TokenType.AccountRecovery =>  new Tuple<string, DateTime>(account.RecoveryToken!, account.RecoveryTokenTimestamp!.Value),
-            (byte)Enums.TokenType.OneTimePassword => new Tuple<string, DateTime>(account.OneTimePassword!, account.OneTimePasswordTimestamp!.Value),
-            _ => default
+            (byte)Enums.TokenType.AccountRecovery =>  new Tuple<string?, DateTime>(account.RecoveryToken, account.RecoveryTokenTimestamp!.Value),
+            (byte)Enums.TokenType.OneTimePassword => new Tuple<string?, DateTime>(account.OneTimePassword, account.OneTimePasswordTimestamp!.Value),
+            _ => default,
         };
         
-        if (tokenData is null) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
+        if (tokenData is null) return new ErrorResponse();
         var (token, tokenTimestamp) = tokenData;
         
         // Only tokens for Account Recovery and One Time Password can be forwarded, other tokens should be renewed
         DateTime? tokenElapsingTime = tokenType switch {
             (byte)Enums.TokenType.AccountRecovery => tokenTimestamp.Compute(_recoveryTokenValidityDuration, _recoveryTokenValidityDurationUnit),
             (byte)Enums.TokenType.OneTimePassword => tokenTimestamp.Compute(_otpValidityDuration, _otpValidityDurationUnit),
-            _ => null
+            _ => null,
         };
-        if (!tokenElapsingTime.HasValue) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.Forbidden));
-        if (tokenElapsingTime > DateTime.UtcNow) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.RequestTimeout));
+        if (!tokenElapsingTime.HasValue) return new ErrorResponse();
+        if (tokenElapsingTime > DateTime.UtcNow) return new ErrorResponse(HttpStatusCode.RequestedRangeNotSatisfiable, nameof(tokenElapsingTime));
 
         var tokenSendingExpression = destination switch {
             (byte)Enums.TokenDestination.Email => (Func<Task<bool?>>)(async () => {
@@ -343,9 +347,9 @@ public sealed class AuthenticationController: AppController {
                         TemplateName = Enums.EmailTemplate.AccountRecoveryEmail,
                         Placeholders = new Dictionary<string, string> {
                             { "EMAIL_ADDRESS", account.EmailAddress! },
-                            { "RECOVERY_TOKEN", Uri.EscapeDataString(token) },
-                            { "VALID_UNTIL_DATETIME", emailExpiryTimestamp }
-                        }
+                            { "RECOVERY_TOKEN", Uri.EscapeDataString(token!) },
+                            { "VALID_UNTIL_DATETIME", emailExpiryTimestamp },
+                        },
                     },
                     (byte)Enums.TokenType.OneTimePassword => new MailBinding {
                         ToReceivers = new List<Recipient> { new() { EmailAddress = account.EmailAddress! } },
@@ -354,12 +358,12 @@ public sealed class AuthenticationController: AppController {
                         TemplateName = Enums.EmailTemplate.OneTimePasswordEmail,
                         Placeholders = new Dictionary<string, string> {
                             { "EMAIL_ADDRESS", account.EmailAddress! },
-                            { "ONE_TIME_PASSWORD", Uri.EscapeDataString(token) },
+                            { "ONE_TIME_PASSWORD", Uri.EscapeDataString(token!) },
                             { "VALIDITY_DURATION", _otpValidityDuration.ToString() },
-                            { "VALIDITY_UNIT", _otpValidityDurationUnit.GetValue()! }
-                        }
+                            { "VALIDITY_UNIT", _otpValidityDurationUnit.GetValue()! },
+                        },
                     },
-                    _ => null
+                    _ => null,
                 };
 
                 if (mailBinding is null) return null;
@@ -373,7 +377,7 @@ public sealed class AuthenticationController: AppController {
                     (byte)Enums.TokenType.OneTimePassword => _oneTimePasswordSmsContent
                                                              .Replace("ONE_TIME_PASSWORD", token)
                                                              .Replace("VALIDITY_DURATION", $"{_otpValidityDuration} {_otpValidityDurationUnit.GetValue()}"),
-                    _ => null
+                    _ => null,
                 };
 
                 if (!smsContent.IsString()) return null;
@@ -381,7 +385,7 @@ public sealed class AuthenticationController: AppController {
                 
                 var smsBinding = new SingleSmsBinding {
                     SmsContent = smsContent!,
-                    Receivers = new List<string> { profile.PhoneNumber! }
+                    Receivers = new List<string> { profile.PhoneNumber! },
                 };
                 
                 var smsResult = await _clickatellSmsHttpService.SendSingleSms(smsBinding);
@@ -391,52 +395,50 @@ public sealed class AuthenticationController: AppController {
         };
 
         var result = tokenSendingExpression.Invoke().Result;
-        return new JsonResult(
-            !result.HasValue || !result.Value
-                ? new StatusCodeResult((int)HttpStatusCode.InternalServerError)
-                : new ClientResponse { Result = Enums.ApiResult.Success }
-        );
+        
+        if (!result.HasValue) return new ErrorResponse();
+        return !result.Value ? new ErrorResponse(HttpStatusCode.NotImplemented) : new SuccessResponse();
     }
 
     [ServiceFilter(typeof(RecaptchaAuthorize))]
-    [HttpPut("renew-token/{currentToken}/{tokenType:int}")]
-    public async Task<JsonResult> RenewRegistrationToken([FromHeader] string accountId, [FromRoute] string currentToken, [FromRoute] int tokenType) {
+    [HttpPut("renew-token/{currentToken}")]
+    public async Task<IActionResult> RenewRegistrationToken([FromHeader] string accountId, [FromRoute] string currentToken, [FromQuery] int tokenType) {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(RenewRegistrationToken) });
         
         if (tokenType < 0 || tokenType > Enum.GetNames<Enums.TokenType>().Length)
-            return new JsonResult(new StatusCodeResult((int)HttpStatusCode.RequestedRangeNotSatisfiable));
+            return new ErrorResponse(HttpStatusCode.RequestedRangeNotSatisfiable, nameof(tokenType));
         
         var account = await _accountService.GetAccountById(accountId);
-        if (account is null) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
+        if (account is null) return new ErrorResponse();
         
         var profile = await _profileService.GetProfileByAccountId(accountId);
-        if (profile is null) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
+        if (profile is null) return new ErrorResponse();
 
         var tokenData = tokenType switch {
             (byte)Enums.TokenType.EmailRegistration => new Tuple<string, DateTime>(account.EmailAddressToken!, account.EmailAddressTokenTimestamp!.Value),
             (byte)Enums.TokenType.PhoneRegistration => new Tuple<string, DateTime>(profile.PhoneNumberToken!, profile.PhoneNumberTokenTimestamp!.Value),
-            _ => default
+            _ => default,
         };
-        if (tokenData is null) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
+        if (tokenData is null) return new ErrorResponse();
 
         var (token, tokenTimestamp) = tokenData;
-        if (!Equals(token, currentToken)) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.Conflict));
+        if (!Equals(token, currentToken)) return new ErrorResponse(HttpStatusCode.Conflict, nameof(currentToken));
         
         DateTime? tokenElapsingTime = tokenType switch {
             (byte)Enums.TokenType.EmailRegistration => tokenTimestamp.Compute(_emailTokenValidityDuration, _emailTokenValidityDurationUnit),
             (byte)Enums.TokenType.PhoneRegistration => tokenTimestamp.Compute(_phoneTokenValidityDuration, _phoneTokenValidityDurationUnit),
-            _ => null
+            _ => null,
         };
-        if (!tokenElapsingTime.HasValue) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.Forbidden));
-        if (tokenElapsingTime > DateTime.UtcNow) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.RequestTimeout));
+        if (!tokenElapsingTime.HasValue) return new ErrorResponse();
+        if (tokenElapsingTime > DateTime.UtcNow) return new ErrorResponse(HttpStatusCode.RequestedRangeNotSatisfiable, nameof(tokenElapsingTime));
 
         token = tokenType switch {
             (byte)Enums.TokenType.EmailRegistration => StringHelpers.GenerateRandomString(GetTokenLengthsForNewAccount().Item1, true),
             (byte)Enums.TokenType.PhoneRegistration => StringHelpers.GenerateRandomString(NumberHelpers.GetRandomNumberInRangeInclusive(_phoneTokenMinLength, _phoneTokenMaxLength), true),
-            _ => default
+            _ => default,
         };
 
-        if (!token.IsString()) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.Forbidden));
+        if (!token.IsString()) return new ErrorResponse();
 
         var newTokenTimestamp = DateTime.UtcNow;
         var updateTokenExpression = tokenType switch {
@@ -450,14 +452,14 @@ public sealed class AuthenticationController: AppController {
                 profile.PhoneNumberTokenTimestamp = newTokenTimestamp;
                 return await _profileService.UpdateProfile(profile);
             },
-            _ => default
+            _ => default,
         };
 
         await _contextService.StartTransaction();
         var tokenUpdateResult = updateTokenExpression?.Invoke().Result;
         if (!tokenUpdateResult.HasValue || !tokenUpdateResult.Value) {
             await _contextService.RevertTransaction();
-            return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
+            return new ErrorResponse();
         }
 
         var tokenSendingExpression = tokenType switch {
@@ -472,8 +474,8 @@ public sealed class AuthenticationController: AppController {
                     Placeholders = new Dictionary<string, string> {
                         { "EMAIL_ADDRESS", account.EmailAddress! },
                         { "REGISTRATION_TOKEN", Uri.EscapeDataString(token!) },
-                        { "VALID_UNTIL_DATETIME", newTokenExpiry }
-                    }
+                        { "VALID_UNTIL_DATETIME", newTokenExpiry },
+                    },
                 };
 
                 return await _mailService.SendSingleEmail(mailBinding);
@@ -484,37 +486,32 @@ public sealed class AuthenticationController: AppController {
                                  .Replace("VALIDITY_DURATION", $"{_phoneTokenValidityDuration} {_phoneTokenValidityDurationUnit}");
 
                 var phoneNumber = JsonConvert.DeserializeObject<RegionalizedPhoneNumber>(profile.PhoneNumber!);
-                if (phoneNumber is null) return null;
-                
                 var smsBinding = new SingleSmsBinding {
                     SmsContent = smsContent,
-                    Receivers = new List<string> { phoneNumber.ToString() }
+                    Receivers = new List<string> { phoneNumber!.ToString() },
                 };
 
                 var smsResult = await _clickatellSmsHttpService.SendSingleSms(smsBinding);
-                if (smsResult is null || smsResult.Any()) return null;
-                return true;
+                return !smsResult?.Any();
             },
-            _ => null
+            _ => null,
         };
 
         var tokenSendingResult = tokenSendingExpression?.Invoke().Result;
-        if (!tokenSendingResult.HasValue || !tokenSendingResult.Value) {
-            await _contextService.RevertTransaction();
-            return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
-        }
+        if (!tokenSendingResult.HasValue) return new ErrorResponse();
+        if (!tokenSendingResult.Value) return new ErrorResponse(HttpStatusCode.NotImplemented);
 
         await _contextService.ConfirmTransaction();
-        return new JsonResult(new ClientResponse { Result = Enums.ApiResult.Success });
+        return new SuccessResponse(HttpStatusCode.Accepted);
     }
 
     [ServiceFilter(typeof(RecaptchaAuthorize))]
-    [HttpPut("activate-account/{token}/{tokenType:int}")]
-    public JsonResult ActivateAccount([FromHeader] string accountId, [FromRoute] string token, [FromRoute] int tokenType) {
+    [HttpPut("activate-account/{token}")]
+    public ActionResult ActivateAccount([FromHeader] string accountId, [FromRoute] string token, [FromQuery] int tokenType) {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(ActivateAccount) });
         
         if (tokenType < 0 || tokenType > Enum.GetNames<Enums.TokenType>().Length)
-            return new JsonResult(new StatusCodeResult((int)HttpStatusCode.RequestedRangeNotSatisfiable));
+            return new ErrorResponse(HttpStatusCode.RequestedRangeNotSatisfiable, nameof(tokenType));
 
         var activationExpression = tokenType switch {
             (byte)Enums.TokenType.EmailRegistration => (Func<Task<bool?>>)(async () => {
@@ -547,26 +544,25 @@ public sealed class AuthenticationController: AppController {
 
                 return await _profileService.UpdateProfile(profile);
             },
-            _ => null
+            _ => null,
         };
 
         var result = activationExpression?.Invoke().Result;
-        return !result.HasValue
-            ? new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError)) : (
-            !result.Value
-                ? new JsonResult(new StatusCodeResult((int)HttpStatusCode.Forbidden))
-                : new JsonResult(new ClientResponse { Result = Enums.ApiResult.Success })
-        );
+        if (!result.HasValue) return new ErrorResponse();
+
+        return !result.Value
+            ? new ErrorResponse(HttpStatusCode.Conflict, nameof(token))
+            : new SuccessResponse(HttpStatusCode.Accepted);
     }
 
     [ServiceFilter(typeof(RecaptchaAuthorize))]
     [HttpPost("authenticate-by-credentials")]
-    public async Task<JsonResult> AuthenticateByCredentials([FromBody] AuthenticationData authenticationData) {
+    public async Task<IActionResult> AuthenticateByCredentials([FromBody] AuthenticationData authenticationData) {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(AuthenticateByCredentials) });
-        if (_httpContext is null) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
+        if (_httpContext is null) return new ErrorResponse();
 
         var errors = await authenticationData.VerifyAuthenticationData();
-        if (errors.Any()) return new JsonResult(new ClientResponse { Result = Enums.ApiResult.Failed, Data = errors });
+        if (errors.Any()) return new ErrorResponse(HttpStatusCode.BadRequest, errors);
         
         var (account, profile) = await GetAccountAndProfileByLoginInformation(new LoginInformation { EmailAddress = authenticationData.EmailAddress, PhoneNumber = authenticationData.PhoneNumber });
         
@@ -581,33 +577,29 @@ public sealed class AuthenticationController: AppController {
                 account!.LockOutEnabled &&
                 account.LockOutOn!.Value.Compute(_lockOutDuration, _lockOutDurationUnit) <= DateTime.UtcNow
             ) || account.IsSuspended
-        ) return new JsonResult(new ClientResponse { Result = Enums.ApiResult.Failed });
+        ) return new ErrorResponse(HttpStatusCode.Locked);
         
         var isPasswordMatched = _cryptoService.IsHashMatchesPlainText(account.HashPassword, authenticationData.Password);
 
         if (!isPasswordMatched) {
             var result = await UpdateLockoutAndSuspendOnFailedLogin(account);
             return !result.HasValue || !result.Value
-                ? new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError))
-                : new JsonResult(new ClientResponse { Result = Enums.ApiResult.Failed });
+                ? new ErrorResponse()
+                : new ErrorResponse(HttpStatusCode.Conflict, nameof(isPasswordMatched));
         }
 
         var authenticatedUser = await CreateAuthenticatedUser(account, profile!);
-        return new JsonResult(
-            authenticatedUser is null
-                ? new StatusCodeResult((int)HttpStatusCode.InternalServerError)
-                : new ClientResponse { Result = Enums.ApiResult.Success, Data = authenticatedUser }
-        );
+        return authenticatedUser is null ? new ErrorResponse() : new SuccessResponse(authenticatedUser);
     }
 
     [ServiceFilter(typeof(RecaptchaAuthorize))]
     [HttpPost("authenticate-by-otp")]
-    public async Task<JsonResult> AuthenticateByOneTimePassword([FromBody] LoginInformation loginInformation) {
+    public async Task<IActionResult> AuthenticateByOneTimePassword([FromBody] LoginInformation loginInformation) {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(AuthenticateByOneTimePassword) });
-        if (_httpContext is null) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
+        if (_httpContext is null) return new ErrorResponse();
 
         var errors = await loginInformation.VerifyLoginInformation();
-        if (errors.Any()) return new JsonResult(new ClientResponse { Result = Enums.ApiResult.Failed, Data = errors });
+        if (errors.Any()) return new ErrorResponse(HttpStatusCode.BadRequest, errors);
 
         var (account, profile) = await GetAccountAndProfileByLoginInformation(new LoginInformation { EmailAddress = loginInformation.EmailAddress, PhoneNumber = loginInformation.PhoneNumber });
         if (
@@ -615,7 +607,7 @@ public sealed class AuthenticationController: AppController {
                 account!.LockOutEnabled &&
                 account.LockOutOn!.Value.Compute(_lockOutDuration, _lockOutDurationUnit) <= DateTime.UtcNow
             ) || account.IsSuspended
-        ) return new JsonResult(new ClientResponse { Result = Enums.ApiResult.Failed });
+        ) return new ErrorResponse(HttpStatusCode.Locked);
         
         var authenticateByEmailAddress = loginInformation.EmailAddress.IsString();
         var dataError = VerifyAccountAndProfileData(account, profile, authenticateByEmailAddress);
@@ -628,7 +620,7 @@ public sealed class AuthenticationController: AppController {
         var updateAccountResult = await _accountService.UpdateAccount(account);
         if (!updateAccountResult.HasValue || !updateAccountResult.Value) {
             await _contextService.RevertTransaction();
-            return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
+            return new ErrorResponse();
         }
 
         var shouldSendOneTimePasswordToEmail = (!authenticateByEmailAddress && account.EmailAddress.IsString() && account.EmailConfirmed) || (
@@ -652,7 +644,7 @@ public sealed class AuthenticationController: AppController {
             var emailSendingResult = await _mailService.SendSingleEmail(mailBinding);
             if (!emailSendingResult) {
                 await _contextService.RevertTransaction();
-                return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
+                return new ErrorResponse();
             }
         }
         else {
@@ -669,7 +661,7 @@ public sealed class AuthenticationController: AppController {
             var smsResult = await _clickatellSmsHttpService.SendSingleSms(smsBinding);
             if (smsResult is null || smsResult.Any()) {
                 await _contextService.RevertTransaction();
-                return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
+                return new ErrorResponse();
             }
         }
 
@@ -681,30 +673,32 @@ public sealed class AuthenticationController: AppController {
         _httpContext.Session.SetString($"{nameof(preAuthenticatedUser)}{Constants.Underscore}{account.Id}", JsonConvert.SerializeObject(preAuthenticatedUser));
 
         await _contextService.ConfirmTransaction();
-        return new JsonResult(new ClientResponse { Result = Enums.ApiResult.Success, Data = preAuthenticatedUser });
+        return new SuccessResponse(preAuthenticatedUser);
     }
 
     [ServiceFilter(typeof(RecaptchaAuthorize))]
     [HttpPost("verify-otp/{oneTimePassword}")]
-    public async Task<JsonResult> VerifyOneTimePassword([FromHeader] string accountId, [FromHeader] string authenticationToken, [FromRoute] string oneTimePassword) {
+    public async Task<IActionResult> VerifyOneTimePassword([FromHeader] string accountId, [FromHeader] string authenticationToken, [FromRoute] string oneTimePassword) {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(VerifyOneTimePassword) });
-        if (_httpContext is null) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
+        if (_httpContext is null) return new ErrorResponse();
 
         var sessionPreAuthenticatedUser = _httpContext.Session.GetString($"preAuthenticatedUser{Constants.Underscore}{accountId}");
-        if (!sessionPreAuthenticatedUser.IsString()) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.Gone));
+        if (!sessionPreAuthenticatedUser.IsString()) return new ErrorResponse(HttpStatusCode.Gone);
         
         var preAuthenticatedUser = JsonConvert.DeserializeObject<Authorization>(sessionPreAuthenticatedUser!);
-        if (preAuthenticatedUser is null) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
-
+        if (preAuthenticatedUser is null) return new ErrorResponse();
+        
         var account = await _accountService.GetAccountById(accountId);
-        if (account is null) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
+        if (account is null) return new ErrorResponse();
+
+        _httpContext.Session.Remove($"{nameof(preAuthenticatedUser)}{Constants.Underscore}{account.Id}");
         
         if (
             (
                 account.LockOutEnabled &&
                 account.LockOutOn!.Value.Compute(_lockOutDuration, _lockOutDurationUnit) <= DateTime.UtcNow
             ) || account.IsSuspended
-        ) return new JsonResult(new ClientResponse { Result = Enums.ApiResult.Failed });
+        ) return new ErrorResponse(HttpStatusCode.Locked);
 
         var isOneTimePasswordMatchedAndValid =
             Equals(account.OneTimePassword, oneTimePassword) &&
@@ -713,24 +707,22 @@ public sealed class AuthenticationController: AppController {
         if (!isOneTimePasswordMatchedAndValid || !Equals(authenticationToken, preAuthenticatedUser.AuthorizationToken)) {
             var result = await UpdateLockoutAndSuspendOnFailedLogin(account);
             return !result.HasValue || !result.Value
-                ? new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError))
-                : new JsonResult(new ClientResponse { Result = Enums.ApiResult.Failed });
+                ? new ErrorResponse()
+                : new ErrorResponse(HttpStatusCode.Conflict);
         }
 
         var profile = await _profileService.GetProfileByAccountId(accountId);
-        if (profile is null) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
+        if (profile is null) return new ErrorResponse();
         
         var authenticatedUser = await CreateAuthenticatedUser(account, profile);
-        return new JsonResult(
-            authenticatedUser is null
-                ? new StatusCodeResult((int)HttpStatusCode.InternalServerError)
-                : new ClientResponse { Result = Enums.ApiResult.Success, Data = authenticatedUser }
-        );
+        return authenticatedUser is null
+            ? new ErrorResponse()
+            : new SuccessResponse(authenticatedUser);
     }
 
-    // [ServiceFilter(typeof(RecaptchaAuthorize))]
+    [ServiceFilter(typeof(RecaptchaAuthorize))]
     [HttpPost("authenticate-by-cookies")]
-    public async Task<JsonResult> AuthenticateByCookies() {
+    public async Task<IActionResult> AuthenticateByCookies() {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(AuthenticateByCookies) });
         if (_httpContext is null) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
 
@@ -739,19 +731,19 @@ public sealed class AuthenticationController: AppController {
 
     [ServiceFilter(typeof(RecaptchaAuthorize))]
     [HttpPost("forgot-password")]
-    public async Task<JsonResult> ForgotPassword([FromBody] LoginInformation loginInformation) {
+    public async Task<IActionResult> ForgotPassword([FromBody] LoginInformation loginInformation) {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(ForgotPassword) });
         
         var errors = await loginInformation.VerifyLoginInformation();
-        if (errors.Any()) return new JsonResult(new ClientResponse { Result = Enums.ApiResult.Failed, Data = errors });
+        if (errors.Any()) return new ErrorResponse(HttpStatusCode.BadRequest, errors);
 
         var relyOnAccount = loginInformation.EmailAddress.IsString();
         var (account, profile) = await GetAccountAndProfileByLoginInformation(loginInformation, !relyOnAccount);
         
-        if (account is null || (!relyOnAccount && profile is null)) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
+        if (account is null || (!relyOnAccount && profile is null)) return new ErrorResponse();
         
         var shouldProcessForgotPassword = ((relyOnAccount && account.EmailConfirmed) || (!relyOnAccount && profile!.PhoneNumberConfirmed)) && !account.IsSuspended;
-        if (!shouldProcessForgotPassword) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.Locked));
+        if (!shouldProcessForgotPassword) return new ErrorResponse(HttpStatusCode.Locked);
 
         account.RecoveryToken = StringHelpers.GenerateRandomString(NumberHelpers.GetRandomNumberInRangeInclusive(_recoveryTokenMinLength, _recoveryTokenMaxLength), true);
         account.RecoveryTokenTimestamp = DateTime.UtcNow;
@@ -760,7 +752,7 @@ public sealed class AuthenticationController: AppController {
         var updateAccountResult = await _accountService.UpdateAccount(account);
         if (!updateAccountResult.HasValue || !updateAccountResult.Value) {
             await _contextService.RevertTransaction();
-            return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
+            return new ErrorResponse();
         }
 
         bool tokenSendingResult;
@@ -799,33 +791,33 @@ public sealed class AuthenticationController: AppController {
 
         if (!tokenSendingResult) {
             await _contextService.RevertTransaction();
-            return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
+            return new ErrorResponse();
         }
 
         await _contextService.ConfirmTransaction();
-        return new JsonResult(new ClientResponse { Result = Enums.ApiResult.Success });
+        return new SuccessResponse();
     }
 
     [ServiceFilter(typeof(RecaptchaAuthorize))]
     [HttpPatch("recover-account/{recoveryToken}")]
-    public async Task<JsonResult> RecoverAccount([FromBody] RegistrationData registrationData, [FromRoute] string recoveryToken) {
+    public async Task<IActionResult> RecoverAccount([FromBody] RegistrationData registrationData, [FromRoute] string recoveryToken) {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(RecoverAccount) });
         
         var errors = await registrationData.VerifyRegistrationData();
-        if (errors.Any()) return new JsonResult(new ClientResponse { Result = Enums.ApiResult.Failed, Data = errors });
+        if (errors.Any()) return new ErrorResponse(HttpStatusCode.BadRequest, errors);
         
         var relyOnAccount = registrationData.EmailAddress.IsString();
         var (account, profile) = await GetAccountAndProfileByLoginInformation(registrationData, !relyOnAccount);
         
-        if (account is null || (!relyOnAccount && profile is null)) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
+        if (account is null || (!relyOnAccount && profile is null)) return new ErrorResponse();
         
         var shouldRecoverAccount = ((relyOnAccount && account.EmailConfirmed) || (!relyOnAccount && profile!.PhoneNumberConfirmed)) && !account.IsSuspended;
-        if (!shouldRecoverAccount) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.Locked));
+        if (!shouldRecoverAccount) return new ErrorResponse(HttpStatusCode.Locked);
 
         if (
             !Equals(account.RecoveryToken, Uri.UnescapeDataString(recoveryToken)) ||
             account.RecoveryTokenTimestamp!.Value.Compute(_recoveryTokenValidityDuration, _recoveryTokenValidityDurationUnit) > DateTime.UtcNow
-        ) return new JsonResult(new ClientResponse { Result = Enums.ApiResult.Failed });
+        ) return new ErrorResponse(HttpStatusCode.Conflict);
 
         account.RecoveryToken = null;
         account.RecoveryTokenTimestamp = null;
@@ -837,22 +829,23 @@ public sealed class AuthenticationController: AppController {
         account.HashPassword = hashedPassword;
         
         var result = await _accountService.UpdateAccount(account);
-        return new JsonResult(new ClientResponse { Result = !result.HasValue || !result.Value ? Enums.ApiResult.Failed : Enums.ApiResult.Success });
+        return !result.HasValue || !result.Value ? new ErrorResponse() : new SuccessResponse();
     }
 
+    [ServiceFilter(typeof(AuthenticatedAuthorize))]
     [ServiceFilter(typeof(RecaptchaAuthorize))]
     [HttpPatch("enable-or-renew-two-factor-authentication")]
-    public async Task<JsonResult> EnableOrRenewTwoFactorAuthentication([FromHeader] string accountId) {
+    public async Task<IActionResult> EnableOrRenewTwoFactorAuthentication([FromHeader] string accountId) {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(EnableOrRenewTwoFactorAuthentication) });
 
         var account = await _accountService.GetAccountById(accountId);
-        if (account is null) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
+        if (account is null) return new ErrorResponse();
 
         Profile? profile = null;
         if (!account.EmailAddress.IsString()) {
             profile = await _profileService.GetProfileByAccountId(accountId);
-            if (profile is null) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
-            if (!profile.PhoneNumber.IsString()) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.UnprocessableEntity));
+            if (profile is null) return new ErrorResponse();
+            if (!profile.PhoneNumber.IsString()) return new ErrorResponse(HttpStatusCode.UnprocessableEntity);
         }
 
         var twoFactorSecretKey = StringHelpers.GenerateRandomString(NumberHelpers.GetRandomNumberInRangeInclusive(_tfaKeyMinLength, _tfaKeyMaxLength));
@@ -872,36 +865,35 @@ public sealed class AuthenticationController: AppController {
         account.TwoFactorVerifyingTokens = JsonConvert.SerializeObject(twoFactorVerifyingTokens);
 
         var result = await _accountService.UpdateAccount(account);
-        return new JsonResult(
-            !result.HasValue || !result.Value
-                ? new StatusCodeResult((int)HttpStatusCode.InternalServerError)
-                : new ClientResponse { Result = Enums.ApiResult.Success, Data = new {
-                    qrCodeImageUrl = twoFactorData.QrCodeImageUrl,
-                    manualEntryKey = twoFactorData.ManualEntryKey,
-                    verifyingTokens = twoFactorVerifyingTokens
-                }}
-        );
+        return !result.HasValue || !result.Value
+            ? new ErrorResponse()
+            : new SuccessResponse(new {
+                qrCodeImageUrl = twoFactorData.QrCodeImageUrl,
+                manualEntryKey = twoFactorData.ManualEntryKey,
+                verifyingTokens = twoFactorVerifyingTokens
+            });
     }
     
+    [ServiceFilter(typeof(AuthenticatedAuthorize))]
     [ServiceFilter(typeof(RecaptchaAuthorize))]
     [HttpPatch("disable-two-factor-authentication/{twoFactorVerifyingToken}")]
-    public async Task<JsonResult> DisableTwoFactorAuthentication([FromHeader] string accountId, [FromRoute] string twoFactorVerifyingToken) {
+    public async Task<IActionResult> DisableTwoFactorAuthentication([FromHeader] string accountId, [FromRoute] string twoFactorVerifyingToken) {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(DisableTwoFactorAuthentication) });
         
         var account = await _accountService.GetAccountById(accountId);
-        if (account is null) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
-        if (!account.TwoFactorEnabled) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.BadRequest));
+        if (account is null) return new ErrorResponse();
+        if (!account.TwoFactorEnabled) return new ErrorResponse(HttpStatusCode.BadRequest);
 
         var twoFactorVerifyingTokens = JsonConvert.DeserializeObject<string[]>(account.TwoFactorVerifyingTokens!);
-        if (twoFactorVerifyingTokens is null) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
-        if (!twoFactorVerifyingTokens.Any(x => Equals(x, twoFactorVerifyingToken))) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.Forbidden));
+        if (twoFactorVerifyingTokens is null) return new ErrorResponse();
+        if (!twoFactorVerifyingTokens.Any(x => Equals(x, twoFactorVerifyingToken))) return new ErrorResponse(HttpStatusCode.Forbidden);
 
         account.TwoFactorEnabled = false;
         account.TwoFactorKeys = null;
         account.TwoFactorVerifyingTokens = null;
 
         var result = await _accountService.UpdateAccount(account);
-        return new JsonResult(new ClientResponse { Result = !result.HasValue || !result.Value ? Enums.ApiResult.Failed : Enums.ApiResult.Success });
+        return !result.HasValue || !result.Value ? new ErrorResponse() : new SuccessResponse();
     }
 
     private async Task<Tuple<Account?, Profile?>> GetAccountAndProfileByLoginInformation(LoginInformation loginInformation, bool shouldGetAdditionalData = true) {
@@ -921,18 +913,15 @@ public sealed class AuthenticationController: AppController {
         return new Tuple<Account?, Profile?>(account, profile);
     }
 
-    private JsonResult? VerifyAccountAndProfileData(Account? account, Profile? profile, bool authenticatedByEmail = true) {
-        if (authenticatedByEmail) {
-            if (account is null) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.Forbidden));
-            if (!account.EmailConfirmed) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.Locked));
-            if (profile is null) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
-        }
+    private static IActionResult? VerifyAccountAndProfileData(Account? account, Profile? profile, bool authenticatedByEmail = true) {
+        if (account is null || profile is null) return new ErrorResponse();
         
-        if (profile is null) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.Forbidden));
-        if (!profile.PhoneNumberConfirmed) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.Locked));
-        if (account is null) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
-
-        return default;
+        if (authenticatedByEmail && !account.EmailConfirmed)
+            return new ErrorResponse(HttpStatusCode.Locked);
+        
+        return !profile.PhoneNumberConfirmed
+            ? new ErrorResponse(HttpStatusCode.Locked)
+            : default;
     }
 
     private async Task<bool?> UpdateLockoutAndSuspendOnFailedLogin(Account account) {

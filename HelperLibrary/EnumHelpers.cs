@@ -1,4 +1,6 @@
-﻿namespace HelperLibrary;
+﻿using System.Reflection;
+
+namespace HelperLibrary;
 
 [AttributeUsage(AttributeTargets.Field)]
 public class ValueAttribute : Attribute {
@@ -61,6 +63,43 @@ public static class EnumHelpers {
             : string.Empty;
     }
 
+    /// <summary>
+    /// Convert a string to an enum property provided the string matches 1 property of the enum
+    /// </summary>
+    /// <param name="any"></param>
+    /// <param name="defaultValue"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
     public static T ToEnum<T>(this string any, T defaultValue)
         where T: struct => Enum.TryParse<T>(any, true, out var result) ? result : defaultValue;
+    
+    public static T? GetEnumByValueAttribute<T>(this string value) {
+        var enumType = typeof(T);
+        try {
+            foreach (T? val in Enum.GetValues(enumType)) {
+                var fieldInfo = enumType.GetField(val.ToString()!);
+                var attributes = (ValueAttribute[])fieldInfo!.GetCustomAttributes(typeof(ValueAttribute), false);
+
+                var attr = attributes[0];
+                if (attr.StringValue == value) return val;
+            }
+
+            return default;
+        }
+        catch (ArgumentException) {
+            return default;
+        }
+    }
+
+    public static string[] GetAllEnumProperties<T>() => (string[])typeof(T)
+        .GetFields()
+        .Select(x => new { 
+            att = x.GetCustomAttributes(false)
+                .OfType<ValueAttribute>()
+                .FirstOrDefault(),
+            x,
+        })
+        .Where(x => x.att != null)
+        .Select(x => x.x.GetValue(null))
+        .ToArray();
 }
