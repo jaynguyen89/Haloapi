@@ -26,7 +26,7 @@ public sealed class AuthenticationService: DbServiceBase, IAuthenticationService
         catch (DbUpdateException e) {
             _logger.Log(new LoggerBinding<AuthenticationService> {
                 Location = $"{nameof(InsertNewAccount)}.{nameof(DbUpdateException)}",
-                Severity = Enums.LogSeverity.Error, Data = e
+                Severity = Enums.LogSeverity.Error, Data = e,
             });
             return default;
         }

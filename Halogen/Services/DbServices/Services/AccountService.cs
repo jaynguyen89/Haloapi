@@ -22,7 +22,7 @@ public sealed class AccountService: DbServiceBase, IAccountService {
         catch (ArgumentNullException e) {
             _logger.Log(new LoggerBinding<AccountService> {
                 Location = $"{nameof(IsEmailAddressAvailableForNewAccount)}.{nameof(ArgumentNullException)}",
-                Severity = Enums.LogSeverity.Error, Data = e
+                Severity = Enums.LogSeverity.Error, Data = e,
             });
             return default;
         }
@@ -36,7 +36,7 @@ public sealed class AccountService: DbServiceBase, IAccountService {
         catch (Exception e) {
             _logger.Log(new LoggerBinding<AccountService> {
                 Location = $"{nameof(GetAccountById)}.{nameof(Exception)}",
-                Severity = Enums.LogSeverity.Error, Data = e
+                Severity = Enums.LogSeverity.Error, Data = e,
             });
             return default;
         }
@@ -53,7 +53,7 @@ public sealed class AccountService: DbServiceBase, IAccountService {
         catch (DbUpdateException e) {
             _logger.Log(new LoggerBinding<AccountService> {
                 Location = $"{nameof(UpdateAccount)}.{nameof(DbUpdateException)}",
-                Severity = Enums.LogSeverity.Error, Data = e
+                Severity = Enums.LogSeverity.Error, Data = e,
             });
             return default;
         }
@@ -67,14 +67,14 @@ public sealed class AccountService: DbServiceBase, IAccountService {
         catch (ArgumentNullException e) {
             _logger.Log(new LoggerBinding<AccountService> {
                 Location = $"{nameof(GetAccountByEmailAddress)}.{nameof(ArgumentNullException)}",
-                Severity = Enums.LogSeverity.Error, Data = e
+                Severity = Enums.LogSeverity.Error, Data = e,
             });
             return default;
         }
         catch (InvalidOperationException e) {
             _logger.Log(new LoggerBinding<AccountService> {
                 Location = $"{nameof(GetAccountByEmailAddress)}.{nameof(InvalidOperationException)}",
-                Severity = Enums.LogSeverity.Error, Data = e
+                Severity = Enums.LogSeverity.Error, Data = e,
             });
             return default;
         }

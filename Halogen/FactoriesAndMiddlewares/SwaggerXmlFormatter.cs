@@ -2,7 +2,7 @@
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace Halogen.Parsers; 
+namespace Halogen.FactoriesAndMiddlewares; 
 
 public class SwaggerXmlFormatter: IOperationFilter {
     

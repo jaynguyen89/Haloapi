@@ -1,4 +1,4 @@
-﻿using Halogen.Parsers;
+﻿using Halogen.Bindings;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
 using Microsoft.EntityFrameworkCore;
@@ -37,4 +37,5 @@ public partial class HalogenDbContext {
     }
 }
 
-// Scaffold-DbContext "Server=(localdb)\MSSQLLocalDB;Database=HalogenDatabase;Trusted_Connection=True;" Microsoft.EntityFrameworkCore.SqlServer -ContextNamespace Halogen.DbContexts -ContextDir D:\Halogeno\Haloapi\Halogen\DbContexts -OutputDir D:\Halogeno\Haloapi\Halogen\DbModels -Force -Context HalogenDbContext
+// Scaffold-DbContext "Server=(localdb)\MSSQLLocalDB;Database=HalogenDatabase;Trusted_Connection=True;" Microsoft.EntityFrameworkCore.SqlServer -ContextNamespace Halogen.DbContexts -ContextDir DbContexts -OutputDir DbModels -Force -Context HalogenDbContext
+// dotnet ef dbcontext scaffold "Server=(localdb)\MSSQLLocalDB;Database=HalogenDatabase;Trusted_Connection=True;" Microsoft.EntityFrameworkCore.SqlServer --context-namespace Halogen.DbContexts --context-dir DbContexts --output-dir DbModels --force --context HalogenDbContext

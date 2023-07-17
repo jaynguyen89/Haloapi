@@ -1,5 +1,5 @@
 ﻿namespace Halogen.Services.DbServices.Interfaces; 
 
-public interface IDbServiceBase {
+public interface IDbServiceBase: IServiceBase {
     
 }

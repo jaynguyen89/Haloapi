@@ -1,5 +1,5 @@
 ﻿#pragma warning disable 8618
-namespace Halogen.Parsers;
+namespace Halogen.Bindings;
     
 public sealed class HalogenOptions {
 

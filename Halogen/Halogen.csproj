@@ -42,13 +42,13 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <PackageReference Include="System.Threading.RateLimiting" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Attributes\" />
     <Folder Include="DbModels\" />
     <Folder Include="Services\DbServices\" />
-    <Folder Include="Services\HostedServices\" />
     <Folder Include="PartialModels\" />
   </ItemGroup>
 

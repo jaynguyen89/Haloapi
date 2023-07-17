@@ -1,28 +1,27 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using Halogen.Parsers;
+using Halogen.Bindings;
 using Halogen.Services.AppServices.Interfaces;
 using HelperLibrary;
 using HelperLibrary.Shared;
+using HelperLibrary.Shared.Logger;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Halogen.Services.AppServices.Services;
 
-public sealed class JwtService: IJwtService {
+public sealed class JwtService: AppServiceBase, IJwtService {
     
-    private readonly ILogger<JwtService> _logger;
     private readonly IConfiguration _configuration;
 
     public JwtService(
-        ILogger<JwtService> logger,
+        ILoggerService logger,
         IConfiguration configuration
-    ) {
-        _logger = logger;
+    ): base(logger) {
         _configuration = configuration;
     }
 
     public string GenerateRequestAuthenticationToken(Dictionary<string, string> claims) {
-        _logger.LogInformation($"{ nameof(JwtService) }.{ nameof(GenerateRequestAuthenticationToken) }: Service started.");
+        _logger.Log(new LoggerBinding<JwtService> { Location = nameof(GenerateRequestAuthenticationToken) });
 
         var jwtClaims = claims.Select(claim => new Claim(claim.Key, claim.Value));
         

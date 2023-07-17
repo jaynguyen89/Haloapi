@@ -7,7 +7,7 @@ public static class Constants {
     public const string Local = "Local";
     public const string Development = "Development";
     public const string Staging = "Staging";
-    public const string Production = "Produciton";
+    public const string Production = "Production";
 
     public const string MonoSpace = " ";
     public const string MultiSpace = @"\s+";

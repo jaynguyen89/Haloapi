@@ -1,5 +1,7 @@
 ﻿using Autofac;
 using Halogen.DbContexts;
+using Halogen.FactoriesAndMiddlewares;
+using Halogen.FactoriesAndMiddlewares.Interfaces;
 using Halogen.Services.AppServices.Interfaces;
 using Halogen.Services.AppServices.Services;
 using Halogen.Services.DbServices.Interfaces;
@@ -10,8 +12,10 @@ namespace Halogen.Services;
 public static class ServiceCollection {
     
     public static void RegisterHalogenServices(this ContainerBuilder builder) {
+        builder.RegisterType<ServiceFactory>().As<IServiceFactory>().SingleInstance();
         builder.RegisterType<HttpContextAccessor>().As<IHttpContextAccessor>().SingleInstance();
         builder.RegisterType<HalogenDbContext>();
+        
         builder.RegisterType<RedisCache>().As<ICacheService>();
         builder.RegisterType<JwtService>().As<IJwtService>();
         builder.RegisterType<SessionService>().As<ISessionService>();

@@ -13,6 +13,12 @@ public static class Enums {
         Caution, // means something the needs to be refactored or reworked
     }
 
+    public enum ServiceType {
+        AppService,
+        DbService,
+        HostedService,
+    }
+
     public enum ContentType {
         Json,
         Form,

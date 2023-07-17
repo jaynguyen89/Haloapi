@@ -1,13 +1,14 @@
-﻿using Halogen.Bindings.ServiceBindings;
-using Halogen.Parsers;
+﻿using Halogen.Bindings;
+using Halogen.Bindings.ServiceBindings;
 using Halogen.Services.AppServices.Interfaces;
 using HelperLibrary;
 using HelperLibrary.Shared;
+using HelperLibrary.Shared.Logger;
 using Microsoft.Extensions.Caching.Distributed;
 
 namespace Halogen.Services.AppServices.Services; 
 
-internal sealed class RedisCache: ICacheService {
+internal sealed class RedisCache: AppServiceBase, ICacheService {
 
     public bool IsEnabled { get; set; }
     public int SlidingExpiration { get; set; }
@@ -15,7 +16,11 @@ internal sealed class RedisCache: ICacheService {
 
     private readonly IDistributedCache _redisCache;
 
-    public RedisCache(IDistributedCache redisCache, IConfiguration configuration) {
+    public RedisCache(
+        IDistributedCache redisCache,
+        IConfiguration configuration,
+        ILoggerService logger
+    ): base(logger) {
         _redisCache = redisCache;
         
         var environment = configuration.GetValue<string>($"{nameof(Halogen)}Environment");
@@ -31,6 +36,7 @@ internal sealed class RedisCache: ICacheService {
     }
 
     public async Task InsertCacheEntry(CacheEntry entry) {
+        _logger.Log(new LoggerBinding<RedisCache> { Location = nameof(InsertCacheEntry) });
         if (!IsEnabled) return;
 
         await _redisCache.SetAsync(
@@ -44,6 +50,7 @@ internal sealed class RedisCache: ICacheService {
     }
 
     public async Task<T?> GetCacheEntry<T>(string key) {
+        _logger.Log(new LoggerBinding<RedisCache> { Location = nameof(GetCacheEntry) });
         if (!IsEnabled) return default;
 
         try {
@@ -59,6 +66,7 @@ internal sealed class RedisCache: ICacheService {
     }
 
     public async Task RemoveCacheEntry(string key) {
+        _logger.Log(new LoggerBinding<RedisCache> { Location = nameof(RemoveCacheEntry) });
         if (!IsEnabled) return;
         await _redisCache.RemoveAsync(key);
     }

@@ -1,8 +1,8 @@
 ﻿using System.Net;
 using AssistantLibrary.Interfaces;
+using Halogen.Bindings;
 using Halogen.Bindings.ViewModels;
 using Halogen.Bindings.ServiceBindings;
-using Halogen.Parsers;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Logger;

@@ -21,7 +21,7 @@ public sealed class LocalityService: DbServiceBase, ILocalityService {
         catch (ArgumentNullException e) {
             _logger.Log(new LoggerBinding<LocalityService> {
                 Location = $"{nameof(GetTelephoneCodes)}.{nameof(ArgumentNullException)}",
-                Severity = Enums.LogSeverity.Error, Data = e
+                Severity = Enums.LogSeverity.Error, Data = e,
             });
             return default;
         }

@@ -3,13 +3,10 @@ using HelperLibrary.Shared.Logger;
 
 namespace Halogen.Services.AppServices.Services;
 
-public class AppServiceBase: IAppServiceBase {
-
-    protected readonly ILoggerService _logger;
+public class AppServiceBase: ServiceBase, IAppServiceBase {
 
     protected internal AppServiceBase(
         ILoggerService logger
-    ) {
-        _logger = logger;
+    ): base(logger) {
     }
 }
