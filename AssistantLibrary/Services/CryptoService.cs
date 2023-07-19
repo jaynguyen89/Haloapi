@@ -5,6 +5,7 @@ using AssistantLibrary.Interfaces;
 using BCrypt;
 using HelperLibrary;
 using HelperLibrary.Shared.Ecosystem;
+using HelperLibrary.Shared.Helpers;
 using HelperLibrary.Shared.Logger;
 using Microsoft.Extensions.Configuration;
 

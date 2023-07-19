@@ -1,9 +1,8 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
-using HelperLibrary.Shared;
 using Newtonsoft.Json;
 
-namespace HelperLibrary;
+namespace HelperLibrary.Shared.Helpers;
     
 public static class StringHelpers {
     

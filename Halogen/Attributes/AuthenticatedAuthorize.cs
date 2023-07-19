@@ -1,9 +1,11 @@
 ﻿using System.Net;
 using Halogen.Bindings.ViewModels;
 using Halogen.Bindings.ServiceBindings;
+using Halogen.FactoriesAndMiddlewares.Interfaces;
 using Halogen.Services.AppServices.Interfaces;
-using HelperLibrary;
+using Halogen.Services.AppServices.Services;
 using HelperLibrary.Shared;
+using HelperLibrary.Shared.Helpers;
 using HelperLibrary.Shared.Logger;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -19,10 +21,10 @@ public sealed class AuthenticatedAuthorize: AuthorizeAttribute, IAuthorizationFi
 
     public AuthenticatedAuthorize(
         ILoggerService logger,
-        ISessionService sessionService
+        IHaloServiceFactory haloServiceFactory
     ) {
         _logger = logger;
-        _sessionService = sessionService;
+        _sessionService = haloServiceFactory.GetService<SessionService>(Enums.ServiceType.AppService)!;
     }
 
     public void OnAuthorization(AuthorizationFilterContext context) {

@@ -1,5 +1,7 @@
 ﻿using System.Net;
+using AssistantLibrary;
 using AssistantLibrary.Interfaces;
+using AssistantLibrary.Services;
 using Halogen.Bindings;
 using Halogen.Bindings.ViewModels;
 using Halogen.Bindings.ServiceBindings;
@@ -22,11 +24,12 @@ public sealed class RecaptchaAuthorize: AuthorizeAttribute, IAuthorizationFilter
         IEcosystem ecosystem,
         ILoggerService logger,
         IConfiguration configuration,
-        IAssistantService assistantService
+        IAssistantServiceFactory assistantServiceFactory
     ) {
         _logger = logger;
-        _assistantService = assistantService;
-        
+        var assistantService = assistantServiceFactory.GetService<AssistantService>();
+        _assistantService = assistantService ?? new AssistantService(ecosystem, logger, configuration);
+
         var environment = ecosystem.GetEnvironment();
         _recaptchaEnabled = bool.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings.TwoFactorEnabled)}"));
     }

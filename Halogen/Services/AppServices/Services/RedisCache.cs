@@ -3,6 +3,7 @@ using Halogen.Bindings.ServiceBindings;
 using Halogen.Services.AppServices.Interfaces;
 using HelperLibrary;
 using HelperLibrary.Shared;
+using HelperLibrary.Shared.Helpers;
 using HelperLibrary.Shared.Logger;
 using Microsoft.Extensions.Caching.Distributed;
 

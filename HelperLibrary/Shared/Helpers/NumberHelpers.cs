@@ -1,4 +1,4 @@
-﻿namespace HelperLibrary; 
+﻿namespace HelperLibrary.Shared.Helpers; 
 
 public static class NumberHelpers {
     

@@ -17,6 +17,7 @@ using Halogen.DbModels;
 using Halogen.Services.AppServices.Interfaces;
 using Halogen.Services.DbServices.Interfaces;
 using HelperLibrary;
+using HelperLibrary.Shared.Helpers;
 using Newtonsoft.Json;
 using Authorization = Halogen.Bindings.ServiceBindings.Authorization;
 

@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-
-namespace HelperLibrary;
+﻿namespace HelperLibrary.Shared.Helpers;
 
 [AttributeUsage(AttributeTargets.Field)]
 public class ValueAttribute : Attribute {

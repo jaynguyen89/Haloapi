@@ -1,6 +1,7 @@
 ﻿using Halogen.Bindings.ApiBindings;
 using HelperLibrary;
 using HelperLibrary.Shared;
+using HelperLibrary.Shared.Helpers;
 using Newtonsoft.Json;
 
 namespace Halogen.DbModels; 

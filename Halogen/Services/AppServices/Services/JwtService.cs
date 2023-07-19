@@ -4,6 +4,7 @@ using Halogen.Bindings;
 using Halogen.Services.AppServices.Interfaces;
 using HelperLibrary;
 using HelperLibrary.Shared;
+using HelperLibrary.Shared.Helpers;
 using HelperLibrary.Shared.Logger;
 using Microsoft.IdentityModel.Tokens;
 

@@ -11,10 +11,9 @@ using Halogen.Attributes;
 using Halogen.Bindings;
 using Halogen.FactoriesAndMiddlewares;
 using Halogen.Services;
-using HelperLibrary;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
-using HelperLibrary.Shared.Logger;
+using HelperLibrary.Shared.Helpers;
 using MediaLibrary.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -265,10 +264,9 @@ public static class Program {
         builder.RegisterInstance(_configuration).As<IConfiguration>();
         builder.RegisterType<HttpContextAccessor>().As<IHttpContextAccessor>().SingleInstance();
         
-        var environment = _configuration.GetValue<string>($"{nameof(Halogen)}{Constants.Underscore}Environment");
         var useLongerId = bool.Parse(_configuration.GetValue<string>($"{nameof(Halogen)}{Constants.Underscore}{nameof(Ecosystem.UseLongerId)}"));
         builder.RegisterInstance(new Ecosystem {
-            Environment = environment,
+            Environment = Environment,
             UseLongerId = useLongerId,
             ServerSetting = new Ecosystem.ServerSettings {
                 AwsRegion = AwsRegion,
@@ -276,8 +274,7 @@ public static class Program {
                 AwsSecretAccessKey = AwsSecretAccessKey
             }
         }).As<IEcosystem>();
-    
-        builder.RegisterType<LoggerService>().As<ILoggerService>();
+        
         builder.RegisterAssistantLibraryServices();
         builder.RegisterAmazonLibraryServices();
         builder.RegisterMediaLibraryServices();

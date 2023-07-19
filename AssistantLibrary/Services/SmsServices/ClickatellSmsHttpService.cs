@@ -2,16 +2,18 @@
 using System.Text.RegularExpressions;
 using AssistantLibrary.Bindings;
 using AssistantLibrary.Interfaces.IServiceFactory;
+using AssistantLibrary.Interfaces.SmsServices;
 using HelperLibrary;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
+using HelperLibrary.Shared.Helpers;
 using HelperLibrary.Shared.Logger;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
-namespace AssistantLibrary.Services.ServiceFactory;
+namespace AssistantLibrary.Services.SmsServices;
 
-public sealed class ClickatellSmsHttpService: ServiceBase, ISmsService, IClickatellSmsHttpService {
+public sealed class ClickatellSmsHttpService: ServiceBase, IClickatellSmsHttpService {
 
     private readonly HttpClient _httpClient;
     private readonly string _clickatellBaseUrl;

@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using HelperLibrary;
 using HelperLibrary.Shared;
+using HelperLibrary.Shared.Helpers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Halogen.Bindings.ViewModels; 

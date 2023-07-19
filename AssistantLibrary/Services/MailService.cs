@@ -2,9 +2,9 @@
 using System.Net.Mail;
 using AssistantLibrary.Bindings;
 using AssistantLibrary.Interfaces;
-using HelperLibrary;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
+using HelperLibrary.Shared.Helpers;
 using HelperLibrary.Shared.Logger;
 using Microsoft.Extensions.Configuration;
 

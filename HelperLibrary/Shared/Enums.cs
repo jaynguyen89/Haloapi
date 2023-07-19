@@ -1,4 +1,6 @@
-﻿namespace HelperLibrary.Shared;
+﻿using HelperLibrary.Shared.Helpers;
+
+namespace HelperLibrary.Shared;
 
 public static class Enums {
 

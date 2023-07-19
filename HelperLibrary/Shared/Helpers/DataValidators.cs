@@ -1,7 +1,6 @@
 ﻿using System.Text.RegularExpressions;
-using HelperLibrary.Shared;
 
-namespace HelperLibrary; 
+namespace HelperLibrary.Shared.Helpers; 
 
 public static class DataValidators {
     

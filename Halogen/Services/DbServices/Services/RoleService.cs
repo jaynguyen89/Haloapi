@@ -3,6 +3,7 @@ using Halogen.DbModels;
 using Halogen.Services.DbServices.Interfaces;
 using HelperLibrary;
 using HelperLibrary.Shared;
+using HelperLibrary.Shared.Helpers;
 using HelperLibrary.Shared.Logger;
 using Microsoft.EntityFrameworkCore;
 

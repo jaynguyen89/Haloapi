@@ -1,6 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using HelperLibrary;
 using HelperLibrary.Shared;
+using HelperLibrary.Shared.Helpers;
 
 namespace Halogen.Bindings.ApiBindings;
 

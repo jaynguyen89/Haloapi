@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using Halogen.Bindings.ViewModels;
-using HelperLibrary;
 using HelperLibrary.Shared;
+using HelperLibrary.Shared.Helpers;
 using HelperLibrary.Shared.Logger;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Filters;

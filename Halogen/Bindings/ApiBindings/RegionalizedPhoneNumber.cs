@@ -1,8 +1,11 @@
 ﻿using System.Text.RegularExpressions;
+using Halogen.FactoriesAndMiddlewares.Interfaces;
 using Halogen.Services.AppServices.Interfaces;
+using Halogen.Services.AppServices.Services;
 using Halogen.Services.DbServices.Interfaces;
-using HelperLibrary;
+using Halogen.Services.DbServices.Services;
 using HelperLibrary.Shared;
+using HelperLibrary.Shared.Helpers;
 
 namespace Halogen.Bindings.ApiBindings; 
 
@@ -20,12 +23,11 @@ public sealed class RegionalizedPhoneNumber {
 
     public RegionalizedPhoneNumber(
         IConfiguration configuration,
-        ICacheService cacheService,
-        ILocalityService localityService
+        IHaloServiceFactory haloServiceFactory
     ) {
-        _cacheService = cacheService;
-        _localityService = localityService;
         _cacheKey = configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{nameof(HalogenOptions.CacheKeys)}{Constants.Colon}{nameof(HalogenOptions.CacheKeys.TelephoneCodes)}");
+        _cacheService = haloServiceFactory.GetService<RedisCache>(Enums.ServiceType.AppService)!;
+        _localityService = haloServiceFactory.GetService<LocalityService>(Enums.ServiceType.DbService)!;
     }
 
     public async Task<string[]> VerifyPhoneNumberData() {

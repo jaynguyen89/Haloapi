@@ -1,12 +1,13 @@
 ﻿using AssistantLibrary.Bindings;
 using AssistantLibrary.Interfaces.IServiceFactory;
+using AssistantLibrary.Interfaces.SmsServices;
 using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Logger;
 using Microsoft.Extensions.Configuration;
 
-namespace AssistantLibrary.Services.ServiceFactory;
+namespace AssistantLibrary.Services.SmsServices;
 
-public sealed class ClickatellSmsRestService: ServiceBase, ISmsService, IClickatellSmsRestService {
+public sealed class ClickatellSmsRestService: ServiceBase, IClickatellSmsRestService {
     
     public ClickatellSmsRestService(
         IEcosystem ecosystem,
