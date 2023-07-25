@@ -254,6 +254,8 @@ public static class Program {
         app.UseCookiePolicy();
         app.UseAuthorization();
 
+        app.UseMiddleware<GlobalErrorHandler>();
+
         app.MapControllers();
         app.MapControllerRoute("default", "{controller}/{action}/{id?}");
 

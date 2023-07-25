@@ -1,10 +1,14 @@
 ﻿using System.Net;
+using AssistantLibrary;
 using AssistantLibrary.Bindings;
 using AssistantLibrary.Interfaces;
+using AssistantLibrary.Services;
 using Halogen.Bindings;
 using Halogen.Bindings.ViewModels;
 using Halogen.Bindings.ServiceBindings;
+using Halogen.FactoriesAndMiddlewares.Interfaces;
 using Halogen.Services.AppServices.Interfaces;
+using Halogen.Services.AppServices.Services;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Helpers;
@@ -26,12 +30,16 @@ public sealed class TwoFactorAuthorize: AuthorizeAttribute, IAuthorizationFilter
         IEcosystem ecosystem,
         ILoggerService logger,
         IConfiguration configuration,
-        ISessionService sessionService,
-        ITwoFactorService twoFactorService
+        IHaloServiceFactory haloServiceFactory,
+        IAssistantServiceFactory assistantServiceFactory
     ) {
         _logger = logger;
-        _sessionService = sessionService;
-        _twoFactorService = twoFactorService;
+        
+        var sessionService = haloServiceFactory.GetService<SessionService>(Enums.ServiceType.AppService);
+        var twoFactorService = assistantServiceFactory.GetService<TwoFactorService>();
+
+        _sessionService = sessionService ?? throw new ArgumentNullException(nameof(sessionService));
+        _twoFactorService = twoFactorService ?? throw new ArgumentNullException(nameof(twoFactorService));
 
         var environment = ecosystem.GetEnvironment();
         _twoFactorEnabled = bool.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings.RecaptchaEnabled)}"));

@@ -26,8 +26,12 @@ public sealed class RegionalizedPhoneNumber {
         IHaloServiceFactory haloServiceFactory
     ) {
         _cacheKey = configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{nameof(HalogenOptions.CacheKeys)}{Constants.Colon}{nameof(HalogenOptions.CacheKeys.TelephoneCodes)}");
-        _cacheService = haloServiceFactory.GetService<RedisCache>(Enums.ServiceType.AppService)!;
-        _localityService = haloServiceFactory.GetService<LocalityService>(Enums.ServiceType.DbService)!;
+        
+        var cacheService = haloServiceFactory.GetService<RedisCache>(Enums.ServiceType.AppService);
+        var localityService = haloServiceFactory.GetService<LocalityService>(Enums.ServiceType.DbService);
+
+        _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
+        _localityService = localityService ?? throw new ArgumentNullException(nameof(localityService));
     }
 
     public async Task<string[]> VerifyPhoneNumberData() {
