@@ -85,7 +85,8 @@ public sealed class HalogenOptions {
 }
 
 public sealed class DbSettings {
-    public string ServerEndpoint { get; set; }
+    public string WinEndpoint { get; set; }
+    public string LinEndpoint { get; set; }
     public string DbName { get; set; }
     public string? Username { get; set; }
     public string? Password { get; set; }
