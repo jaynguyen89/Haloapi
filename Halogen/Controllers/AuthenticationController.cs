@@ -2,9 +2,11 @@
 using System.Net;
 using System.Net.Mail;
 using System.Security.Claims;
+using AssistantLibrary;
 using AssistantLibrary.Bindings;
 using AssistantLibrary.Interfaces;
 using AssistantLibrary.Interfaces.IServiceFactory;
+using AssistantLibrary.Services;
 using Halogen.Bindings.ApiBindings;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
@@ -14,9 +16,11 @@ using Halogen.Attributes;
 using Halogen.Bindings;
 using Halogen.Bindings.ViewModels;
 using Halogen.DbModels;
+using Halogen.FactoriesAndMiddlewares.Interfaces;
 using Halogen.Services.AppServices.Interfaces;
+using Halogen.Services.AppServices.Services;
 using Halogen.Services.DbServices.Interfaces;
-using HelperLibrary;
+using Halogen.Services.DbServices.Services;
 using HelperLibrary.Shared.Helpers;
 using Newtonsoft.Json;
 using Authorization = Halogen.Bindings.ServiceBindings.Authorization;
@@ -78,31 +82,23 @@ public sealed class AuthenticationController: AppController {
         IEcosystem ecosystem,
         ILoggerService logger,
         IConfiguration configuration,
-        IContextService contextService,
-        IAuthenticationService authenticationService,
-        ICryptoService cryptoService,
-        IMailService mailService,
-        IAccountService accountService,
-        IProfileService profileService,
-        IRoleService roleService,
-        IPreferenceService preferenceService,
-        ITrustedDeviceService trustedDeviceService,
-        IJwtService jwtService,
+        IHttpContextAccessor httpContextAccessor,
+        IHaloServiceFactory haloServiceFactory,
+        IAssistantServiceFactory assistantServiceFactory,
         IAssistantService assistantService,
         ISmsServiceFactory smsServiceFactory,
-        ITwoFactorService twoFactorService,
-        IHttpContextAccessor httpContextAccessor
+        ITwoFactorService twoFactorService
     ) : base(ecosystem, logger, configuration) {
-        _contextService = contextService;
-        _authenticationService = authenticationService;
-        _cryptoService = cryptoService;
-        _mailService = mailService;
-        _accountService = accountService;
-        _profileService = profileService;
-        _roleService = roleService;
-        _preferenceService = preferenceService;
-        _trustedDeviceService = trustedDeviceService;
-        _jwtService = jwtService;
+        _contextService = haloServiceFactory.GetService<ContextService>(Enums.ServiceType.DbService) ?? throw new ArgumentNullException(nameof(ContextService));
+        _authenticationService = haloServiceFactory.GetService<AuthenticationService>(Enums.ServiceType.DbService) ?? throw new ArgumentNullException(nameof(AuthenticationService));
+        _cryptoService = assistantServiceFactory.GetService<CryptoService>() ?? throw new ArgumentNullException(nameof(CryptoService));
+        _mailService = assistantServiceFactory.GetService<MailService>() ?? throw new ArgumentNullException(nameof(MailService));
+        _accountService = haloServiceFactory.GetService<AccountService>(Enums.ServiceType.DbService) ?? throw new ArgumentNullException(nameof(AccountService));
+        _profileService = haloServiceFactory.GetService<ProfileService>(Enums.ServiceType.DbService) ?? throw new ArgumentNullException(nameof(ProfileService));
+        _roleService = haloServiceFactory.GetService<RoleService>(Enums.ServiceType.DbService) ?? throw new ArgumentNullException(nameof(RoleService));
+        _preferenceService = haloServiceFactory.GetService<PreferenceService>(Enums.ServiceType.DbService) ?? throw new ArgumentNullException(nameof(PreferenceService));
+        _trustedDeviceService = haloServiceFactory.GetService<TrustedDeviceService>(Enums.ServiceType.DbService) ?? throw new ArgumentNullException(nameof(TrustedDeviceService));
+        _jwtService = haloServiceFactory.GetService<JwtService>(Enums.ServiceType.AppService) ?? throw new ArgumentNullException(nameof(JwtService));
         
         _assistantService = assistantService;
         _clickatellSmsHttpService = smsServiceFactory.GetActiveSmsService();

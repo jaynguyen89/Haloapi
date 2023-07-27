@@ -52,6 +52,7 @@ local computer, you need to prepare these things:
     - redis: if you installed Redis via Homebrew, use `redis-server`, otherwise use `docker run --name redis_server -d redis`
     - dynamodb: `docker run --name dynamodb-server -d amazon/dynamodb-local`
     - mssql: `docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=adm1nP@ssword" -e "MSSQL_PID=Express" -p 1433:1433 --name mssql_server -d mcr.microsoft.com/mssql/server:2022-latest`
+- Open the project **<span style="color: orange;">Halotsql</span>** and follow the Readme.md there to setup database.
 
 ### 3. Notices
 There are some important notices that you need to keep in mind while working on the API project:
@@ -59,4 +60,6 @@ There are some important notices that you need to keep in mind while working on 
   services.
 - Magicians are not welcomed here, so don't leave any magics in the codes. Please consider using constants, enums, scope variables, appsetings.json and environment variables if 
   you find your magics may appear.
-- **Important:** please import the IDE settings for your IDE, we have the settings for Rider and Visual Studio in our assets directory.
+- **<span style="color: orange;">Important:</span>** please import the IDE settings for your IDE, we have the settings for Rider and Visual Studio in our assets directory.
+- **<span style="color: red;">Very important</span>**: the solution should be simple regardless how complex the problem is. Simple yet fully expandable and maintainable is 
+  much better than complex and same-ables ones. Decide the level of code complexity *wisely*.

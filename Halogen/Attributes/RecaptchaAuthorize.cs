@@ -27,8 +27,7 @@ public sealed class RecaptchaAuthorize: AuthorizeAttribute, IAuthorizationFilter
         IAssistantServiceFactory assistantServiceFactory
     ) {
         _logger = logger;
-        var assistantService = assistantServiceFactory.GetService<AssistantService>();
-        _assistantService = assistantService ?? new AssistantService(ecosystem, logger, configuration);
+        _assistantService = assistantServiceFactory.GetService<AssistantService>() ?? new AssistantService(ecosystem, logger, configuration);
 
         var environment = ecosystem.GetEnvironment();
         _recaptchaEnabled = bool.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings.TwoFactorEnabled)}"));

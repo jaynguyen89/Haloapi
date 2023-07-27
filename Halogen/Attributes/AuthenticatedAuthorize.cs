@@ -24,9 +24,7 @@ public sealed class AuthenticatedAuthorize: AuthorizeAttribute, IAuthorizationFi
         IHaloServiceFactory haloServiceFactory
     ) {
         _logger = logger;
-        
-        var sessionService = haloServiceFactory.GetService<SessionService>(Enums.ServiceType.AppService);
-        _sessionService = sessionService ?? throw new ArgumentNullException(nameof(sessionService));
+        _sessionService = haloServiceFactory.GetService<SessionService>(Enums.ServiceType.AppService) ?? throw new ArgumentNullException(nameof(SessionService));
     }
 
     public void OnAuthorization(AuthorizationFilterContext context) {

@@ -1,7 +1,10 @@
 ﻿using System.Net;
 using Halogen.Attributes;
 using Halogen.Bindings.ViewModels;
+using Halogen.FactoriesAndMiddlewares.Interfaces;
 using Halogen.Services.DbServices.Interfaces;
+using Halogen.Services.DbServices.Services;
+using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Helpers;
 using HelperLibrary.Shared.Logger;
@@ -20,11 +23,10 @@ public sealed class AccountController: AppController {
         IEcosystem ecosystem,
         ILoggerService logger,
         IConfiguration configuration,
-        IContextService contextService,
-        IAccountService accountService
+        IHaloServiceFactory haloServiceFactory
     ) : base(ecosystem, logger, configuration) {
-        _contextService = contextService;
-        _accountService = accountService;
+        _contextService = haloServiceFactory.GetService<ContextService>(Enums.ServiceType.DbService) ?? throw new ArgumentNullException(nameof(ContextService));
+        _accountService = haloServiceFactory.GetService<AccountService>(Enums.ServiceType.DbService) ?? throw new ArgumentNullException(nameof(AccountService));
     }
 
     [ServiceFilter(typeof(RecaptchaAuthorize))]

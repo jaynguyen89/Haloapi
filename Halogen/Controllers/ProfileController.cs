@@ -1,8 +1,9 @@
 ﻿using System.Net;
 using Halogen.Attributes;
 using Halogen.Bindings.ViewModels;
+using Halogen.FactoriesAndMiddlewares.Interfaces;
 using Halogen.Services.DbServices.Interfaces;
-using HelperLibrary;
+using Halogen.Services.DbServices.Services;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Helpers;
@@ -22,11 +23,10 @@ public sealed class ProfileController: AppController {
         IEcosystem ecosystem,
         ILoggerService logger,
         IConfiguration configuration,
-        IContextService contextService,
-        IProfileService profileService
+        IHaloServiceFactory haloServiceFactory
     ) : base(ecosystem, logger, configuration) {
-        _contextService = contextService;
-        _profileService = profileService;
+        _contextService = haloServiceFactory.GetService<ContextService>(Enums.ServiceType.DbService) ?? throw new ArgumentNullException(nameof(ContextService));
+        _profileService = haloServiceFactory.GetService<ProfileService>(Enums.ServiceType.DbService) ?? throw new ArgumentNullException(nameof(ProfileService));
     }
 
     [ServiceFilter(typeof(RecaptchaAuthorize))]
