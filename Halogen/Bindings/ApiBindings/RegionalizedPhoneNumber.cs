@@ -30,8 +30,8 @@ public sealed class RegionalizedPhoneNumber {
         var cacheService = haloServiceFactory.GetService<RedisCache>(Enums.ServiceType.AppService);
         var localityService = haloServiceFactory.GetService<LocalityService>(Enums.ServiceType.DbService);
 
-        _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
-        _localityService = localityService ?? throw new ArgumentNullException(nameof(localityService));
+        _cacheService = cacheService ?? throw new HaloArgumentNullException<RegionalizedPhoneNumber>(nameof(cacheService));
+        _localityService = localityService ?? throw new HaloArgumentNullException<RegionalizedPhoneNumber>(nameof(localityService));
     }
 
     public async Task<string[]> VerifyPhoneNumberData() {

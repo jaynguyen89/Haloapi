@@ -9,7 +9,7 @@ public sealed class ErrorResponse: StatusCodeResult {
     private new int StatusCode { get; set; } = (int)HttpStatusCode.InternalServerError;
     
     // ReSharper disable once UnusedMember.Global
-    public string StatusCodeName => StatusCode.ToString().Lucidify();
+    public string StatusCodeName => ((HttpStatusCode)StatusCode).ToString().Lucidify();
     
     public string? Message { get; set; }
     

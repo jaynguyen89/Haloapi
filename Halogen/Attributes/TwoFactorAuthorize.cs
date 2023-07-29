@@ -35,8 +35,8 @@ public sealed class TwoFactorAuthorize: AuthorizeAttribute, IAuthorizationFilter
     ) {
         _logger = logger;
         
-        _sessionService = haloServiceFactory.GetService<SessionService>(Enums.ServiceType.AppService) ?? throw new ArgumentNullException(nameof(SessionService));
-        _twoFactorService = assistantServiceFactory.GetService<TwoFactorService>() ?? throw new ArgumentNullException(nameof(TwoFactorService));
+        _sessionService = haloServiceFactory.GetService<SessionService>(Enums.ServiceType.AppService) ?? throw new HaloArgumentNullException<TwoFactorAuthorize>(nameof(SessionService));
+        _twoFactorService = assistantServiceFactory.GetService<TwoFactorService>() ?? throw new HaloArgumentNullException<TwoFactorAuthorize>(nameof(TwoFactorService));
 
         var environment = ecosystem.GetEnvironment();
         _twoFactorEnabled = bool.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings.RecaptchaEnabled)}"));

@@ -84,25 +84,22 @@ public sealed class AuthenticationController: AppController {
         IConfiguration configuration,
         IHttpContextAccessor httpContextAccessor,
         IHaloServiceFactory haloServiceFactory,
-        IAssistantServiceFactory assistantServiceFactory,
-        IAssistantService assistantService,
-        ISmsServiceFactory smsServiceFactory,
-        ITwoFactorService twoFactorService
+        IAssistantServiceFactory assistantServiceFactory
     ) : base(ecosystem, logger, configuration) {
-        _contextService = haloServiceFactory.GetService<ContextService>(Enums.ServiceType.DbService) ?? throw new ArgumentNullException(nameof(ContextService));
-        _authenticationService = haloServiceFactory.GetService<AuthenticationService>(Enums.ServiceType.DbService) ?? throw new ArgumentNullException(nameof(AuthenticationService));
-        _cryptoService = assistantServiceFactory.GetService<CryptoService>() ?? throw new ArgumentNullException(nameof(CryptoService));
-        _mailService = assistantServiceFactory.GetService<MailService>() ?? throw new ArgumentNullException(nameof(MailService));
-        _accountService = haloServiceFactory.GetService<AccountService>(Enums.ServiceType.DbService) ?? throw new ArgumentNullException(nameof(AccountService));
-        _profileService = haloServiceFactory.GetService<ProfileService>(Enums.ServiceType.DbService) ?? throw new ArgumentNullException(nameof(ProfileService));
-        _roleService = haloServiceFactory.GetService<RoleService>(Enums.ServiceType.DbService) ?? throw new ArgumentNullException(nameof(RoleService));
-        _preferenceService = haloServiceFactory.GetService<PreferenceService>(Enums.ServiceType.DbService) ?? throw new ArgumentNullException(nameof(PreferenceService));
-        _trustedDeviceService = haloServiceFactory.GetService<TrustedDeviceService>(Enums.ServiceType.DbService) ?? throw new ArgumentNullException(nameof(TrustedDeviceService));
-        _jwtService = haloServiceFactory.GetService<JwtService>(Enums.ServiceType.AppService) ?? throw new ArgumentNullException(nameof(JwtService));
+        _contextService = haloServiceFactory.GetService<ContextService>(Enums.ServiceType.DbService) ?? throw new HaloArgumentNullException<AuthenticationController>(nameof(ContextService));
+        _authenticationService = haloServiceFactory.GetService<AuthenticationService>(Enums.ServiceType.DbService) ?? throw new HaloArgumentNullException<AuthenticationController>(nameof(AuthenticationService));
+        _cryptoService = assistantServiceFactory.GetService<CryptoService>() ?? throw new HaloArgumentNullException<AuthenticationController>(nameof(CryptoService));
+        _mailService = assistantServiceFactory.GetService<MailService>() ?? throw new HaloArgumentNullException<AuthenticationController>(nameof(MailService));
+        _accountService = haloServiceFactory.GetService<AccountService>(Enums.ServiceType.DbService) ?? throw new HaloArgumentNullException<AuthenticationController>(nameof(AccountService));
+        _profileService = haloServiceFactory.GetService<ProfileService>(Enums.ServiceType.DbService) ?? throw new HaloArgumentNullException<AuthenticationController>(nameof(ProfileService));
+        _roleService = haloServiceFactory.GetService<RoleService>(Enums.ServiceType.DbService) ?? throw new HaloArgumentNullException<AuthenticationController>(nameof(RoleService));
+        _preferenceService = haloServiceFactory.GetService<PreferenceService>(Enums.ServiceType.DbService) ?? throw new HaloArgumentNullException<AuthenticationController>(nameof(PreferenceService));
+        _trustedDeviceService = haloServiceFactory.GetService<TrustedDeviceService>(Enums.ServiceType.DbService) ?? throw new HaloArgumentNullException<AuthenticationController>(nameof(TrustedDeviceService));
+        _jwtService = haloServiceFactory.GetService<JwtService>(Enums.ServiceType.AppService) ?? throw new HaloArgumentNullException<AuthenticationController>(nameof(JwtService));
         
-        _assistantService = assistantService;
-        _clickatellSmsHttpService = smsServiceFactory.GetActiveSmsService();
-        _twoFactorService = twoFactorService;
+        _assistantService = assistantServiceFactory.GetService<AssistantService>() ?? throw new HaloArgumentNullException<AuthenticationController>(nameof(AssistantService));
+        _clickatellSmsHttpService = assistantServiceFactory.GetService<SmsServiceFactory>()?.GetActiveSmsService() ?? throw new HaloArgumentNullException<AuthenticationController>(nameof(SmsServiceFactory));
+        _twoFactorService = assistantServiceFactory.GetService<TwoFactorService>() ?? throw new HaloArgumentNullException<AuthenticationController>(nameof(TwoFactorService));
         _httpContext = httpContextAccessor.HttpContext;
         
         ParseSecuritySettings(

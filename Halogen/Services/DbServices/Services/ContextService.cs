@@ -1,30 +1,25 @@
 ﻿using Halogen.DbContexts;
 using Halogen.Services.DbServices.Interfaces;
+using HelperLibrary.Shared.Logger;
 
 namespace Halogen.Services.DbServices.Services; 
 
-public sealed class ContextService: IContextService {
+public sealed class ContextService: DbServiceBase, IContextService {
 
-    private readonly ILogger<ContextService> _logger;
-    private readonly HalogenDbContext _dbContext;
-
-    public ContextService(ILogger<ContextService> logger, HalogenDbContext dbContext) {
-        _logger = logger;
-        _dbContext = dbContext;
-    }
+    public ContextService(ILoggerService logger, HalogenDbContext dbContext) : base(logger, dbContext) { }
 
     public async Task StartTransaction() {
-        _logger.LogInformation("DB Transaction begins");
+        _logger.Log(new LoggerBinding<ContextService> { Location = nameof(StartTransaction) });
         await _dbContext.Database.BeginTransactionAsync();
     }
 
     public async Task ConfirmTransaction() {
-        _logger.LogInformation("DB Transaction commits");
+        _logger.Log(new LoggerBinding<ContextService> { Location = nameof(ConfirmTransaction) });
         await _dbContext.Database.CommitTransactionAsync();
     }
 
     public async Task RevertTransaction() {
-        _logger.LogInformation("DB Transaction reverts");
+        _logger.Log(new LoggerBinding<ContextService> { Location = nameof(RevertTransaction) });
         await _dbContext.Database.RollbackTransactionAsync();
     }
 }

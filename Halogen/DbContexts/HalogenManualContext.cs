@@ -12,28 +12,31 @@ public partial class HalogenDbContext {
 
     public HalogenDbContext(IEcosystem ecosystem, IConfiguration configuration) {
         var environment = ecosystem.GetEnvironment();
-        var (winEndpoint, linEndpoint, dbName, username, password) = environment switch {
+        var (winEndpoint, linEndpoint, port, dbName, username, password) = environment switch {
             Constants.Local => (
                 configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings.WinEndpoint)}"),
                 configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings.LinEndpoint)}"),
+                configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings.Port)}"),
                 configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings.DbName)}"),
-                string.Empty,
-                string.Empty
+                configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings.Username)}"),
+                configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings.Password)}")
             ),
             _ => (
                 configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings.WinEndpoint)}"),
                 string.Empty,
+                configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings.Port)}"),
                 configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings.DbName)}"),
                 configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings.Username)}"),
                 configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.DbSettings.Password)}")
             ),
         };
 
+        // ReSharper disable once InconsistentNaming
         var isWindowsOS = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
         var isLocal = environment.Equals(Constants.Local);
-        _connectionString = isLocal && isWindowsOS
+        _connectionString = isWindowsOS
             ? $"Server={winEndpoint};Database={dbName};Trusted_Connection=True;"
-            : $"Server={(isLocal ? linEndpoint : winEndpoint)};Database={dbName};User={username};Password={password};Trusted_Connection=True;";
+            : $"Server={(isLocal ? $"{linEndpoint},{port}" : winEndpoint)};Database={dbName};User={username};Password={password};Trusted_Connection={(isLocal ? "False" : "True")};";
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {

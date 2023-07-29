@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using Halogen.Bindings;
 using Halogen.Bindings.ViewModels;
 using Halogen.Bindings.ServiceBindings;
 using Halogen.FactoriesAndMiddlewares.Interfaces;
@@ -24,7 +25,7 @@ public sealed class AuthenticatedAuthorize: AuthorizeAttribute, IAuthorizationFi
         IHaloServiceFactory haloServiceFactory
     ) {
         _logger = logger;
-        _sessionService = haloServiceFactory.GetService<SessionService>(Enums.ServiceType.AppService) ?? throw new ArgumentNullException(nameof(SessionService));
+        _sessionService = haloServiceFactory.GetService<SessionService>(Enums.ServiceType.AppService) ?? throw new HaloArgumentNullException<AuthenticatedAuthorize>(nameof(SessionService));
     }
 
     public void OnAuthorization(AuthorizationFilterContext context) {
