@@ -28,9 +28,9 @@ namespace Halogen.DbModels
         public byte Ethnicity { get; set; }
         public string? Company { get; set; }
         public string? JobTitle { get; set; }
-        public string? SelfIntroduction { get; set; }
         public string? Websites { get; set; }
         public string? Interests { get; set; }
+        public string? Hobbies { get; set; }
 
         public virtual Account Account { get; set; } = null!;
         public virtual ICollection<ProfileAddress> ProfileAddresses { get; set; }

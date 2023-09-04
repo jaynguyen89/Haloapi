@@ -14,7 +14,8 @@ namespace Halogen.DbModels
         public string Id { get; set; } = null!;
         public string Name { get; set; } = null!;
         public byte Region { get; set; }
-        public string Code { get; set; } = null!;
+        public string IsoCode2Char { get; set; } = null!;
+        public string IsoCode3Char { get; set; } = null!;
         public string TelephoneCode { get; set; } = null!;
         public string PrimaryCurrencyId { get; set; } = null!;
         public string? SecondaryCurrencyId { get; set; }

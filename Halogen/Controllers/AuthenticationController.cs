@@ -954,7 +954,7 @@ public sealed class AuthenticationController: AppController {
             { ClaimTypes.Gender, profile.Gender.ToString() },
             { ClaimTypes.Name, $"{profile.GivenName}{profile.MiddleName}{profile.LastName}" },
             { ClaimTypes.MobilePhone, profile.PhoneNumber ?? string.Empty },
-            { ClaimTypes.SerialNumber, account.UniqueIdentifier },
+            { ClaimTypes.SerialNumber, account.UniqueCode },
             { ClaimTypes.DateOfBirth, profile.DateOfBirth.HasValue ? profile.DateOfBirth.Value.ToString(CultureInfo.InvariantCulture) : string.Empty }
         });
 

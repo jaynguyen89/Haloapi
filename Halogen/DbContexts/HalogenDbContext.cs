@@ -34,7 +34,7 @@ namespace Halogen.DbContexts
             {
                 entity.ToTable("Account");
 
-                entity.HasIndex(e => e.Id, "UQ__Account__3214EC062981841C")
+                entity.HasIndex(e => e.Id, "UQ__Account__3214EC06B1F309B4")
                     .IsUnique();
 
                 entity.Property(e => e.Id)
@@ -57,11 +57,13 @@ namespace Halogen.DbContexts
 
                 entity.Property(e => e.RecoveryToken).HasMaxLength(50);
 
+                entity.Property(e => e.SecretCode).HasMaxLength(10);
+
                 entity.Property(e => e.TwoFactorKeys).HasMaxLength(50);
 
                 entity.Property(e => e.TwoFactorVerifyingTokens).HasMaxLength(200);
 
-                entity.Property(e => e.UniqueIdentifier).HasMaxLength(40);
+                entity.Property(e => e.UniqueCode).HasMaxLength(40);
 
                 entity.Property(e => e.Username).HasMaxLength(50);
             });
@@ -70,7 +72,7 @@ namespace Halogen.DbContexts
             {
                 entity.ToTable("AccountRole");
 
-                entity.HasIndex(e => e.Id, "UQ__AccountR__3214EC061B2EC232")
+                entity.HasIndex(e => e.Id, "UQ__AccountR__3214EC067B31444A")
                     .IsUnique();
 
                 entity.Property(e => e.Id)
@@ -104,7 +106,7 @@ namespace Halogen.DbContexts
             {
                 entity.ToTable("Address");
 
-                entity.HasIndex(e => e.Id, "UQ__Address__3214EC064FFFD8E1")
+                entity.HasIndex(e => e.Id, "UQ__Address__3214EC06572F0D3B")
                     .IsUnique();
 
                 entity.Property(e => e.Id)
@@ -156,7 +158,7 @@ namespace Halogen.DbContexts
             {
                 entity.ToTable("Challenge");
 
-                entity.HasIndex(e => e.Id, "UQ__Challeng__3214EC06DA87C183")
+                entity.HasIndex(e => e.Id, "UQ__Challeng__3214EC06FD1B5E98")
                     .IsUnique();
 
                 entity.Property(e => e.Id)
@@ -178,7 +180,7 @@ namespace Halogen.DbContexts
             {
                 entity.ToTable("ChallengeResponse");
 
-                entity.HasIndex(e => e.Id, "UQ__Challeng__3214EC06F9DB601E")
+                entity.HasIndex(e => e.Id, "UQ__Challeng__3214EC0637C689D8")
                     .IsUnique();
 
                 entity.Property(e => e.Id)
@@ -208,7 +210,7 @@ namespace Halogen.DbContexts
             {
                 entity.ToTable("Currency");
 
-                entity.HasIndex(e => e.Id, "UQ__Currency__3214EC0643F34275")
+                entity.HasIndex(e => e.Id, "UQ__Currency__3214EC06ABE46636")
                     .IsUnique();
 
                 entity.Property(e => e.Id)
@@ -226,14 +228,16 @@ namespace Halogen.DbContexts
             {
                 entity.ToTable("Locality");
 
-                entity.HasIndex(e => e.Id, "UQ__Locality__3214EC06DA913D0D")
+                entity.HasIndex(e => e.Id, "UQ__Locality__3214EC062765D6AE")
                     .IsUnique();
 
                 entity.Property(e => e.Id)
                     .HasMaxLength(65)
                     .HasDefaultValueSql("(newid())");
 
-                entity.Property(e => e.Code).HasMaxLength(5);
+                entity.Property(e => e.IsoCode2Char).HasMaxLength(5);
+
+                entity.Property(e => e.IsoCode3Char).HasMaxLength(5);
 
                 entity.Property(e => e.Name).HasMaxLength(80);
 
@@ -257,7 +261,7 @@ namespace Halogen.DbContexts
             {
                 entity.ToTable("LocalityDivision");
 
-                entity.HasIndex(e => e.Id, "UQ__Locality__3214EC06F7026A92")
+                entity.HasIndex(e => e.Id, "UQ__Locality__3214EC06E522282F")
                     .IsUnique();
 
                 entity.Property(e => e.Id)
@@ -281,7 +285,7 @@ namespace Halogen.DbContexts
             {
                 entity.ToTable("Preference");
 
-                entity.HasIndex(e => e.Id, "UQ__Preferen__3214EC069B0D7B4C")
+                entity.HasIndex(e => e.Id, "UQ__Preferen__3214EC068F373233")
                     .IsUnique();
 
                 entity.Property(e => e.Id)
@@ -304,7 +308,7 @@ namespace Halogen.DbContexts
             {
                 entity.ToTable("Profile");
 
-                entity.HasIndex(e => e.Id, "UQ__Profile__3214EC06A52DCD9A")
+                entity.HasIndex(e => e.Id, "UQ__Profile__3214EC0629CDBFD9")
                     .IsUnique();
 
                 entity.Property(e => e.Id)
@@ -323,7 +327,9 @@ namespace Halogen.DbContexts
 
                 entity.Property(e => e.GivenName).HasMaxLength(100);
 
-                entity.Property(e => e.Interests).HasMaxLength(1000);
+                entity.Property(e => e.Hobbies).HasMaxLength(1500);
+
+                entity.Property(e => e.Interests).HasMaxLength(1500);
 
                 entity.Property(e => e.JobTitle).HasMaxLength(100);
 
@@ -337,7 +343,7 @@ namespace Halogen.DbContexts
 
                 entity.Property(e => e.PhoneNumberToken).HasMaxLength(10);
 
-                entity.Property(e => e.Websites).HasMaxLength(4000);
+                entity.Property(e => e.Websites).HasMaxLength(2000);
 
                 entity.HasOne(d => d.Account)
                     .WithMany(p => p.Profiles)
@@ -349,7 +355,7 @@ namespace Halogen.DbContexts
             {
                 entity.ToTable("ProfileAddress");
 
-                entity.HasIndex(e => e.Id, "UQ__ProfileA__3214EC06FCC1FAA8")
+                entity.HasIndex(e => e.Id, "UQ__ProfileA__3214EC0605AE5B12")
                     .IsUnique();
 
                 entity.Property(e => e.Id)
@@ -379,7 +385,7 @@ namespace Halogen.DbContexts
             {
                 entity.ToTable("Role");
 
-                entity.HasIndex(e => e.Id, "UQ__Role__3214EC0642A65DB7")
+                entity.HasIndex(e => e.Id, "UQ__Role__3214EC06BA5407BA")
                     .IsUnique();
 
                 entity.Property(e => e.Id)
@@ -403,7 +409,7 @@ namespace Halogen.DbContexts
             {
                 entity.ToTable("TrustedDevice");
 
-                entity.HasIndex(e => e.Id, "UQ__TrustedD__3214EC064C0E05F3")
+                entity.HasIndex(e => e.Id, "UQ__TrustedD__3214EC06AC2AE15F")
                     .IsUnique();
 
                 entity.Property(e => e.Id)
