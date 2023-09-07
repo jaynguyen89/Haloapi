@@ -44,4 +44,28 @@ public static class DataValidators {
         if (password.IndexOf(Constants.MonoSpace, StringComparison.Ordinal) != -1) errors.Add($"{nameof(password).UpperCaseFirstChar()} should not contain whitespaces.");
         return errors;
     }
+
+    public static List<string> VerifyUsername(this string username) {
+        var errors = new List<string>();
+
+        var lengthTest = new Regex(@".{1,65}");
+        if (!lengthTest.IsMatch(username)) errors.Add($"{nameof(username).UpperCaseFirstChar()} is too {username.ShortOrLong(1, 65)}. Min 1, max 65 characters.");
+
+        var characterTest = new Regex(@"[\w\d'.-_!@#*=+[]\(\):<>~]+");
+        if (!characterTest.IsMatch(username)) errors.Add($"{nameof(username).UpperCaseFirstChar()} should only contain alphabetical letters, numbers, and the following letters: '.-_!@#*=+[]():<>~");
+
+        return errors;
+    }
+
+    public static List<string> VerifyName(this string name, string variableName) {
+        var errors = new List<string>();
+
+        var lengthTest = new Regex(@".{1,65}");
+        if (!lengthTest.IsMatch(name)) errors.Add($"{variableName.Lucidify()} is too {name.ShortOrLong(1, 65)}. Min 1, max 65 characters.");
+
+        var characterTest = new Regex(@"[\w'.-]+");
+        if (!characterTest.IsMatch(name)) errors.Add($"{variableName.Lucidify()} should only contain alphabetical letters, dots, hyphens and single quotes.");
+
+        return errors;
+    }
 }

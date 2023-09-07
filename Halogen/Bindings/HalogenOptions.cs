@@ -15,7 +15,7 @@ public sealed class HalogenOptions {
     }
 
     public class Local {
-        public string ClientApplicationName { get; set; }
+        public string CsrfHeaderName { get; set; }
         public string CookieShouldCheckConsent { get; set; }
         public string RecaptchaEnabled { get; set; }
         public DbSettings DbSettings { get; set; }

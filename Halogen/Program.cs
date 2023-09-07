@@ -15,8 +15,10 @@ using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Helpers;
 using MediaLibrary.Services;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
@@ -186,8 +188,12 @@ public static class Program {
             options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         });
 
+        builder.Services.AddScoped<AutoValidateAntiforgeryTokenAttribute>();
         builder.Services
-               .AddMvc(options => options.EnableEndpointRouting = false)
+               .AddMvc(options => {
+                   options.EnableEndpointRouting = false;
+                   options.Filters.Add(typeof(AutoValidateAntiforgeryTokenAttribute));
+               })
                .AddSessionStateTempDataProvider();
 
         if (!environment.Equals(Constants.Local))
@@ -253,6 +259,21 @@ public static class Program {
         app.UseHttpsRedirection();
         app.UseCookiePolicy();
         app.UseAuthorization();
+
+        if (!environment.Equals(Constants.Local)) {
+            var antiForgeryHeaderName = _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CsrfHeaderName)}");
+            var antiForgery = app.Services.GetRequiredService<IAntiforgery>();
+            app.Use((context, next) => {
+                var tokenSet = antiForgery.GetAndStoreTokens(context);
+                context.Response.Cookies.Append(
+                    antiForgeryHeaderName,
+                    tokenSet.RequestToken!,
+                    new CookieOptions { HttpOnly = false }
+                );
+
+                return next(context);
+            });
+        }
 
         app.UseMiddleware<GlobalErrorHandler>();
 

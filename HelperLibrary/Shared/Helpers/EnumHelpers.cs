@@ -11,44 +11,49 @@ public class ValueAttribute : Attribute {
 
 [AttributeUsage(AttributeTargets.Field)]
 public sealed class CompositeValueAttribute: ValueAttribute {
-    public byte ByteValue { get; set; }
+    public string CodeValue { get; set; }
 
-    public CompositeValueAttribute(string stringValue, byte byteValue): base(stringValue) {
-        ByteValue = byteValue;
+    public CompositeValueAttribute(string stringValue, string codeValue): base(stringValue) {
+        CodeValue = codeValue;
     }
+}
+
+/// <summary>
+/// The 2 classes below are used to convert the Enums into object with EnumProp schema
+/// </summary>
+public sealed class EnumProp {
+        
+    public int? Index { get; set; }
+    
+    public string? Code { get; set; }
+
+    public string Display { get; set; } = null!;
 }
 
 public static class EnumHelpers {
     
     /// <summary>
     /// To get StringValue and ByteValue of enums having CompositeValue attribute.
-    /// Or to get StringValue of enums having Value attribute.
     /// </summary>
-    public static T? GetCompositeValue<T>(this Enum any) {
+    public static string? GetCompositeValue(this Enum any, bool getStringValue = true) {
         var enumType = any.GetType();
         var enumFields = enumType.GetField(any.ToString());
 
         if (enumFields is null) return default;
-
-        if (typeof(T).Name.ToLower().Equals(nameof(String).ToLower())) {
-            var stringValue = enumFields.GetCustomAttributes(typeof(CompositeValueAttribute), false)
-                is CompositeValueAttribute[] { Length: > 0 } attributesForStringValue
-                ? attributesForStringValue[0].StringValue
-                : string.Empty;
-                
-            return string.IsNullOrEmpty(stringValue)
-                ? default
-                : (T) Convert.ChangeType(stringValue, TypeCode.String);
-        }
-
-        var byteValue = enumFields.GetCustomAttributes(typeof(CompositeValueAttribute), false)
-            is CompositeValueAttribute[] { Length: > 0 } attributesForByteValue
-            ? attributesForByteValue[0].ByteValue
-            : byte.MinValue;
+        
+        var stringValue = enumFields.GetCustomAttributes(typeof(CompositeValueAttribute), false)
+            is CompositeValueAttribute[] { Length: > 0 } attributesForStringValue
+            ? getStringValue ? attributesForStringValue[0].StringValue : attributesForStringValue[0].CodeValue
+            : string.Empty;
             
-        return (T) Convert.ChangeType(byteValue, TypeCode.Byte);
+        return string.IsNullOrEmpty(stringValue)
+            ? default
+            : (string) Convert.ChangeType(stringValue, TypeCode.String);
     }
 
+    /// <summary>
+    /// To get StringValue of enums having Value attribute.
+    /// </summary>
     public static string? GetValue(this Enum any) {
         var enumType = any.GetType();
         var enumFields = enumType.GetField(any.ToString());
@@ -78,8 +83,7 @@ public static class EnumHelpers {
                 var fieldInfo = enumType.GetField(val.ToString()!);
                 var attributes = (ValueAttribute[])fieldInfo!.GetCustomAttributes(typeof(ValueAttribute), false);
 
-                var attr = attributes[0];
-                if (attr.StringValue == value) return val;
+                if (attributes[0].StringValue == value) return val;
             }
 
             return default;
@@ -100,4 +104,23 @@ public static class EnumHelpers {
         .Where(x => x.att != null)
         .Select(x => x.x.GetValue(null))
         .ToArray();
+
+    public static EnumProp[] ToDictionaryWithValueAttribute<T>() => (
+        from T val in Enum.GetValues(typeof(T))
+        let fieldInfo = typeof(T).GetField(val.ToString()!)
+        let attributes = (ValueAttribute[])fieldInfo!.GetCustomAttributes(typeof(ValueAttribute), false)
+        select new EnumProp {
+            Index = (int)(object)val,
+            Display = attributes[0].StringValue,
+        }).ToArray();
+    
+    public static EnumProp[] ToDictionaryWithCompositeValueAttribute<T>() => (
+        from T val in Enum.GetValues(typeof(T))
+        let fieldInfo = typeof(T).GetField(val.ToString()!)
+        let attributes = (CompositeValueAttribute[])fieldInfo!.GetCustomAttributes(typeof(CompositeValueAttribute), false)
+        select new EnumProp {
+            Code = attributes[0].CodeValue,
+            Display = attributes[0].StringValue,
+        }).ToArray();
+    
 }

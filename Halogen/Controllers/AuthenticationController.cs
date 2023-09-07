@@ -29,6 +29,7 @@ namespace Halogen.Controllers;
 
 [ApiController]
 [Route("authentication")]
+[AutoValidateAntiforgeryToken]
 public sealed class AuthenticationController: AppController {
 
     private readonly IContextService _contextService;
@@ -202,7 +203,7 @@ public sealed class AuthenticationController: AppController {
         var (verificationTokenLength, saltLength) = GetTokenLengthsForNewAccount();
         var (hashedPassword, salt) = _cryptoService.GenerateHashAndSalt(registrationData.Password, saltLength);
 
-        var newAccount = Account.CreateNewAccount(_useLongerId, registrationData.EmailAddress, salt, hashedPassword, verificationTokenLength);
+        var newAccount = Account.CreateNewAccount(_useLongerId, registrationData.EmailAddress, salt, hashedPassword, verificationTokenLength, registrationData.Username);
         await _contextService.StartTransaction();
 
         var accountId = await _authenticationService.InsertNewAccount(newAccount);
@@ -211,7 +212,7 @@ public sealed class AuthenticationController: AppController {
             return new ErrorResponse();
         }
         
-        var newProfile = Profile.CreateNewProfile(_useLongerId, accountId, registerByEmailAddress, _phoneTokenMinLength, _phoneTokenMaxLength, registrationData.PhoneNumber);
+        var newProfile = Profile.CreateNewProfile(_useLongerId, accountId, registerByEmailAddress, _phoneTokenMinLength, _phoneTokenMaxLength, registrationData.PhoneNumber, registrationData.RegistrationProfileData);
         
         var profileId = await _profileService.InsertNewProfile(newProfile);
         if (profileId is null) {

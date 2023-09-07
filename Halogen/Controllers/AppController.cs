@@ -14,7 +14,6 @@ public class AppController: ControllerBase {
     protected readonly ILoggerService _logger;
     protected readonly IConfiguration _configuration;
     protected readonly CookieOptions _cookieOptions;
-    protected readonly string _clientApplicationName;
 
     protected readonly string _environment;
     protected readonly bool _useLongerId;
@@ -33,7 +32,6 @@ public class AppController: ControllerBase {
         _logger = logger;
         _configuration = configuration;
 
-        _clientApplicationName = configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Development.ClientApplicationName)}");
         (_baseSessionSettingsOptionKey, _baseSecuritySettingsOptionKey, _smsContentsOptionKey) = (
             $"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings)}{Constants.Colon}",
             $"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Local.SecuritySettings)}{Constants.Colon}",

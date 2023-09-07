@@ -15,6 +15,7 @@ namespace Halogen.Controllers;
 
 [ApiController]
 [Route("account")]
+[AutoValidateAntiforgeryToken]
 public sealed class AccountController: AppController {
     
     private readonly IContextService _contextService;

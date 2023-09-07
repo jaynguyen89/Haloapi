@@ -10,18 +10,23 @@ public class LoginInformation {
 
     public RegionalizedPhoneNumber? PhoneNumber { get; set; }
 
-    public async Task<List<string>> VerifyLoginInformation() {
-        var errors = new List<string>();
+    public async Task<Dictionary<string, List<string>>> VerifyLoginInformation() {
+        var emailAddressErrors = new List<string>();
 
         EmailAddress = Regex.Replace(EmailAddress?.Trim().ToLower() ?? string.Empty, Constants.MultiSpace, string.Empty);
 
-        if (!EmailAddress.IsString() && PhoneNumber is null) errors.Add($"Neither {nameof(EmailAddress).Lucidify()} nor {nameof(PhoneNumber)} has been provided.");
-        if (errors.Any()) return errors;
+        if (!EmailAddress.IsString() && PhoneNumber is null) emailAddressErrors.Add($"Either {nameof(EmailAddress).Lucidify()} or {nameof(PhoneNumber)} must be provided.");
+        if (emailAddressErrors.Any()) return new Dictionary<string, List<string>> {{ nameof(EmailAddress), emailAddressErrors }};
 
-        if (EmailAddress.IsString()) errors = errors.Concat(EmailAddress.VerifyEmailAddress()).ToList();
-        if (PhoneNumber is not null) errors = errors.Concat(await PhoneNumber.VerifyPhoneNumberData()).ToList();
+        if (EmailAddress.IsString()) emailAddressErrors = emailAddressErrors.Concat(EmailAddress.VerifyEmailAddress()).ToList();
+        
+        var phoneNumberErrors = new List<string>();
+        if (PhoneNumber is not null) phoneNumberErrors = phoneNumberErrors.Concat(await PhoneNumber.VerifyPhoneNumberData()).ToList();
 
-        return errors;
+        return ListHelper.MergeDataValidationErrors(
+            new KeyValuePair<string, List<string>>(nameof(EmailAddress), emailAddressErrors),
+            new KeyValuePair<string, List<string>>(nameof(PhoneNumber), phoneNumberErrors)
+        );
     }
 }
 
@@ -33,5 +38,5 @@ public class AuthenticationData: LoginInformation {
     
     public DeviceInformation? DeviceInformation { get; set; }
 
-    public async Task<List<string>> VerifyAuthenticationData() => await VerifyLoginInformation();
+    public async Task<Dictionary<string, List<string>>> VerifyAuthenticationData() => await VerifyLoginInformation();
 }

@@ -1,5 +1,4 @@
 ﻿using Halogen.Bindings.ApiBindings;
-using HelperLibrary;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Helpers;
 using Newtonsoft.Json;
@@ -11,7 +10,7 @@ public partial class Preference {
     public static Preference CreatePreferenceForNewAccount(bool useLongerId, string accountId) => new() {
         Id = StringHelpers.NewGuid(useLongerId),
         AccountId = accountId,
-        ApplicationTheme = (byte)Enums.ApplicationTheme.Blue,
+        ApplicationTheme = (byte)Enums.ApplicationTheme.Day,
         ApplicationLanguage = (byte)Enums.Language.English,
         DateFormat = (byte)Enums.DateFormat.DDMMYYYYS,
         TimeFormat = (byte)Enums.TimeFormat.HHMMTTC,

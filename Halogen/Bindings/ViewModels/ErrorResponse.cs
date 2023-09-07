@@ -1,43 +1,31 @@
 ﻿using System.Net;
-using HelperLibrary;
+using HelperLibrary.Shared;
 using HelperLibrary.Shared.Helpers;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace Halogen.Bindings.ViewModels; 
 
-public sealed class ErrorResponse: StatusCodeResult {
-    private new int StatusCode { get; set; } = (int)HttpStatusCode.InternalServerError;
+public sealed class ErrorResponse: ContentResult {
     
     // ReSharper disable once UnusedMember.Global
-    public string StatusCodeName => ((HttpStatusCode)StatusCode).ToString().Lucidify();
-    
-    public string? Message { get; set; }
-    
-    public object? Value { get; set; }
-    
-    public bool IsHandled { get; set; }
+    public string StatusCodeName => ((HttpStatusCode)(StatusCode ?? 500)).ToString().Lucidify();
 
-    public ErrorResponse(bool isHandled = true): base((int)HttpStatusCode.InternalServerError) {
-        IsHandled = isHandled;
-    }
-
-    public ErrorResponse(HttpStatusCode statusCode, bool isHandled = true) : base((int)statusCode) {
-        IsHandled = isHandled;
+    public ErrorResponse(bool isHandled = true) {
+        StatusCode = (int)HttpStatusCode.InternalServerError;
+        Content = JsonConvert.SerializeObject(new { statusCodeName = StatusCodeName, isHandled });
+        ContentType = Constants.ContentTypes["json"];
     }
     
-    public ErrorResponse(HttpStatusCode statusCode, string message, bool isHandled = true) : base((int)statusCode) {
-        Message = message;
-        IsHandled = isHandled;
+    public ErrorResponse(HttpStatusCode statusCode, bool isHandled = true) {
+        StatusCode = (int)statusCode;
+        Content = JsonConvert.SerializeObject(new { statusCodeName = StatusCodeName, isHandled });
+        ContentType = Constants.ContentTypes["json"];
     }
     
-    public ErrorResponse(HttpStatusCode statusCode, object value, bool isHandled = true): base((int)statusCode) {
-        Value = value;
-        IsHandled = isHandled;
-    }
-    
-    public ErrorResponse(HttpStatusCode statusCode, object value, string message, bool isHandled = true): base((int)statusCode) {
-        Value = value;
-        Message = message;
-        IsHandled = isHandled;
+    public ErrorResponse(HttpStatusCode statusCode, object value, bool isHandled = true) {
+        StatusCode = (int)statusCode;
+        Content = JsonConvert.SerializeObject(new { statusCodeName = StatusCodeName, value, isHandled });
+        ContentType = Constants.ContentTypes["json"];
     }
 }

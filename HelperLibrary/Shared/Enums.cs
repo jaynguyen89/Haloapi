@@ -30,6 +30,19 @@ public static class Enums {
         Base64,
     }
 
+    public enum GenderType {
+        [Value("Male")]
+        Male,
+        [Value("Female")]
+        Female,
+        [Value("Male (Other)")]
+        MaleOther,
+        [Value("Female (Other)")]
+        FemaleOther,
+        [Value("Not Specified")]
+        NotSpecified,
+    }
+
     public enum TokenDestination {
         Sms,
         Email,
@@ -147,17 +160,17 @@ public static class Enums {
     }
 
     public enum LocalityRegion {
-        [CompositeValue("Asia", 0)]
+        [CompositeValue("Asia", "as")]
         Asia,
-        [CompositeValue("Africa", 1)]
+        [CompositeValue("Africa", "af")]
         Africa,
-        [CompositeValue("Europe", 2)]
+        [CompositeValue("Europe", "eu")]
         Europe,
-        [CompositeValue("North America", 3)]
+        [CompositeValue("North America", "na")]
         NorthAmerica,
-        [CompositeValue("Oceania", 4)]
+        [CompositeValue("Oceania", "oc")]
         Oceania,
-        [CompositeValue("South America", 5)]
+        [CompositeValue("South America", "sa")]
         SouthAmerica,
     }
 
@@ -176,52 +189,48 @@ public static class Enums {
     }
 
     public enum ApplicationTheme {
-        [CompositeValue("Sapphire", 0)]
-        Blue,
-        [CompositeValue("Amber", 1)]
-        Orange,
-        [CompositeValue("Onyx", 2)]
-        Carbon,
-        [CompositeValue("Topaz", 3)]
-        Yellow,
-        [CompositeValue("Emerald", 4)]
-        Green,
-        [CompositeValue("Moonstone", 5)]
-        White,
-        [CompositeValue("Tourmaline", 6)]
-        Red,
-        [CompositeValue("Morganite", 7)]
-        Pink,
-        [CompositeValue("Amethyst", 8)]
-        Violet,
-        [CompositeValue("Aquamarine", 9)]
-        Cyan,
-        [CompositeValue("Alexandrite", 10)]
-        Teal,
-        [CompositeValue("Sodalite", 11)]
-        Indigo,
+        [Value("Bright Day")]
+        Day,
+        [Value("Clear Night")]
+        Night,
+        [Value("Deep Ocean")]
+        Ocean,
+        [Value("Sweet Dream")]
+        Dream,
+        [Value("Washing Sky")]
+        Sky,
+        [Value("Grass Hill")]
+        Grass,
+        [Value("Sunflower Field")]
+        Sunflower,
+        [Value("Tangerine Peel")]
+        Tangerine,
+        [Value("Rose Champagne")]
+        Rose,
+        [Value("Space Earth")]
+        Earth,
     }
 
     public enum Language {
-        [Value("English")]
+        [CompositeValue("English", "en")]
         English,
-        [Value("Vietnamese")]
+        [CompositeValue("Vietnamese", "vi")]
         Vietnamese,
-        [Value("Chinese")]
+        [CompositeValue("Chinese", "cn")]
         Chinese,
-        [Value("Japanese")]
+        [CompositeValue("Japanese", "jp")]
         Japanese,
-        [Value("French")]
+        [CompositeValue("French", "fr")]
         French,
-        [Value("Russian")]
+        [CompositeValue("Russian", "rs")]
         Russian,
-        [Value("Indonesian")]
+        [CompositeValue("Indonesian", "in")]
         Indonesian,
-        [Value("Malaysian")]
+        [CompositeValue("Malaysian", "ml")]
         Malaysian,
-        [Value("Thailand")]
+        [CompositeValue("Thailand", "th")]
         Thailand,
-        [Value("Korean")]
+        [CompositeValue("Korean", "kr")]
         Korean,
     }
 
