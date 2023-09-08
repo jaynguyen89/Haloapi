@@ -30,6 +30,7 @@ public sealed class GlobalErrorHandler {
             Data = exception
         });
 
-        await context.Response.WriteAsync(JsonConvert.SerializeObject(new ErrorResponse(HttpStatusCode.InternalServerError, false)));
+        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+        await context.Response.WriteAsync(JsonConvert.SerializeObject(new ErrorResponse(HttpStatusCode.InternalServerError)));
     }
 }

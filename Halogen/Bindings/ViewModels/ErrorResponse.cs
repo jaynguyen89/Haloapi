@@ -11,21 +11,21 @@ public sealed class ErrorResponse: ContentResult {
     // ReSharper disable once UnusedMember.Global
     public string StatusCodeName => ((HttpStatusCode)(StatusCode ?? 500)).ToString().Lucidify();
 
-    public ErrorResponse(bool isHandled = true) {
+    public ErrorResponse() {
         StatusCode = (int)HttpStatusCode.InternalServerError;
-        Content = JsonConvert.SerializeObject(new { statusCodeName = StatusCodeName, isHandled });
+        Content = JsonConvert.SerializeObject(new { statusCodeName = StatusCodeName });
         ContentType = Constants.ContentTypes["json"];
     }
     
-    public ErrorResponse(HttpStatusCode statusCode, bool isHandled = true) {
+    public ErrorResponse(HttpStatusCode statusCode) {
         StatusCode = (int)statusCode;
-        Content = JsonConvert.SerializeObject(new { statusCodeName = StatusCodeName, isHandled });
+        Content = JsonConvert.SerializeObject(new { statusCodeName = StatusCodeName });
         ContentType = Constants.ContentTypes["json"];
     }
     
-    public ErrorResponse(HttpStatusCode statusCode, object value, bool isHandled = true) {
+    public ErrorResponse(HttpStatusCode statusCode, object value) {
         StatusCode = (int)statusCode;
-        Content = JsonConvert.SerializeObject(new { statusCodeName = StatusCodeName, value, isHandled });
+        Content = JsonConvert.SerializeObject(new { statusCodeName = StatusCodeName, value });
         ContentType = Constants.ContentTypes["json"];
     }
 }

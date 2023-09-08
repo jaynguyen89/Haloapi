@@ -497,7 +497,7 @@ public sealed class AuthenticationController: AppController {
         if (!tokenSendingResult.Value) return new ErrorResponse(HttpStatusCode.NotImplemented);
 
         await _contextService.ConfirmTransaction();
-        return new SuccessResponse(HttpStatusCode.Accepted);
+        return new SuccessResponse();
     }
 
     [ServiceFilter(typeof(RecaptchaAuthorize))]
@@ -547,7 +547,7 @@ public sealed class AuthenticationController: AppController {
 
         return !result.Value
             ? new ErrorResponse(HttpStatusCode.Conflict, nameof(token))
-            : new SuccessResponse(HttpStatusCode.Accepted);
+            : new SuccessResponse();
     }
 
     [ServiceFilter(typeof(RecaptchaAuthorize))]
