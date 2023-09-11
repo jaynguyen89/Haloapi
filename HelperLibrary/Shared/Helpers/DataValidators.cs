@@ -26,7 +26,7 @@ public static class DataValidators {
     public static List<string> VerifyPassword(this string password) {
         var errors = new List<string>();
         
-        var lengthTest = new Regex(@".{8,}");
+        var lengthTest = new Regex(@".{8,24}");
         if (!lengthTest.IsMatch(password)) errors.Add($"{nameof(password).UpperCaseFirstChar()} length should be at least 8 characters.");
 
         var hasNumberTest = new Regex(@"[\d]+");
@@ -48,7 +48,7 @@ public static class DataValidators {
     public static List<string> VerifyUsername(this string username) {
         var errors = new List<string>();
 
-        var lengthTest = new Regex(@".{1,65}");
+        var lengthTest = new Regex(@".{6,65}");
         if (!lengthTest.IsMatch(username)) errors.Add($"{nameof(username).UpperCaseFirstChar()} is too {username.ShortOrLong(1, 65)}. Min 1, max 65 characters.");
 
         var characterTest = new Regex(@"[\w\d'.-_!@#*=+[]\(\):<>~]+");
