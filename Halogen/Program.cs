@@ -21,6 +21,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
 
 namespace Halogen;
 
@@ -233,16 +234,28 @@ public static class Program {
 
         var app = builder.Build();
 
+        app.UseMiddleware<GlobalErrorHandler>();
+
         app.UseSwagger();
         app.UseSwaggerUI(options => options.SwaggerEndpoint($"/swagger/{apiVersion}/swagger.json", $"{apiName} {apiVersion}"));
 
         app.UseAuthentication();
         app.UseSession();
+
+        app.UseRouting();
+        app.UseHttpsRedirection();
+        app.UseCookiePolicy();
+        app.UseAuthorization();
+        
+        var corsOrigins = _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings.CorsOrigins)}");
+        app.UseCors(options =>
+            options.AllowAnyHeader()
+                   .AllowAnyMethod()
+                   .AllowCredentials()
+                   .WithOrigins(corsOrigins.Split(Constants.Comma))
+        );
         
         if (!environment.Equals(Constants.Local)) {
-            var corsOrigins = _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings.CorsOrigins)}");
-            app.UseCors(options => options.AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithOrigins(corsOrigins));
-            
             var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
             _ = loggerFactory.AddAWSProvider(new AWSLoggerConfig {
                 Region = awsRegion,
@@ -250,15 +263,7 @@ public static class Program {
                 Credentials = new BasicAWSCredentials(awsAccessKeyId, awsSecretAccessKey)
             });
         }
-        else {
-            app.UseDeveloperExceptionPage();
-            app.UseCors(options => options.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
-        }
-
-        app.UseRouting();
-        app.UseHttpsRedirection();
-        app.UseCookiePolicy();
-        app.UseAuthorization();
+        else app.UseDeveloperExceptionPage();
 
         if (!environment.Equals(Constants.Local)) {
             var antiForgeryHeaderName = _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CsrfHeaderName)}");
@@ -274,8 +279,6 @@ public static class Program {
                 return next(context);
             });
         }
-
-        app.UseMiddleware<GlobalErrorHandler>();
 
         app.MapControllers();
         app.MapControllerRoute("default", "{controller}/{action}/{id?}");

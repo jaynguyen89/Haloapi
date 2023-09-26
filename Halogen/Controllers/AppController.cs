@@ -45,7 +45,7 @@ public class AppController: ControllerBase {
         );
 
         _cookieOptions = new CookieOptions {
-            Domain = nameof(Halogen),
+            Domain = "http://localhost:3000",
             Path = Constants.FSlash,
             MaxAge = TimeSpan.FromDays(maxAge),
             IsEssential = isEssential,

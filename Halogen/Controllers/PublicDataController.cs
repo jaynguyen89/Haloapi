@@ -10,6 +10,8 @@ using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Helpers;
 using HelperLibrary.Shared.Logger;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Net.Http.Headers;
+using Newtonsoft.Json;
 
 namespace Halogen.Controllers;
 
@@ -34,7 +36,7 @@ public sealed class PublicDataController: AppController {
 
         var localities = await _localityService.GetLocalitiesForPublicData();
         if (localities is null) return new ErrorResponse();
-        
+
         var publicData = new PublicData {
             Environment = _environment,
             DateFormats = EnumHelpers.ToDictionaryWithValueAttribute<Enums.DateFormat>(),
@@ -50,7 +52,7 @@ public sealed class PublicDataController: AppController {
             VisibilityFormats = EnumHelpers.ToDictionaryWithValueAttribute<Enums.Visibility>(),
             Countries = localities.Select(locality => (PublicData.CountryData)locality).ToArray(),
         };
-
+        
         return new SuccessResponse(publicData);
     }
 }

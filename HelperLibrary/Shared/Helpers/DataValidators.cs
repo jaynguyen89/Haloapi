@@ -51,7 +51,7 @@ public static class DataValidators {
         var lengthTest = new Regex(@".{6,65}");
         if (!lengthTest.IsMatch(username)) errors.Add($"{nameof(username).UpperCaseFirstChar()} is too {username.ShortOrLong(1, 65)}. Min 1, max 65 characters.");
 
-        var characterTest = new Regex(@"[\w\d'.-_!@#*=+[]\(\):<>~]+");
+        var characterTest = new Regex(@"[\w\d'.-_!@#*=+:<>~]+");
         if (!characterTest.IsMatch(username)) errors.Add($"{nameof(username).UpperCaseFirstChar()} should only contain alphabetical letters, numbers, and the following letters: '.-_!@#*=+[]():<>~");
 
         return errors;
