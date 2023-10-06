@@ -78,6 +78,8 @@ public sealed class AuthenticationController: AppController {
     private readonly string _oneTimePasswordSmsContent;
     private readonly int _authenticationValidityDuration;
     private readonly Enums.TimeUnit _authenticationValidityDurationUnit;
+    private readonly int _secretCodeValidityDuration;
+    private readonly Enums.TimeUnit _secretCodeValidityDurationUnit;
 
     public AuthenticationController(
         IEcosystem ecosystem,
@@ -111,7 +113,7 @@ public sealed class AuthenticationController: AppController {
             out _phoneTokenMinLength, out _phoneTokenMaxLength, out _phoneTokenValidityDuration, out _phoneTokenValidityDurationUnit,
             out _loginFailedThreshold, out _lockOutThreshold, out _lockOutDuration, out _lockOutDurationUnit,
             out _accountActivationSmsContent, out _accountRecoverySmsContent, out _twoFactorPinSmsContent, out _oneTimePasswordSmsContent,
-            out _authenticationValidityDuration, out _authenticationValidityDurationUnit
+            out _authenticationValidityDuration, out _authenticationValidityDurationUnit, out _secretCodeValidityDuration, out _secretCodeValidityDurationUnit
         );
     }
 
@@ -123,7 +125,7 @@ public sealed class AuthenticationController: AppController {
         out int phoneTokenMinLength, out int phoneTokenMaxLength, out int phoneTokenValidityDuration, out Enums.TimeUnit phoneTokenValidityDurationUnit,
         out int loginFailedThreshold, out int lockOutThreshold, out int lockOutDuration, out Enums.TimeUnit lockOutDurationUnit,
         out string accountActivationSmsContent, out string accountRecoverySmsContent, out string twoFactorPinSmsContent, out string oneTimePasswordSmsContent,
-        out int authenticationValidityDuration, out Enums.TimeUnit authenticationValidityDurationUnit
+        out int authenticationValidityDuration, out Enums.TimeUnit authenticationValidityDurationUnit, out int secretCodeValidityDuration, out Enums.TimeUnit secretCodeValidityDurationUnit
     ) {
         (
             saltMinLength, saltMaxLength, tfaKeyMinLength, tfaKeyMaxLength,
@@ -169,14 +171,16 @@ public sealed class AuthenticationController: AppController {
         
         (
             accountActivationSmsContent, accountRecoverySmsContent, twoFactorPinSmsContent, oneTimePasswordSmsContent,
-            authenticationValidityDuration, authenticationValidityDurationUnit
+            authenticationValidityDuration, authenticationValidityDurationUnit, secretCodeValidityDuration, secretCodeValidityDurationUnit
         ) = (
             _configuration.GetValue<string>($"{_smsContentsOptionKey}{nameof(HalogenOptions.Local.SmsContents.AccountActivationSms)}"),
             _configuration.GetValue<string>($"{_smsContentsOptionKey}{nameof(HalogenOptions.Local.SmsContents.AccountRecoverySms)}"),
             _configuration.GetValue<string>($"{_smsContentsOptionKey}{nameof(HalogenOptions.Local.SmsContents.TwoFactorPinSms)}"),
             _configuration.GetValue<string>($"{_smsContentsOptionKey}{nameof(HalogenOptions.Local.SmsContents.OneTimePasswordSms)}"),
             int.Parse(_configuration.GetValue<string>($"{_baseSessionSettingsOptionKey}{nameof(HalogenOptions.Local.SessionSettings.AuthenticationValidityDuration)}")),
-            _configuration.GetValue<string>($"{_baseSessionSettingsOptionKey}{nameof(HalogenOptions.Local.SessionSettings.AuthenticationValidityDurationUnit)}").ToEnum(Enums.TimeUnit.Minute)
+            _configuration.GetValue<string>($"{_baseSessionSettingsOptionKey}{nameof(HalogenOptions.Local.SessionSettings.AuthenticationValidityDurationUnit)}").ToEnum(Enums.TimeUnit.Minute),
+            int.Parse(_configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.SecretCodeValidityDuration)}")),
+            _configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.SecretCodeValidityDurationUnit)}").ToEnum(Enums.TimeUnit.Minute)
         );
     }
 

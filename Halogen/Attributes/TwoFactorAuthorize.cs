@@ -39,7 +39,7 @@ public sealed class TwoFactorAuthorize: AuthorizeAttribute, IAuthorizationFilter
         _twoFactorService = assistantServiceFactory.GetService<TwoFactorService>() ?? throw new HaloArgumentNullException<TwoFactorAuthorize>(nameof(TwoFactorService));
 
         var environment = ecosystem.GetEnvironment();
-        _twoFactorEnabled = bool.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings.RecaptchaEnabled)}"));
+        _twoFactorEnabled = bool.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings.TwoFactorEnabled)}"));
     }
 
     public void OnAuthorization(AuthorizationFilterContext context) {

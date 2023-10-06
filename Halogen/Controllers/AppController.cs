@@ -15,6 +15,7 @@ public class AppController: ControllerBase {
     protected readonly IConfiguration _configuration;
     protected readonly CookieOptions _cookieOptions;
 
+    protected readonly string _clientBaseUri;
     protected readonly string _environment;
     protected readonly bool _useLongerId;
     protected readonly string _baseSessionSettingsOptionKey;
@@ -25,7 +26,9 @@ public class AppController: ControllerBase {
         IEcosystem ecosystem,
         ILoggerService logger,
         IConfiguration configuration
-    ) {
+    )
+    {
+        _clientBaseUri = _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Local)}{Constants.Colon}{nameof(HalogenOptions.Local.ClientBaseUri)}");
         _environment = ecosystem.GetEnvironment();
         _useLongerId = ecosystem.GetUseLongerId();
         

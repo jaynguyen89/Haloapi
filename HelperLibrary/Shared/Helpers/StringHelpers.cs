@@ -49,7 +49,7 @@ public static class StringHelpers {
         
         var randomString = new string(
             Enumerable.Repeat(charSetToUse, length)
-                      .Select(p => p[(new Random()).Next(p.Length)])
+                      .Select(p => p[new Random().Next(p.Length)])
                       .ToArray()
         );
 

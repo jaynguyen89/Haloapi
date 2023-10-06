@@ -17,10 +17,10 @@ public sealed class HalogenOptions {
     public class Local {
         public string CsrfHeaderName { get; set; }
         public string CookieShouldCheckConsent { get; set; }
-        public string RecaptchaEnabled { get; set; }
+        public string ClientBaseUri { get; set; }
+        
         public DbSettings DbSettings { get; set; }
         public ServiceSettings ServiceSettings { get; set; }
-        public TwoFactorSettings TwoFactorSettings { get; set; }
         public SecuritySettings SecuritySettings { get; set; }
         public SmsContents SmsContents { get; set; }
 
@@ -98,11 +98,6 @@ public sealed class ServiceSettings {
     public string RecaptchaEnabled { get; set; }
 }
 
-public sealed class TwoFactorSettings {
-    public string SecretKeyMinLength { get; set; }
-    public string SecretKeyMaxLength { get; set; }
-}
-
 public sealed class SecuritySettings {
     public string SaltMinLength { get; set; }
     public string SaltMaxLength { get; set; }
@@ -128,6 +123,8 @@ public sealed class SecuritySettings {
     public string LockOutThreshold { get; set; }
     public string LockOutDuration { get; set; }
     public string LockOutDurationUnit { get; set; }
+    public string SecretCodeValidityDuration { get; set; }
+    public string SecretCodeValidityDurationUnit { get; set; }
 }
 
 public sealed class SmsContents {
