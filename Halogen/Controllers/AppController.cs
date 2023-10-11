@@ -28,12 +28,13 @@ public class AppController: ControllerBase {
         IConfiguration configuration
     )
     {
-        _clientBaseUri = _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Local)}{Constants.Colon}{nameof(HalogenOptions.Local.ClientBaseUri)}");
         _environment = ecosystem.GetEnvironment();
         _useLongerId = ecosystem.GetUseLongerId();
         
         _logger = logger;
         _configuration = configuration;
+        
+        _clientBaseUri = _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Local.ClientBaseUri)}");
 
         (_baseSessionSettingsOptionKey, _baseSecuritySettingsOptionKey, _smsContentsOptionKey) = (
             $"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings)}{Constants.Colon}",

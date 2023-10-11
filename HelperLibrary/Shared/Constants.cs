@@ -32,6 +32,7 @@ public static class Constants {
     public const int DaysPerYear = 365;
 
     public const int RandomStringDefaultLength = 40;
+    public const int SecretCodeLength = 8;
 
     public static readonly List<string> InvalidEnds = new() { ".", "-", "_" };
 

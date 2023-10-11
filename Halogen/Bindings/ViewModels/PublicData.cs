@@ -6,6 +6,8 @@ namespace Halogen.Bindings.ViewModels;
 public sealed class PublicData {
 
     public string Environment { get; set; } = null!;
+    
+    public int SecretCodeLength { get; set; }
 
     public EnumProp[] DateFormats { get; set; } = null!;
 

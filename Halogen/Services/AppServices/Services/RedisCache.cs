@@ -23,7 +23,7 @@ internal sealed class RedisCache: AppServiceBase, ICacheService {
     ): base(logger) {
         _redisCache = redisCache;
         
-        var environment = configuration.GetValue<string>($"{nameof(Halogen)}Environment");
+        var environment = configuration.GetValue<string>($"{nameof(Halogen)}{Constants.Underscore}Environment");
         var (isEnabled, slidingExpiration, absoluteExpiration) = (
             bool.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.IsEnabled)}")),
             int.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.SlidingExpiration)}")),

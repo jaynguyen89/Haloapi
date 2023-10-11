@@ -112,4 +112,29 @@ public sealed class ProfileService: DbServiceBase, IProfileService {
             return default;
         }
     }
+
+    public async Task<Account?> GetAccountByPhoneNumber(RegionalizedPhoneNumber phoneNumber) {
+        _logger.Log(new LoggerBinding<ProfileService> { Location = nameof(GetAccountByPhoneNumber) });
+
+        try {
+            return await _dbContext.Profiles
+                .Where(profile => profile.PhoneNumber != null && profile.PhoneNumber.Equals(JsonConvert.SerializeObject(phoneNumber)))
+                .Select(profile => profile.Account)
+                .SingleAsync();
+        }
+        catch (ArgumentNullException e) {
+            _logger.Log(new LoggerBinding<ProfileService> {
+                Location = $"{nameof(GetAccountByPhoneNumber)}.{nameof(ArgumentNullException)}",
+                Severity = Enums.LogSeverity.Error, Data = e,
+            });
+            return default;
+        }
+        catch (InvalidOperationException e) {
+            _logger.Log(new LoggerBinding<ProfileService> {
+                Location = $"{nameof(GetAccountByPhoneNumber)}.{nameof(InvalidOperationException)}",
+                Severity = Enums.LogSeverity.Error, Data = e,
+            });
+            return default;
+        }
+    }
 }

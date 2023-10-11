@@ -12,8 +12,8 @@ public sealed class RegistrationData: AuthenticationData {
     
     public RegistrationProfileData? RegistrationProfileData { get; set; }
 
-    public async Task<Dictionary<string, List<string>>> VerifyRegistrationData() {
-        var allErrors = await VerifyAuthenticationData();
+    public async Task<Dictionary<string, List<string>>> VerifyRegistrationData(RegionalizedPhoneNumberHandler phoneNumberHandler) {
+        var allErrors = await VerifyAuthenticationData(phoneNumberHandler);
 
         var usernameErrors = new List<string>();
         if (!Username.IsString()) usernameErrors.Add($"{nameof(Username)} must be provided.");
@@ -38,7 +38,7 @@ public sealed class RegistrationData: AuthenticationData {
         passwordErrors = Password.VerifyPassword();
         if (!Password.Equals(PasswordConfirm)) passwordErrors.Add($"{nameof(Password)} and {nameof(PasswordConfirm).Lucidify()} do not match.");
 
-        Dictionary<string, List<string>> profileDataErrors = new Dictionary<string, List<string>>();
+        var profileDataErrors = new Dictionary<string, List<string>>();
         if (RegistrationProfileData is not null)
             profileDataErrors = RegistrationProfileData.VerifyRegistrationProfileData();
 

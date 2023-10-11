@@ -130,6 +130,7 @@ public sealed class SecuritySettings {
 public sealed class SmsContents {
     public string AccountActivationSms { get; set; }
     public string AccountRecoverySms { get; set; }
+    public string SecretCodeSms { get; set; }
     public string TwoFactorPinSms { get; set; }
     public string OneTimePasswordSms { get; set; }
 }

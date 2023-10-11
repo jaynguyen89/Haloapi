@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using Halogen.Bindings.ApiBindings;
 using Halogen.DbContexts;
 using Halogen.FactoriesAndMiddlewares;
 using Halogen.FactoriesAndMiddlewares.Interfaces;
@@ -14,5 +15,6 @@ public static class ServiceCollection {
         builder.RegisterType<LoggerService>().As<ILoggerService>().SingleInstance();
         
         builder.RegisterType<HaloServiceFactory>().As<IHaloServiceFactory>().SingleInstance();
+        builder.RegisterType<RegionalizedPhoneNumberHandler>().SingleInstance();
     }
 }

@@ -14,4 +14,6 @@ public interface IProfileService {
     Task<bool?> UpdateProfile(Profile profile);
     
     Task<Profile?> GetProfileByPhoneNumber(RegionalizedPhoneNumber phoneNumber);
+    
+    Task<Account?> GetAccountByPhoneNumber(RegionalizedPhoneNumber phoneNumber);
 }

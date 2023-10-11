@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Mail;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 using AssistantLibrary;
 using AssistantLibrary.Bindings;
 using AssistantLibrary.Interfaces;
@@ -48,6 +49,8 @@ public sealed class AuthenticationController: AppController {
     private readonly ITwoFactorService _twoFactorService;
     private readonly HttpContext? _httpContext;
 
+    private readonly RegionalizedPhoneNumberHandler _phoneNumberHandler;
+
     private readonly int _saltMinLength;
     private readonly int _saltMaxLength;
     private readonly int _tfaKeyMinLength;
@@ -80,6 +83,7 @@ public sealed class AuthenticationController: AppController {
     private readonly Enums.TimeUnit _authenticationValidityDurationUnit;
     private readonly int _secretCodeValidityDuration;
     private readonly Enums.TimeUnit _secretCodeValidityDurationUnit;
+    private readonly string _secretCodeSmsContent;
 
     public AuthenticationController(
         IEcosystem ecosystem,
@@ -87,7 +91,8 @@ public sealed class AuthenticationController: AppController {
         IConfiguration configuration,
         IHttpContextAccessor httpContextAccessor,
         IHaloServiceFactory haloServiceFactory,
-        IAssistantServiceFactory assistantServiceFactory
+        IAssistantServiceFactory assistantServiceFactory,
+        RegionalizedPhoneNumberHandler phoneNumberHandler
     ) : base(ecosystem, logger, configuration) {
         _contextService = haloServiceFactory.GetService<ContextService>(Enums.ServiceType.DbService) ?? throw new HaloArgumentNullException<AuthenticationController>(nameof(ContextService));
         _authenticationService = haloServiceFactory.GetService<AuthenticationService>(Enums.ServiceType.DbService) ?? throw new HaloArgumentNullException<AuthenticationController>(nameof(AuthenticationService));
@@ -104,6 +109,8 @@ public sealed class AuthenticationController: AppController {
         _clickatellSmsHttpService = assistantServiceFactory.GetService<SmsServiceFactory>()?.GetActiveSmsService() ?? throw new HaloArgumentNullException<AuthenticationController>(nameof(SmsServiceFactory));
         _twoFactorService = assistantServiceFactory.GetService<TwoFactorService>() ?? throw new HaloArgumentNullException<AuthenticationController>(nameof(TwoFactorService));
         _httpContext = httpContextAccessor.HttpContext;
+
+        _phoneNumberHandler = phoneNumberHandler;
         
         ParseSecuritySettings(
             out _saltMinLength, out _saltMaxLength, out _tfaKeyMinLength, out _tfaKeyMaxLength,
@@ -113,7 +120,8 @@ public sealed class AuthenticationController: AppController {
             out _phoneTokenMinLength, out _phoneTokenMaxLength, out _phoneTokenValidityDuration, out _phoneTokenValidityDurationUnit,
             out _loginFailedThreshold, out _lockOutThreshold, out _lockOutDuration, out _lockOutDurationUnit,
             out _accountActivationSmsContent, out _accountRecoverySmsContent, out _twoFactorPinSmsContent, out _oneTimePasswordSmsContent,
-            out _authenticationValidityDuration, out _authenticationValidityDurationUnit, out _secretCodeValidityDuration, out _secretCodeValidityDurationUnit
+            out _authenticationValidityDuration, out _authenticationValidityDurationUnit, out _secretCodeValidityDuration,
+            out _secretCodeValidityDurationUnit, out _secretCodeSmsContent
         );
     }
 
@@ -125,7 +133,8 @@ public sealed class AuthenticationController: AppController {
         out int phoneTokenMinLength, out int phoneTokenMaxLength, out int phoneTokenValidityDuration, out Enums.TimeUnit phoneTokenValidityDurationUnit,
         out int loginFailedThreshold, out int lockOutThreshold, out int lockOutDuration, out Enums.TimeUnit lockOutDurationUnit,
         out string accountActivationSmsContent, out string accountRecoverySmsContent, out string twoFactorPinSmsContent, out string oneTimePasswordSmsContent,
-        out int authenticationValidityDuration, out Enums.TimeUnit authenticationValidityDurationUnit, out int secretCodeValidityDuration, out Enums.TimeUnit secretCodeValidityDurationUnit
+        out int authenticationValidityDuration, out Enums.TimeUnit authenticationValidityDurationUnit, out int secretCodeValidityDuration,
+        out Enums.TimeUnit secretCodeValidityDurationUnit, out string secretCodeSmsContent
     ) {
         (
             saltMinLength, saltMaxLength, tfaKeyMinLength, tfaKeyMaxLength,
@@ -182,6 +191,8 @@ public sealed class AuthenticationController: AppController {
             int.Parse(_configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.SecretCodeValidityDuration)}")),
             _configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.SecretCodeValidityDurationUnit)}").ToEnum(Enums.TimeUnit.Minute)
         );
+
+        secretCodeSmsContent = _configuration.GetValue<string>($"{_smsContentsOptionKey}{nameof(HalogenOptions.Local.SmsContents.SecretCodeSms)}");
     }
 
     [ServiceFilter(typeof(RecaptchaAuthorize))]
@@ -189,7 +200,7 @@ public sealed class AuthenticationController: AppController {
     public async Task<IActionResult> RegisterAccount([FromBody] RegistrationData registrationData) {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(RegisterAccount) });
 
-        var errors = await registrationData.VerifyRegistrationData();
+        var errors = await registrationData.VerifyRegistrationData(_phoneNumberHandler);
         if (errors.Any()) return new ErrorResponse(HttpStatusCode.BadRequest, errors);
 
         var registerByEmailAddress = registrationData.EmailAddress.IsString();
@@ -261,8 +272,9 @@ public sealed class AuthenticationController: AppController {
                 Placeholders = new Dictionary<string, string> {
                     { "EMAIL_ADDRESS", newAccount.EmailAddress! },
                     { "REGISTRATION_TOKEN", Uri.EscapeDataString(newAccount.EmailAddressToken!) },
+                    { "USER_NAME", newAccount.Username is null ? string.Empty : Uri.EscapeDataString(newAccount.Username)},
                     { "VALID_UNTIL_DATETIME", accountActivationEmailExpiry },
-                }
+                },
             };
 
             var isAccountActivationEmailSent = await _mailService.SendSingleEmail(mailBinding);
@@ -273,11 +285,14 @@ public sealed class AuthenticationController: AppController {
         }
         else {
             var smsContent = _accountActivationSmsContent
-                             .Replace("ACCOUNT_ACTIVATION_TOKEN", newProfile.PhoneNumberToken)
-                             .Replace("VALIDITY_DURATION", $"{_phoneTokenValidityDuration} {_phoneTokenValidityDurationUnit}");
+                             .Replace("CLIENT_BASE_URI", _clientBaseUri)
+                             .Replace("PHONE_NUMBER", registrationData.PhoneNumber!.Simplify())
+                             .Replace("REGISTRATION_TOKEN", Uri.EscapeDataString(newProfile.PhoneNumberToken!))
+                             .Replace("USER_NAME", newAccount.Username is null ? string.Empty : Uri.EscapeDataString(newAccount.Username))
+                             .Replace("VALIDITY_DURATION", $"{_phoneTokenValidityDuration} {_phoneTokenValidityDurationUnit}s");
             var smsBinding = new SingleSmsBinding {
                 SmsContent = smsContent,
-                Receivers = new List<string> { registrationData.PhoneNumber!.ToString() }
+                Receivers = new List<string> { registrationData.PhoneNumber!.ToString() },
             };
 
             var smsResult = await _clickatellSmsHttpService.SendSingleSms(smsBinding);
@@ -298,6 +313,65 @@ public sealed class AuthenticationController: AppController {
             }
         );
     }
+
+    [ServiceFilter(typeof(RecaptchaAuthorize))]
+    [HttpGet("send-secret-code/{destination}")]
+    public async Task<IActionResult> SendSecretCode([FromRoute] string destination) {
+        _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(SendSecretCode) });
+        
+        var isPhoneNumber = new Regex(@"^[\d]{2,2},[\d]{9,9}$").IsMatch(destination);
+        var account = await (isPhoneNumber ? _profileService.GetAccountByPhoneNumber(RegionalizedPhoneNumber.Convert(destination)) : _accountService.GetAccountByEmailAddress(destination));
+        if (account is null) return new ErrorResponse(HttpStatusCode.UnprocessableEntity);
+
+        account.SecretCode = StringHelpers.GenerateRandomString(Constants.SecretCodeLength, false, false);
+        account.SecretCodeTimestamp = DateTime.UtcNow;
+
+        await _contextService.StartTransaction();
+        var accountUpdateResult = await _accountService.UpdateAccount(account);
+        if (!accountUpdateResult.HasValue) {
+            await _contextService.RevertTransaction();
+            return new ErrorResponse();
+        }
+
+        if (isPhoneNumber) {
+            var smsContent = _secretCodeSmsContent
+                .Replace("SECRET_CODE", account.SecretCode)
+                .Replace("VALIDITY_DURATION", $"{_secretCodeValidityDuration} {_secretCodeValidityDurationUnit}s");
+            var smsBinding = new SingleSmsBinding {
+                SmsContent = smsContent,
+                Receivers = new List<string> { RegionalizedPhoneNumber.Convert(destination).ToString() },
+            };
+            
+            var smsResult = await _clickatellSmsHttpService.SendSingleSms(smsBinding);
+            if (smsResult is null || smsResult.Any()) {
+                await _contextService.RevertTransaction();
+                return new ErrorResponse();
+            }
+        }
+        else {
+            var mailBinding = new MailBinding {
+                ToReceivers = new List<Recipient> { new() { EmailAddress = destination} },
+                Title = $"{Constants.ProjectName}: Secret Code",
+                Priority = MailPriority.High,
+                TemplateName = Enums.EmailTemplate.SecretCodeEmail,
+                Placeholders = new Dictionary<string, string> {
+                    { "EMAIL_ADDRESS", destination },
+                    { "SECRET_CODE", account.SecretCode },
+                    { "VALIDITY_DURATION", $"{_secretCodeValidityDuration} {_secretCodeValidityDurationUnit}s" },
+                },
+            };
+
+            var isSecretCodeEmailSent = await _mailService.SendSingleEmail(mailBinding);
+            if (!isSecretCodeEmailSent) {
+                await _contextService.RevertTransaction();
+                return new ErrorResponse();
+            }
+        }
+
+        await _contextService.ConfirmTransaction();
+        return new SuccessResponse();
+    }
+
 
     [ServiceFilter(typeof(RecaptchaAuthorize))]
     [HttpGet("forward-token")]
@@ -473,6 +547,7 @@ public sealed class AuthenticationController: AppController {
                     Placeholders = new Dictionary<string, string> {
                         { "EMAIL_ADDRESS", account.EmailAddress! },
                         { "REGISTRATION_TOKEN", Uri.EscapeDataString(token!) },
+                        { "USER_NAME", account.Username is null ? string.Empty : Uri.EscapeDataString(account.Username)},
                         { "VALID_UNTIL_DATETIME", newTokenExpiry },
                     },
                 };
@@ -481,8 +556,11 @@ public sealed class AuthenticationController: AppController {
             }),
             (byte)Enums.TokenType.PhoneRegistration => async () => {
                 var smsContent = _accountActivationSmsContent
-                                 .Replace("ACCOUNT_ACTIVATION_TOKEN", token)
-                                 .Replace("VALIDITY_DURATION", $"{_phoneTokenValidityDuration} {_phoneTokenValidityDurationUnit}");
+                        .Replace("CLIENT_BASE_URI", _clientBaseUri)
+                        .Replace("PHONE_NUMBER", JsonConvert.DeserializeObject<RegionalizedPhoneNumber>(profile.PhoneNumber!)!.Simplify())
+                        .Replace("REGISTRATION_TOKEN", Uri.EscapeDataString(profile.PhoneNumberToken!))
+                        .Replace("USER_NAME", account.Username is null ? string.Empty : Uri.EscapeDataString(account.Username))
+                        .Replace("VALIDITY_DURATION", $"{_phoneTokenValidityDuration} {_phoneTokenValidityDurationUnit}s");
 
                 var phoneNumber = JsonConvert.DeserializeObject<RegionalizedPhoneNumber>(profile.PhoneNumber!);
                 var smsBinding = new SingleSmsBinding {
@@ -560,7 +638,7 @@ public sealed class AuthenticationController: AppController {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(AuthenticateByCredentials) });
         if (_httpContext is null) return new ErrorResponse();
 
-        var errors = await authenticationData.VerifyAuthenticationData();
+        var errors = await authenticationData.VerifyAuthenticationData(_phoneNumberHandler);
         if (errors.Any()) return new ErrorResponse(HttpStatusCode.BadRequest, errors);
         
         var (account, profile) = await GetAccountAndProfileByLoginInformation(new LoginInformation { EmailAddress = authenticationData.EmailAddress, PhoneNumber = authenticationData.PhoneNumber });
@@ -597,7 +675,7 @@ public sealed class AuthenticationController: AppController {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(AuthenticateByOneTimePassword) });
         if (_httpContext is null) return new ErrorResponse();
 
-        var errors = await loginInformation.VerifyLoginInformation();
+        var errors = await loginInformation.VerifyLoginInformation(_phoneNumberHandler);
         if (errors.Any()) return new ErrorResponse(HttpStatusCode.BadRequest, errors);
 
         var (account, profile) = await GetAccountAndProfileByLoginInformation(new LoginInformation { EmailAddress = loginInformation.EmailAddress, PhoneNumber = loginInformation.PhoneNumber });
@@ -733,7 +811,7 @@ public sealed class AuthenticationController: AppController {
     public async Task<IActionResult> ForgotPassword([FromBody] LoginInformation loginInformation) {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(ForgotPassword) });
         
-        var errors = await loginInformation.VerifyLoginInformation();
+        var errors = await loginInformation.VerifyLoginInformation(_phoneNumberHandler);
         if (errors.Any()) return new ErrorResponse(HttpStatusCode.BadRequest, errors);
 
         var relyOnAccount = loginInformation.EmailAddress.IsString();
@@ -802,7 +880,7 @@ public sealed class AuthenticationController: AppController {
     public async Task<IActionResult> RecoverAccount([FromBody] RegistrationData registrationData, [FromRoute] string recoveryToken) {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(RecoverAccount) });
         
-        var errors = await registrationData.VerifyRegistrationData();
+        var errors = await registrationData.VerifyRegistrationData(_phoneNumberHandler);
         if (errors.Any()) return new ErrorResponse(HttpStatusCode.BadRequest, errors);
         
         var relyOnAccount = registrationData.EmailAddress.IsString();

@@ -298,6 +298,8 @@ public static class Enums {
         AccountActivationEmail,
         [Value("AccountRecoveryEmail")]
         AccountRecoveryEmail,
+        [Value("SecretCodeEmail")]
+        SecretCodeEmail,
         [Value("OneTimePasswordEmail")]
         OneTimePasswordEmail,
     }

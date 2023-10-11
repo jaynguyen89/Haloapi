@@ -1,7 +1,5 @@
-﻿using System.Net;
-using Halogen.Bindings;
+﻿using Halogen.Bindings;
 using Halogen.Bindings.ViewModels;
-using Halogen.DbModels;
 using Halogen.FactoriesAndMiddlewares.Interfaces;
 using Halogen.Services.DbServices.Interfaces;
 using Halogen.Services.DbServices.Services;
@@ -10,8 +8,6 @@ using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Helpers;
 using HelperLibrary.Shared.Logger;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Net.Http.Headers;
-using Newtonsoft.Json;
 
 namespace Halogen.Controllers;
 
@@ -39,6 +35,7 @@ public sealed class PublicDataController: AppController {
 
         var publicData = new PublicData {
             Environment = _environment,
+            SecretCodeLength = Constants.SecretCodeLength,
             DateFormats = EnumHelpers.ToDictionaryWithValueAttribute<Enums.DateFormat>(),
             TimeFormats = EnumHelpers.ToDictionaryWithValueAttribute<Enums.TimeFormat>(),
             NumberFormats = EnumHelpers.ToDictionaryWithValueAttribute<Enums.NumberFormat>(),
