@@ -10,7 +10,7 @@ public sealed class RegistrationData: AuthenticationData {
 
     public string Username { get; set; } = null!;
     
-    public RegistrationProfileData? RegistrationProfileData { get; set; }
+    public RegistrationProfileData? ProfileData { get; set; }
 
     public async Task<Dictionary<string, List<string>>> VerifyRegistrationData(RegionalizedPhoneNumberHandler phoneNumberHandler) {
         var allErrors = await VerifyAuthenticationData(phoneNumberHandler);
@@ -39,8 +39,8 @@ public sealed class RegistrationData: AuthenticationData {
         if (!Password.Equals(PasswordConfirm)) passwordErrors.Add($"{nameof(Password)} and {nameof(PasswordConfirm).Lucidify()} do not match.");
 
         var profileDataErrors = new Dictionary<string, List<string>>();
-        if (RegistrationProfileData is not null)
-            profileDataErrors = RegistrationProfileData.VerifyRegistrationProfileData();
+        if (ProfileData is not null)
+            profileDataErrors = ProfileData.VerifyRegistrationProfileData();
 
         allErrors.MergeDataValidationErrors(
             new KeyValuePair<string, List<string>>(nameof(Username), usernameErrors),
@@ -65,7 +65,7 @@ public sealed class RegistrationProfileData {
 
     public Dictionary<string, List<string>> VerifyRegistrationProfileData() {
         var allErrors = new Dictionary<string, List<string>>();
-        if (Gender.HasValue && Gender > (byte) Enums.GenderType.NotSpecified) allErrors.Add(nameof(Gender), new List<string>{ $"{nameof(Gender)} is not recognized." });
+        //if (Gender.HasValue && Gender > (byte) Enums.GenderType.NotSpecified) allErrors.Add(nameof(Gender), new List<string>{ $"{nameof(Gender)} is not recognized." });
 
         var givenNameErrors = new List<string>();
         if (GivenName.IsString()) {

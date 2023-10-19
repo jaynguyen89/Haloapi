@@ -30,7 +30,7 @@ namespace Halogen.Controllers;
 
 [ApiController]
 [Route("authentication")]
-[AutoValidateAntiforgeryToken]
+//[AutoValidateAntiforgeryToken]
 public sealed class AuthenticationController: AppController {
 
     private readonly IContextService _contextService;
@@ -227,7 +227,7 @@ public sealed class AuthenticationController: AppController {
             return new ErrorResponse();
         }
         
-        var newProfile = Profile.CreateNewProfile(_useLongerId, accountId, registerByEmailAddress, _phoneTokenMinLength, _phoneTokenMaxLength, registrationData.PhoneNumber, registrationData.RegistrationProfileData);
+        var newProfile = Profile.CreateNewProfile(_useLongerId, accountId, registerByEmailAddress, _phoneTokenMinLength, _phoneTokenMaxLength, registrationData.PhoneNumber, registrationData.ProfileData);
         
         var profileId = await _profileService.InsertNewProfile(newProfile);
         if (profileId is null) {
@@ -303,15 +303,7 @@ public sealed class AuthenticationController: AppController {
         }
 
         await _contextService.ConfirmTransaction();
-        return new SuccessResponse(
-            HttpStatusCode.Created,
-            new {
-                accountId,
-                registerByEmailAddress,
-                tokenValidityDuration = registerByEmailAddress ? _emailTokenValidityDuration : _phoneTokenValidityDuration,
-                tokenValidityDurationUnit = registerByEmailAddress ? _emailTokenValidityDurationUnit :  _phoneTokenValidityDurationUnit,
-            }
-        );
+        return new SuccessResponse(HttpStatusCode.Created);
     }
 
     [ServiceFilter(typeof(RecaptchaAuthorize))]
@@ -322,6 +314,18 @@ public sealed class AuthenticationController: AppController {
         var isPhoneNumber = new Regex(@"^[\d]{2,2},[\d]{9,9}$").IsMatch(destination);
         var account = await (isPhoneNumber ? _profileService.GetAccountByPhoneNumber(RegionalizedPhoneNumber.Convert(destination)) : _accountService.GetAccountByEmailAddress(destination));
         if (account is null) return new ErrorResponse(HttpStatusCode.UnprocessableEntity);
+
+        if (isPhoneNumber) {
+            var profile = await _profileService.GetProfileByPhoneNumber(RegionalizedPhoneNumber.Convert(destination));
+            if (profile is null) return new ErrorResponse(HttpStatusCode.UnprocessableEntity);
+            
+            if (!profile.PhoneNumberToken.IsString() || !profile.PhoneNumberTokenTimestamp.HasValue) return new ErrorResponse(HttpStatusCode.NotFound);
+            if (profile.PhoneNumberTokenTimestamp.Value > DateTime.UtcNow) return new ErrorResponse(HttpStatusCode.Gone);
+        }
+        else {
+            if (!account.EmailAddressToken.IsString() || !account.EmailAddressTokenTimestamp.HasValue) return new ErrorResponse(HttpStatusCode.NotFound);
+            if (account.EmailAddressTokenTimestamp.Value > DateTime.UtcNow) return new ErrorResponse(HttpStatusCode.Gone);
+        }
 
         account.SecretCode = StringHelpers.GenerateRandomString(Constants.SecretCodeLength, false, false);
         account.SecretCodeTimestamp = DateTime.UtcNow;
@@ -584,18 +588,33 @@ public sealed class AuthenticationController: AppController {
 
     [ServiceFilter(typeof(RecaptchaAuthorize))]
     [HttpPut("activate-account/{token}")]
-    public ActionResult ActivateAccount([FromHeader] string accountId, [FromRoute] string token, [FromQuery] int tokenType) {
+    public async Task<ActionResult> ActivateAccount([FromQuery] string token, [FromQuery] int tokenType, [FromQuery] string secretCode, [FromRoute] string medium) {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(ActivateAccount) });
         
         if (tokenType < 0 || tokenType > Enum.GetNames<Enums.TokenType>().Length)
-            return new ErrorResponse(HttpStatusCode.RequestedRangeNotSatisfiable, nameof(tokenType));
+            return new ErrorResponse(HttpStatusCode.RequestedRangeNotSatisfiable);
+        
+        if (!medium.IsString()) return new ErrorResponse(HttpStatusCode.BadRequest);
+        
+        var isPhoneNumber = new Regex(@"^[\d]{2,2},[\d]{9,9}$").IsMatch(medium);
+        var account = await (isPhoneNumber ? _profileService.GetAccountByPhoneNumber(RegionalizedPhoneNumber.Convert(medium)) : _accountService.GetAccountByEmailAddress(medium));
+        
+        if (account is null) return new ErrorResponse();
+
+        Profile? profile = null;
+        if (isPhoneNumber) {
+            profile = await _profileService.GetProfileByPhoneNumber(RegionalizedPhoneNumber.Convert(medium));
+            if (profile is null) return new ErrorResponse();
+        }
+
+        
+        if (!Equals(account.SecretCode, secretCode)) return new ErrorResponse(HttpStatusCode.Conflict, new { data = nameof(secretCode) });
+        if (account.SecretCodeTimestamp.HasValue && account.SecretCodeTimestamp.Value.Compute(_secretCodeValidityDuration, _secretCodeValidityDurationUnit) < DateTime.UtcNow)
+            return new ErrorResponse(HttpStatusCode.Gone, new { data = nameof(secretCode) });
 
         var activationExpression = tokenType switch {
             (byte)Enums.TokenType.EmailRegistration => (Func<Task<bool?>>)(async () => {
-                var account = await _accountService.GetAccountById(accountId);
-                
-                if (account is null) return null;
-                if (!account.EmailAddressToken!.Equals(token)) return false;
+                if (!Equals(account.EmailAddressToken, token)) return null;
 
                 var tokenElapsingTime = account.EmailAddressTokenTimestamp!.Value.Compute(_emailTokenValidityDuration, _emailTokenValidityDurationUnit);
                 if (tokenElapsingTime > DateTime.UtcNow) return false;
@@ -607,10 +626,7 @@ public sealed class AuthenticationController: AppController {
                 return await _accountService.UpdateAccount(account);
             }),
             (byte)Enums.TokenType.PhoneRegistration => async () => {
-                var profile = await _profileService.GetProfileByAccountId(accountId);
-
-                if (profile is null) return null;
-                if (profile.PhoneNumberToken!.Equals(token)) return false;
+                if (!Equals(profile!.PhoneNumberToken, token)) return null;
 
                 var tokenElapsingTime = profile.PhoneNumberTokenTimestamp!.Value.Compute(_phoneTokenValidityDuration, _phoneTokenValidityDurationUnit);
                 if (tokenElapsingTime > DateTime.UtcNow) return false;
@@ -625,11 +641,9 @@ public sealed class AuthenticationController: AppController {
         };
 
         var result = activationExpression?.Invoke().Result;
-        if (!result.HasValue) return new ErrorResponse();
+        if (!result.HasValue) return new ErrorResponse(HttpStatusCode.Conflict, new { data = nameof(token) });
 
-        return !result.Value
-            ? new ErrorResponse(HttpStatusCode.Conflict, nameof(token))
-            : new SuccessResponse();
+        return !result.Value ? new ErrorResponse(HttpStatusCode.Gone, new { data = nameof(token) }) : new SuccessResponse();
     }
 
     [ServiceFilter(typeof(RecaptchaAuthorize))]

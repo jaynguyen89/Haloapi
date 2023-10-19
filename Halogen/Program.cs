@@ -189,11 +189,11 @@ public static class Program {
             options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         });
 
-        builder.Services.AddScoped<AutoValidateAntiforgeryTokenAttribute>();
+        //builder.Services.AddScoped<AutoValidateAntiforgeryTokenAttribute>();
         builder.Services
                .AddMvc(options => {
                    options.EnableEndpointRouting = false;
-                   options.Filters.Add(typeof(AutoValidateAntiforgeryTokenAttribute));
+                   //options.Filters.Add(typeof(AutoValidateAntiforgeryTokenAttribute));
                })
                .AddSessionStateTempDataProvider();
 
@@ -265,20 +265,20 @@ public static class Program {
         }
         else app.UseDeveloperExceptionPage();
 
-        if (!environment.Equals(Constants.Local)) {
-            var antiForgeryHeaderName = _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CsrfHeaderName)}");
-            var antiForgery = app.Services.GetRequiredService<IAntiforgery>();
-            app.Use((context, next) => {
-                var tokenSet = antiForgery.GetAndStoreTokens(context);
-                context.Response.Cookies.Append(
-                    antiForgeryHeaderName,
-                    tokenSet.RequestToken!,
-                    new CookieOptions { HttpOnly = false }
-                );
-
-                return next(context);
-            });
-        }
+        // if (!environment.Equals(Constants.Local)) {
+        //     var antiForgeryHeaderName = _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CsrfHeaderName)}");
+        //     var antiForgery = app.Services.GetRequiredService<IAntiforgery>();
+        //     app.Use((context, next) => {
+        //         var tokenSet = antiForgery.GetAndStoreTokens(context);
+        //         context.Response.Cookies.Append(
+        //             antiForgeryHeaderName,
+        //             tokenSet.RequestToken!,
+        //             new CookieOptions { HttpOnly = false }
+        //         );
+        //
+        //         return next(context);
+        //     });
+        // }
 
         app.MapControllers();
         app.MapControllerRoute("default", "{controller}/{action}/{id?}");
