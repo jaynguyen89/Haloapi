@@ -1,0 +1,49 @@
+version: 0.0.1
+services:
+  redisCache:
+    image: redis:${REDIS_VERSION}
+    container_name: ${REDIS_CONTAINER_NAME}
+    restart: always
+    platform: linux/amd64
+    profiles: ["essential", "additional", "more", "all"]
+
+  mongoDb:
+    image: mongo:${MONGO_VERSION}
+    container_name: ${MONGO_CONTAINER_NAME}
+    restart: always
+    platform: linux/amd64
+    profiles: ["more", "all"]
+    
+  mysqlDb:
+    image: mysql:${MYSQL_VERSION}
+    container_name: ${MYSQL_CONTAINER_NAME}
+    restart: always
+    platform: linux/amd64
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+    profiles: ["additional", "more", "all"]
+
+  dynamoDb:
+    image: amazon/dynamodb-local
+    container_name: ${AWS_DYNAMODB_CONTAINER_NAME}
+    restart: always
+    platform: linux/amd64
+    profiles: ["more", "all"]
+  
+  lambda:
+    image: amazon/${AWS_LAMBDA_VARIANT}
+    container_name: ${AWS_LAMBDA_CONTAINER_NAME}
+    restart: always
+    platform: linux/amd64
+    profiles: ["all"]
+  
+  halogenDatabase:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: ${MSSQL_CONTAINER_NAME}
+    restart: always
+    platform: linux/amd64
+    environment:
+      - "ACCEPT_EULA=Y"
+      - "MSSQL_SA_PASSWORD=${MSSQL_PASSWORD}"
+      - "MSSQL_PID=${MSSQL_PID}"
+    
