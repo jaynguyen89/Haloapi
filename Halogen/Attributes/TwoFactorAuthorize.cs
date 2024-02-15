@@ -6,7 +6,7 @@ using AssistantLibrary.Services;
 using Halogen.Bindings;
 using Halogen.Bindings.ViewModels;
 using Halogen.Bindings.ServiceBindings;
-using Halogen.FactoriesAndMiddlewares.Interfaces;
+using Halogen.Auxiliaries.Interfaces;
 using Halogen.Services.AppServices.Interfaces;
 using Halogen.Services.AppServices.Services;
 using HelperLibrary.Shared;

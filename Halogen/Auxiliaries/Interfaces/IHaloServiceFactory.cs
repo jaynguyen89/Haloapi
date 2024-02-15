@@ -1,6 +1,6 @@
 ﻿using HelperLibrary.Shared;
 
-namespace Halogen.FactoriesAndMiddlewares.Interfaces; 
+namespace Halogen.Auxiliaries.Interfaces; 
 
 public interface IHaloServiceFactory {
     

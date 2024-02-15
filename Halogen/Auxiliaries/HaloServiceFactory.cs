@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 using Halogen.DbContexts;
-using Halogen.FactoriesAndMiddlewares.Interfaces;
+using Halogen.Auxiliaries.Interfaces;
 using Halogen.Services;
 using Halogen.Services.AppServices.Services;
 using Halogen.Services.HostedServices;
@@ -8,7 +8,7 @@ using HelperLibrary.Shared;
 using HelperLibrary.Shared.Logger;
 using Microsoft.Extensions.Caching.Distributed;
 
-namespace Halogen.FactoriesAndMiddlewares; 
+namespace Halogen.Auxiliaries; 
 
 public sealed class HaloServiceFactory: IHaloServiceFactory {
     

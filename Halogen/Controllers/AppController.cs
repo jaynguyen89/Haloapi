@@ -15,12 +15,8 @@ public class AppController: ControllerBase {
     protected readonly IConfiguration _configuration;
     protected readonly CookieOptions _cookieOptions;
 
-    protected readonly string _clientBaseUri;
     protected readonly string _environment;
     protected readonly bool _useLongerId;
-    protected readonly string _baseSessionSettingsOptionKey;
-    protected readonly string _baseSecuritySettingsOptionKey;
-    protected readonly string _smsContentsOptionKey;
 
     protected internal AppController(
         IEcosystem ecosystem,
@@ -33,14 +29,6 @@ public class AppController: ControllerBase {
         
         _logger = logger;
         _configuration = configuration;
-        
-        _clientBaseUri = _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Local.ClientBaseUri)}");
-
-        (_baseSessionSettingsOptionKey, _baseSecuritySettingsOptionKey, _smsContentsOptionKey) = (
-            $"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings)}{Constants.Colon}",
-            $"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Local.SecuritySettings)}{Constants.Colon}",
-            $"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Local.SmsContents)}{Constants.Colon}"
-        );
         
         var (isEssential, maxAge, expiration) = (
             bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings.IsEssential)}")),

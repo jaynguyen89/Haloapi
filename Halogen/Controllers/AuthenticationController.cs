@@ -17,7 +17,7 @@ using Halogen.Attributes;
 using Halogen.Bindings;
 using Halogen.Bindings.ViewModels;
 using Halogen.DbModels;
-using Halogen.FactoriesAndMiddlewares.Interfaces;
+using Halogen.Auxiliaries.Interfaces;
 using Halogen.Services.AppServices.Interfaces;
 using Halogen.Services.AppServices.Services;
 using Halogen.Services.DbServices.Interfaces;
@@ -49,41 +49,8 @@ public sealed class AuthenticationController: AppController {
     private readonly ITwoFactorService _twoFactorService;
     private readonly HttpContext? _httpContext;
 
+    private readonly HalogenConfigs _configs;
     private readonly RegionalizedPhoneNumberHandler _phoneNumberHandler;
-
-    private readonly int _saltMinLength;
-    private readonly int _saltMaxLength;
-    private readonly int _tfaKeyMinLength;
-    private readonly int _tfaKeyMaxLength;
-    private readonly int _emailTokenMinLength;
-    private readonly int _emailTokenMaxLength;
-    private readonly int _emailTokenValidityDuration;
-    private readonly Enums.TimeUnit _emailTokenValidityDurationUnit;
-    private readonly int _otpMinLength;
-    private readonly int _otpMaxLength;
-    private readonly int _otpValidityDuration;
-    private readonly Enums.TimeUnit _otpValidityDurationUnit;
-    private readonly int _recoveryTokenMinLength;
-    private readonly int _recoveryTokenMaxLength;
-    private readonly int _recoveryTokenValidityDuration;
-    private readonly Enums.TimeUnit _recoveryTokenValidityDurationUnit;
-    private readonly int _phoneTokenMinLength;
-    private readonly int _phoneTokenMaxLength;
-    private readonly int _phoneTokenValidityDuration;
-    private readonly Enums.TimeUnit _phoneTokenValidityDurationUnit;
-    private readonly int _loginFailedThreshold;
-    private readonly int _lockOutThreshold;
-    private readonly int _lockOutDuration;
-    private readonly Enums.TimeUnit _lockOutDurationUnit;
-    private readonly string _accountActivationSmsContent;
-    private readonly string _accountRecoverySmsContent;
-    private readonly string _twoFactorPinSmsContent;
-    private readonly string _oneTimePasswordSmsContent;
-    private readonly int _authenticationValidityDuration;
-    private readonly Enums.TimeUnit _authenticationValidityDurationUnit;
-    private readonly int _secretCodeValidityDuration;
-    private readonly Enums.TimeUnit _secretCodeValidityDurationUnit;
-    private readonly string _secretCodeSmsContent;
 
     public AuthenticationController(
         IEcosystem ecosystem,
@@ -92,6 +59,7 @@ public sealed class AuthenticationController: AppController {
         IHttpContextAccessor httpContextAccessor,
         IHaloServiceFactory haloServiceFactory,
         IAssistantServiceFactory assistantServiceFactory,
+        IHaloConfigProvider haloConfigProvider,
         RegionalizedPhoneNumberHandler phoneNumberHandler
     ) : base(ecosystem, logger, configuration) {
         _contextService = haloServiceFactory.GetService<ContextService>(Enums.ServiceType.DbService) ?? throw new HaloArgumentNullException<AuthenticationController>(nameof(ContextService));
@@ -110,89 +78,8 @@ public sealed class AuthenticationController: AppController {
         _twoFactorService = assistantServiceFactory.GetService<TwoFactorService>() ?? throw new HaloArgumentNullException<AuthenticationController>(nameof(TwoFactorService));
         _httpContext = httpContextAccessor.HttpContext;
 
+        _configs = haloConfigProvider.GetHalogenConfigs();
         _phoneNumberHandler = phoneNumberHandler;
-        
-        ParseSecuritySettings(
-            out _saltMinLength, out _saltMaxLength, out _tfaKeyMinLength, out _tfaKeyMaxLength,
-            out _emailTokenMinLength, out _emailTokenMaxLength, out _emailTokenValidityDuration, out _emailTokenValidityDurationUnit,
-            out _otpMinLength, out _otpMaxLength, out _otpValidityDuration, out _otpValidityDurationUnit,
-            out _recoveryTokenMinLength, out _recoveryTokenMaxLength, out _recoveryTokenValidityDuration, out _recoveryTokenValidityDurationUnit,
-            out _phoneTokenMinLength, out _phoneTokenMaxLength, out _phoneTokenValidityDuration, out _phoneTokenValidityDurationUnit,
-            out _loginFailedThreshold, out _lockOutThreshold, out _lockOutDuration, out _lockOutDurationUnit,
-            out _accountActivationSmsContent, out _accountRecoverySmsContent, out _twoFactorPinSmsContent, out _oneTimePasswordSmsContent,
-            out _authenticationValidityDuration, out _authenticationValidityDurationUnit, out _secretCodeValidityDuration,
-            out _secretCodeValidityDurationUnit, out _secretCodeSmsContent
-        );
-    }
-
-    private void ParseSecuritySettings(
-        out int saltMinLength, out int saltMaxLength, out int tfaKeyMinLength, out int tfaKeyMaxLength,
-        out int emailTokenMinLength, out int emailTokenMaxLength, out int emailTokenValidityDuration, out Enums.TimeUnit emailTokenValidityDurationUnit,
-        out int otpMinLength, out int otpMaxLength, out int otpValidityDuration, out Enums.TimeUnit otpValidityDurationUnit,
-        out int recoveryTokenMinLength, out int recoveryTokenMaxLength, out int recoveryTokenValidityDuration, out Enums.TimeUnit recoveryTokenValidityDurationUnit,
-        out int phoneTokenMinLength, out int phoneTokenMaxLength, out int phoneTokenValidityDuration, out Enums.TimeUnit phoneTokenValidityDurationUnit,
-        out int loginFailedThreshold, out int lockOutThreshold, out int lockOutDuration, out Enums.TimeUnit lockOutDurationUnit,
-        out string accountActivationSmsContent, out string accountRecoverySmsContent, out string twoFactorPinSmsContent, out string oneTimePasswordSmsContent,
-        out int authenticationValidityDuration, out Enums.TimeUnit authenticationValidityDurationUnit, out int secretCodeValidityDuration,
-        out Enums.TimeUnit secretCodeValidityDurationUnit, out string secretCodeSmsContent
-    ) {
-        (
-            saltMinLength, saltMaxLength, tfaKeyMinLength, tfaKeyMaxLength,
-            emailTokenMinLength, emailTokenMaxLength, emailTokenValidityDuration, emailTokenValidityDurationUnit
-        ) = (
-            int.Parse(_configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.SaltMinLength)}")),
-            int.Parse(_configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.SaltMaxLength)}")),
-            int.Parse(_configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.TfaKeyMinLength)}")),
-            int.Parse(_configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.TfaKeyMaxLength)}")),
-            int.Parse(_configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.EmailTokenMinLength)}")),
-            int.Parse(_configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.EmailTokenMaxLength)}")),
-            int.Parse(_configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.EmailTokenValidityDuration)}")),
-            _configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.EmailTokenValidityDurationUnit)}").ToEnum(Enums.TimeUnit.Hour)
-        );
-        
-        (
-            otpMinLength, otpMaxLength, otpValidityDuration, otpValidityDurationUnit,
-            recoveryTokenMinLength, recoveryTokenMaxLength, recoveryTokenValidityDuration, recoveryTokenValidityDurationUnit
-        ) = (
-            int.Parse(_configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.OtpMinLength)}")),
-            int.Parse(_configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.OtpMaxLength)}")),
-            int.Parse(_configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.OtpValidityDuration)}")),
-            _configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.OtpValidityDurationUnit)}").ToEnum(Enums.TimeUnit.Hour),
-            int.Parse(_configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.RecoveryTokenMinLength)}")),
-            int.Parse(_configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.RecoveryTokenMaxLength)}")),
-            int.Parse(_configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.RecoveryTokenValidityDuration)}")),
-            _configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.RecoveryTokenValidityDurationUnit)}").ToEnum(Enums.TimeUnit.Hour)
-        );
-        
-        (
-            phoneTokenMinLength, phoneTokenMaxLength, phoneTokenValidityDuration, phoneTokenValidityDurationUnit,
-            loginFailedThreshold, lockOutThreshold, lockOutDuration, lockOutDurationUnit
-        ) = (
-            int.Parse(_configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.PhoneTokenMinLength)}")),
-            int.Parse(_configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.PhoneTokenMaxLength)}")),
-            int.Parse(_configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.PhoneTokenValidityDuration)}")),
-            _configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.PhoneTokenValidityDurationUnit)}").ToEnum(Enums.TimeUnit.Hour),
-            int.Parse(_configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.LoginFailedThreshold)}")),
-            int.Parse(_configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.LockOutThreshold)}")),
-            int.Parse(_configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.LockOutDuration)}")),
-            _configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.LockOutDurationUnit)}").ToEnum(Enums.TimeUnit.Hour)
-        );
-        
-        (
-            accountActivationSmsContent, accountRecoverySmsContent, twoFactorPinSmsContent, oneTimePasswordSmsContent,
-            authenticationValidityDuration, authenticationValidityDurationUnit, secretCodeValidityDuration, secretCodeValidityDurationUnit
-        ) = (
-            _configuration.GetValue<string>($"{_smsContentsOptionKey}{nameof(HalogenOptions.Local.SmsContents.AccountActivationSms)}"),
-            _configuration.GetValue<string>($"{_smsContentsOptionKey}{nameof(HalogenOptions.Local.SmsContents.AccountRecoverySms)}"),
-            _configuration.GetValue<string>($"{_smsContentsOptionKey}{nameof(HalogenOptions.Local.SmsContents.TwoFactorPinSms)}"),
-            _configuration.GetValue<string>($"{_smsContentsOptionKey}{nameof(HalogenOptions.Local.SmsContents.OneTimePasswordSms)}"),
-            int.Parse(_configuration.GetValue<string>($"{_baseSessionSettingsOptionKey}{nameof(HalogenOptions.Local.SessionSettings.AuthenticationValidityDuration)}")),
-            _configuration.GetValue<string>($"{_baseSessionSettingsOptionKey}{nameof(HalogenOptions.Local.SessionSettings.AuthenticationValidityDurationUnit)}").ToEnum(Enums.TimeUnit.Minute),
-            int.Parse(_configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.SecretCodeValidityDuration)}")),
-            _configuration.GetValue<string>($"{_baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.SecretCodeValidityDurationUnit)}").ToEnum(Enums.TimeUnit.Minute)
-        );
-
-        secretCodeSmsContent = _configuration.GetValue<string>($"{_smsContentsOptionKey}{nameof(HalogenOptions.Local.SmsContents.SecretCodeSms)}");
     }
 
     [ServiceFilter(typeof(RecaptchaAuthorize))]
@@ -227,7 +114,7 @@ public sealed class AuthenticationController: AppController {
             return new ErrorResponse();
         }
         
-        var newProfile = Profile.CreateNewProfile(_useLongerId, accountId, registerByEmailAddress, _phoneTokenMinLength, _phoneTokenMaxLength, registrationData.PhoneNumber, registrationData.ProfileData);
+        var newProfile = Profile.CreateNewProfile(_useLongerId, accountId, registerByEmailAddress, _configs.PhoneTokenMinLength, _configs.PhoneTokenMaxLength, registrationData.PhoneNumber, registrationData.ProfileData);
         
         var profileId = await _profileService.InsertNewProfile(newProfile);
         if (profileId is null) {
@@ -261,7 +148,7 @@ public sealed class AuthenticationController: AppController {
 
         if (registerByEmailAddress) {
             var accountActivationEmailExpiry = newAccount.EmailAddressTokenTimestamp!.Value
-                                                         .Compute(_emailTokenValidityDuration, _emailTokenValidityDurationUnit)
+                                                         .Compute(_configs.EmailTokenValidityDuration, _configs.EmailTokenValidityDurationUnit)
                                                          .Format(Enums.DateFormat.DDMMYYYYS, Enums.TimeFormat.HHMMTTC);
             
             var mailBinding = new MailBinding {
@@ -284,12 +171,12 @@ public sealed class AuthenticationController: AppController {
             }
         }
         else {
-            var smsContent = _accountActivationSmsContent
-                             .Replace("CLIENT_BASE_URI", _clientBaseUri)
+            var smsContent = _configs.AccountActivationSmsContent
+                             .Replace("CLIENT_BASE_URI", _configs.ClientBaseUri)
                              .Replace("PHONE_NUMBER", registrationData.PhoneNumber!.Simplify())
                              .Replace("REGISTRATION_TOKEN", Uri.EscapeDataString(newProfile.PhoneNumberToken!))
                              .Replace("USER_NAME", newAccount.Username is null ? string.Empty : Uri.EscapeDataString(newAccount.Username))
-                             .Replace("VALIDITY_DURATION", $"{_phoneTokenValidityDuration} {_phoneTokenValidityDurationUnit}s");
+                             .Replace("VALIDITY_DURATION", $"{_configs.PhoneTokenValidityDuration} {_configs.PhoneTokenValidityDurationUnit}s");
             var smsBinding = new SingleSmsBinding {
                 SmsContent = smsContent,
                 Receivers = new List<string> { registrationData.PhoneNumber!.ToString() },
@@ -338,9 +225,9 @@ public sealed class AuthenticationController: AppController {
         }
 
         if (isPhoneNumber) {
-            var smsContent = _secretCodeSmsContent
+            var smsContent = _configs.SecretCodeSmsContent
                 .Replace("SECRET_CODE", account.SecretCode)
-                .Replace("VALIDITY_DURATION", $"{_secretCodeValidityDuration} {_secretCodeValidityDurationUnit}s");
+                .Replace("VALIDITY_DURATION", $"{_configs.SecretCodeValidityDuration} {_configs.SecretCodeValidityDurationUnit}s");
             var smsBinding = new SingleSmsBinding {
                 SmsContent = smsContent,
                 Receivers = new List<string> { RegionalizedPhoneNumber.Convert(destination).ToString() },
@@ -361,7 +248,7 @@ public sealed class AuthenticationController: AppController {
                 Placeholders = new Dictionary<string, string> {
                     { "EMAIL_ADDRESS", destination },
                     { "SECRET_CODE", account.SecretCode },
-                    { "VALIDITY_DURATION", $"{_secretCodeValidityDuration} {_secretCodeValidityDurationUnit}s" },
+                    { "VALIDITY_DURATION", $"{_configs.SecretCodeValidityDuration} {_configs.SecretCodeValidityDurationUnit}s" },
                 },
             };
 
@@ -405,8 +292,8 @@ public sealed class AuthenticationController: AppController {
         
         // Only tokens for Account Recovery and One Time Password can be forwarded, other tokens should be renewed
         DateTime? tokenElapsingTime = tokenType switch {
-            (byte)Enums.TokenType.AccountRecovery => tokenTimestamp.Compute(_recoveryTokenValidityDuration, _recoveryTokenValidityDurationUnit),
-            (byte)Enums.TokenType.OneTimePassword => tokenTimestamp.Compute(_otpValidityDuration, _otpValidityDurationUnit),
+            (byte)Enums.TokenType.AccountRecovery => tokenTimestamp.Compute(_configs.RecoveryTokenValidityDuration, _configs.RecoveryTokenValidityDurationUnit),
+            (byte)Enums.TokenType.OneTimePassword => tokenTimestamp.Compute(_configs.OtpValidityDuration, _configs.OtpValidityDurationUnit),
             _ => null,
         };
         if (!tokenElapsingTime.HasValue) return new ErrorResponse();
@@ -436,8 +323,8 @@ public sealed class AuthenticationController: AppController {
                         Placeholders = new Dictionary<string, string> {
                             { "EMAIL_ADDRESS", account.EmailAddress! },
                             { "ONE_TIME_PASSWORD", Uri.EscapeDataString(token!) },
-                            { "VALIDITY_DURATION", _otpValidityDuration.ToString() },
-                            { "VALIDITY_UNIT", _otpValidityDurationUnit.GetValue()! },
+                            { "VALIDITY_DURATION", _configs.OtpValidityDuration.ToString() },
+                            { "VALIDITY_UNIT", _configs.OtpValidityDurationUnit.GetValue()! },
                         },
                     },
                     _ => null,
@@ -448,12 +335,12 @@ public sealed class AuthenticationController: AppController {
             }),
             _ => async () => {
                 var smsContent = destination switch {
-                    (byte)Enums.TokenType.AccountRecovery => _accountRecoverySmsContent
+                    (byte)Enums.TokenType.AccountRecovery => _configs.AccountRecoverySmsContent
                                                              .Replace("ACCOUNT_RECOVERY_TOKEN", token)
-                                                             .Replace("VALIDITY_DURATION", $"{_recoveryTokenValidityDuration} {_recoveryTokenValidityDurationUnit}"),
-                    (byte)Enums.TokenType.OneTimePassword => _oneTimePasswordSmsContent
+                                                             .Replace("VALIDITY_DURATION", $"{_configs.RecoveryTokenValidityDuration} {_configs.RecoveryTokenValidityDurationUnit}"),
+                    (byte)Enums.TokenType.OneTimePassword => _configs.OneTimePasswordSmsContent
                                                              .Replace("ONE_TIME_PASSWORD", token)
-                                                             .Replace("VALIDITY_DURATION", $"{_otpValidityDuration} {_otpValidityDurationUnit.GetValue()}"),
+                                                             .Replace("VALIDITY_DURATION", $"{_configs.OtpValidityDuration} {_configs.OtpValidityDurationUnit.GetValue()}"),
                     _ => null,
                 };
 
@@ -502,8 +389,8 @@ public sealed class AuthenticationController: AppController {
         if (!Equals(token, currentToken)) return new ErrorResponse(HttpStatusCode.Conflict, nameof(currentToken));
         
         DateTime? tokenElapsingTime = tokenType switch {
-            (byte)Enums.TokenType.EmailRegistration => tokenTimestamp.Compute(_emailTokenValidityDuration, _emailTokenValidityDurationUnit),
-            (byte)Enums.TokenType.PhoneRegistration => tokenTimestamp.Compute(_phoneTokenValidityDuration, _phoneTokenValidityDurationUnit),
+            (byte)Enums.TokenType.EmailRegistration => tokenTimestamp.Compute(_configs.EmailTokenValidityDuration, _configs.EmailTokenValidityDurationUnit),
+            (byte)Enums.TokenType.PhoneRegistration => tokenTimestamp.Compute(_configs.PhoneTokenValidityDuration, _configs.PhoneTokenValidityDurationUnit),
             _ => null,
         };
         if (!tokenElapsingTime.HasValue) return new ErrorResponse();
@@ -511,7 +398,7 @@ public sealed class AuthenticationController: AppController {
 
         token = tokenType switch {
             (byte)Enums.TokenType.EmailRegistration => StringHelpers.GenerateRandomString(GetTokenLengthsForNewAccount().Item1, true),
-            (byte)Enums.TokenType.PhoneRegistration => StringHelpers.GenerateRandomString(NumberHelpers.GetRandomNumberInRangeInclusive(_phoneTokenMinLength, _phoneTokenMaxLength), true),
+            (byte)Enums.TokenType.PhoneRegistration => StringHelpers.GenerateRandomString(NumberHelpers.GetRandomNumberInRangeInclusive(_configs.PhoneTokenMinLength, _configs.PhoneTokenMaxLength), true),
             _ => default,
         };
 
@@ -541,7 +428,7 @@ public sealed class AuthenticationController: AppController {
 
         var tokenSendingExpression = tokenType switch {
             (byte)Enums.TokenType.EmailRegistration => (Func<Task<bool?>>)(async () => {
-                var newTokenExpiry = newTokenTimestamp.Compute(_emailTokenValidityDuration, _emailTokenValidityDurationUnit).Format(Enums.DateFormat.DDMMYYYYS, Enums.TimeFormat.HHMMTTC);
+                var newTokenExpiry = newTokenTimestamp.Compute(_configs.EmailTokenValidityDuration, _configs.EmailTokenValidityDurationUnit).Format(Enums.DateFormat.DDMMYYYYS, Enums.TimeFormat.HHMMTTC);
                 
                 var mailBinding = new MailBinding {
                     ToReceivers = new List<Recipient> { new() { EmailAddress = account.EmailAddress! } },
@@ -559,12 +446,12 @@ public sealed class AuthenticationController: AppController {
                 return await _mailService.SendSingleEmail(mailBinding);
             }),
             (byte)Enums.TokenType.PhoneRegistration => async () => {
-                var smsContent = _accountActivationSmsContent
-                        .Replace("CLIENT_BASE_URI", _clientBaseUri)
+                var smsContent = _configs.AccountActivationSmsContent
+                        .Replace("CLIENT_BASE_URI", _configs.ClientBaseUri)
                         .Replace("PHONE_NUMBER", JsonConvert.DeserializeObject<RegionalizedPhoneNumber>(profile.PhoneNumber!)!.Simplify())
                         .Replace("REGISTRATION_TOKEN", Uri.EscapeDataString(profile.PhoneNumberToken!))
                         .Replace("USER_NAME", account.Username is null ? string.Empty : Uri.EscapeDataString(account.Username))
-                        .Replace("VALIDITY_DURATION", $"{_phoneTokenValidityDuration} {_phoneTokenValidityDurationUnit}s");
+                        .Replace("VALIDITY_DURATION", $"{_configs.PhoneTokenValidityDuration} {_configs.PhoneTokenValidityDurationUnit}s");
 
                 var phoneNumber = JsonConvert.DeserializeObject<RegionalizedPhoneNumber>(profile.PhoneNumber!);
                 var smsBinding = new SingleSmsBinding {
@@ -609,14 +496,14 @@ public sealed class AuthenticationController: AppController {
 
         
         if (!Equals(account.SecretCode, secretCode)) return new ErrorResponse(HttpStatusCode.Conflict, new { data = nameof(secretCode) });
-        if (account.SecretCodeTimestamp.HasValue && account.SecretCodeTimestamp.Value.Compute(_secretCodeValidityDuration, _secretCodeValidityDurationUnit) < DateTime.UtcNow)
+        if (account.SecretCodeTimestamp.HasValue && account.SecretCodeTimestamp.Value.Compute(_configs.SecretCodeValidityDuration, _configs.SecretCodeValidityDurationUnit) < DateTime.UtcNow)
             return new ErrorResponse(HttpStatusCode.Gone, new { data = nameof(secretCode) });
 
         var activationExpression = tokenType switch {
             (byte)Enums.TokenType.EmailRegistration => (Func<Task<bool?>>)(async () => {
                 if (!Equals(account.EmailAddressToken, token)) return null;
 
-                var tokenElapsingTime = account.EmailAddressTokenTimestamp!.Value.Compute(_emailTokenValidityDuration, _emailTokenValidityDurationUnit);
+                var tokenElapsingTime = account.EmailAddressTokenTimestamp!.Value.Compute(_configs.EmailTokenValidityDuration, _configs.EmailTokenValidityDurationUnit);
                 if (tokenElapsingTime > DateTime.UtcNow) return false;
 
                 account.EmailAddressToken = null;
@@ -628,7 +515,7 @@ public sealed class AuthenticationController: AppController {
             (byte)Enums.TokenType.PhoneRegistration => async () => {
                 if (!Equals(profile!.PhoneNumberToken, token)) return null;
 
-                var tokenElapsingTime = profile.PhoneNumberTokenTimestamp!.Value.Compute(_phoneTokenValidityDuration, _phoneTokenValidityDurationUnit);
+                var tokenElapsingTime = profile.PhoneNumberTokenTimestamp!.Value.Compute(_configs.PhoneTokenValidityDuration, _configs.PhoneTokenValidityDurationUnit);
                 if (tokenElapsingTime > DateTime.UtcNow) return false;
 
                 profile.PhoneNumberToken = null;
@@ -666,7 +553,7 @@ public sealed class AuthenticationController: AppController {
         if (
             (
                 account!.LockOutEnabled &&
-                account.LockOutOn!.Value.Compute(_lockOutDuration, _lockOutDurationUnit) <= DateTime.UtcNow
+                account.LockOutOn!.Value.Compute(_configs.LockOutDuration, _configs.LockOutDurationUnit) <= DateTime.UtcNow
             ) || account.IsSuspended
         ) return new ErrorResponse(HttpStatusCode.Locked);
         
@@ -696,7 +583,7 @@ public sealed class AuthenticationController: AppController {
         if (
             (
                 account!.LockOutEnabled &&
-                account.LockOutOn!.Value.Compute(_lockOutDuration, _lockOutDurationUnit) <= DateTime.UtcNow
+                account.LockOutOn!.Value.Compute(_configs.LockOutDuration, _configs.LockOutDurationUnit) <= DateTime.UtcNow
             ) || account.IsSuspended
         ) return new ErrorResponse(HttpStatusCode.Locked);
         
@@ -704,7 +591,7 @@ public sealed class AuthenticationController: AppController {
         var dataError = VerifyAccountAndProfileData(account, profile, authenticateByEmailAddress);
         if (dataError is not null) return dataError;
 
-        account.OneTimePassword = StringHelpers.GenerateRandomString(NumberHelpers.GetRandomNumberInRangeInclusive(_otpMinLength, _otpMaxLength));
+        account.OneTimePassword = StringHelpers.GenerateRandomString(NumberHelpers.GetRandomNumberInRangeInclusive(_configs.OtpMinLength, _configs.OtpMaxLength));
         account.OneTimePasswordTimestamp = DateTime.UtcNow;
 
         await _contextService.StartTransaction();
@@ -727,8 +614,8 @@ public sealed class AuthenticationController: AppController {
                 Placeholders = new Dictionary<string, string> {
                     { "EMAIL_ADDRESS", account.EmailAddress! },
                     { "ONE_TIME_PASSWORD", Uri.EscapeDataString(account.OneTimePassword) },
-                    { "VALIDITY_DURATION", _otpValidityDuration.ToString() },
-                    { "VALIDITY_UNIT", _otpValidityDurationUnit.GetValue()! }
+                    { "VALIDITY_DURATION", _configs.OtpValidityDuration.ToString() },
+                    { "VALIDITY_UNIT", _configs.OtpValidityDurationUnit.GetValue()! }
                 }
             };
 
@@ -739,9 +626,9 @@ public sealed class AuthenticationController: AppController {
             }
         }
         else {
-            var smsContent = _oneTimePasswordSmsContent
+            var smsContent = _configs.OneTimePasswordSmsContent
                              .Replace("ONE_TIME_PASSWORD", account.OneTimePassword)
-                             .Replace("VALIDITY_DURATION", $"{_otpValidityDuration} {_otpValidityDurationUnit.GetValue()}");
+                             .Replace("VALIDITY_DURATION", $"{_configs.OtpValidityDuration} {_configs.OtpValidityDurationUnit.GetValue()}");
 
             var phoneNumber = JsonConvert.DeserializeObject<RegionalizedPhoneNumber>(profile!.PhoneNumber!);
             var smsBinding = new SingleSmsBinding {
@@ -787,13 +674,13 @@ public sealed class AuthenticationController: AppController {
         if (
             (
                 account.LockOutEnabled &&
-                account.LockOutOn!.Value.Compute(_lockOutDuration, _lockOutDurationUnit) <= DateTime.UtcNow
+                account.LockOutOn!.Value.Compute(_configs.LockOutDuration, _configs.LockOutDurationUnit) <= DateTime.UtcNow
             ) || account.IsSuspended
         ) return new ErrorResponse(HttpStatusCode.Locked);
 
         var isOneTimePasswordMatchedAndValid =
             Equals(account.OneTimePassword, oneTimePassword) &&
-            preAuthenticatedUser.AuthorizedTimestamp + _otpValidityDuration.ToMilliseconds(_otpValidityDurationUnit) < DateTime.UtcNow.ToTimestamp();
+            preAuthenticatedUser.AuthorizedTimestamp + _configs.OtpValidityDuration.ToMilliseconds(_configs.OtpValidityDurationUnit) < DateTime.UtcNow.ToTimestamp();
 
         if (!isOneTimePasswordMatchedAndValid || !Equals(authenticationToken, preAuthenticatedUser.AuthorizationToken)) {
             var result = await UpdateLockoutAndSuspendOnFailedLogin(account);
@@ -836,7 +723,7 @@ public sealed class AuthenticationController: AppController {
         var shouldProcessForgotPassword = ((relyOnAccount && account.EmailConfirmed) || (!relyOnAccount && profile!.PhoneNumberConfirmed)) && !account.IsSuspended;
         if (!shouldProcessForgotPassword) return new ErrorResponse(HttpStatusCode.Locked);
 
-        account.RecoveryToken = StringHelpers.GenerateRandomString(NumberHelpers.GetRandomNumberInRangeInclusive(_recoveryTokenMinLength, _recoveryTokenMaxLength), true);
+        account.RecoveryToken = StringHelpers.GenerateRandomString(NumberHelpers.GetRandomNumberInRangeInclusive(_configs.RecoveryTokenMinLength, _configs.RecoveryTokenMaxLength), true);
         account.RecoveryTokenTimestamp = DateTime.UtcNow;
 
         await _contextService.StartTransaction();
@@ -849,7 +736,7 @@ public sealed class AuthenticationController: AppController {
         bool tokenSendingResult;
         if (relyOnAccount) {
             var validityUntil = account.RecoveryTokenTimestamp.Value
-                                       .Compute(_recoveryTokenValidityDuration, _recoveryTokenValidityDurationUnit)
+                                       .Compute(_configs.RecoveryTokenValidityDuration, _configs.RecoveryTokenValidityDurationUnit)
                                        .Format(Enums.DateFormat.DDMMYYYYS, Enums.TimeFormat.HHMMTTC);
             
             var emailBinding = new MailBinding {
@@ -867,9 +754,9 @@ public sealed class AuthenticationController: AppController {
             tokenSendingResult = await _mailService.SendSingleEmail(emailBinding);
         }
         else {
-            var smsContent = _accountRecoverySmsContent
+            var smsContent = _configs.AccountRecoverySmsContent
                              .Replace("ACCOUNT_RECOVERY_TOKEN", account.RecoveryToken)
-                             .Replace("VALIDITY_DURATION", $"{_recoveryTokenValidityDuration} {_recoveryTokenValidityDurationUnit}");
+                             .Replace("VALIDITY_DURATION", $"{_configs.RecoveryTokenValidityDuration} {_configs.RecoveryTokenValidityDurationUnit}");
             
             var smsBinding = new SingleSmsBinding {
                 SmsContent = smsContent,
@@ -907,7 +794,7 @@ public sealed class AuthenticationController: AppController {
 
         if (
             !Equals(account.RecoveryToken, Uri.UnescapeDataString(recoveryToken)) ||
-            account.RecoveryTokenTimestamp!.Value.Compute(_recoveryTokenValidityDuration, _recoveryTokenValidityDurationUnit) > DateTime.UtcNow
+            account.RecoveryTokenTimestamp!.Value.Compute(_configs.RecoveryTokenValidityDuration, _configs.RecoveryTokenValidityDurationUnit) > DateTime.UtcNow
         ) return new ErrorResponse(HttpStatusCode.Conflict);
 
         account.RecoveryToken = null;
@@ -939,7 +826,7 @@ public sealed class AuthenticationController: AppController {
             if (!profile.PhoneNumber.IsString()) return new ErrorResponse(HttpStatusCode.UnprocessableEntity);
         }
 
-        var twoFactorSecretKey = StringHelpers.GenerateRandomString(NumberHelpers.GetRandomNumberInRangeInclusive(_tfaKeyMinLength, _tfaKeyMaxLength));
+        var twoFactorSecretKey = StringHelpers.GenerateRandomString(NumberHelpers.GetRandomNumberInRangeInclusive(_configs.TfaKeyMinLength, _configs.TfaKeyMaxLength));
         var twoFactorData = _twoFactorService.GetTwoFactorAuthenticationData(new GetTwoFactorBinding {
             EmailAddress = account.EmailAddress ??
                            JsonConvert.DeserializeObject<RegionalizedPhoneNumber>(profile!.PhoneNumber!)!.ToString().Replace(Constants.MultiSpace, string.Empty),
@@ -1018,7 +905,7 @@ public sealed class AuthenticationController: AppController {
     private async Task<bool?> UpdateLockoutAndSuspendOnFailedLogin(Account account) {
         bool? result;
             
-        if (++account.LoginFailedCount < _loginFailedThreshold) {
+        if (++account.LoginFailedCount < _configs.LoginFailedThreshold) {
             account.LockOutEnabled = false;
             account.LockOutOn = null;
             result = await _accountService.UpdateAccount(account);
@@ -1027,7 +914,7 @@ public sealed class AuthenticationController: AppController {
             account.LockOutEnabled = true;
             account.LockOutOn = DateTime.UtcNow;
 
-            if (++account.LockOutCount < _lockOutThreshold) {
+            if (++account.LockOutCount < _configs.LockOutThreshold) {
                 account.LoginFailedCount = 0;
             }
             else account.IsSuspended = true;
@@ -1063,7 +950,7 @@ public sealed class AuthenticationController: AppController {
             AuthorizedTimestamp = authenticatedTimestamp,
             BearerToken = jwtToken,
             RefreshToken = await _cryptoService.CreateSha512Hash(StringHelpers.GenerateRandomString(Constants.RandomStringDefaultLength, true)),
-            ValidityDuration = _authenticationValidityDuration.ToMilliseconds(_authenticationValidityDurationUnit)
+            ValidityDuration = _configs.AuthenticationValidityDuration.ToMilliseconds(_configs.AuthenticationValidityDurationUnit)
         };
         
         Response.Cookies.Append(nameof(Authorization.AuthorizedTimestamp), authenticatedTimestamp.ToString(), _cookieOptions);
@@ -1074,10 +961,10 @@ public sealed class AuthenticationController: AppController {
     }
 
     private Tuple<int, int> GetTokenLengthsForNewAccount(bool forSaltOnly = false) {
-        var saltLength = NumberHelpers.GetRandomNumberInRangeInclusive(_saltMinLength, _saltMaxLength);
+        var saltLength = NumberHelpers.GetRandomNumberInRangeInclusive(_configs.SaltMinLength, _configs.SaltMaxLength);
         if (forSaltOnly) return new Tuple<int, int>(0, saltLength);
         
-        var verificationTokenLength = NumberHelpers.GetRandomNumberInRangeInclusive(_emailTokenMinLength, _emailTokenMaxLength);
+        var verificationTokenLength = NumberHelpers.GetRandomNumberInRangeInclusive(_configs.EmailTokenMinLength, _configs.EmailTokenMaxLength);
         return new Tuple<int, int>(verificationTokenLength, saltLength);
     }
 }

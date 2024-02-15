@@ -2,7 +2,7 @@
 using Halogen.Attributes;
 using Halogen.Bindings;
 using Halogen.Bindings.ViewModels;
-using Halogen.FactoriesAndMiddlewares.Interfaces;
+using Halogen.Auxiliaries.Interfaces;
 using Halogen.Services.DbServices.Interfaces;
 using Halogen.Services.DbServices.Services;
 using HelperLibrary.Shared;

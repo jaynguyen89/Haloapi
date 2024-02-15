@@ -1,5 +1,5 @@
 ﻿using System.Text.RegularExpressions;
-using Halogen.FactoriesAndMiddlewares.Interfaces;
+using Halogen.Auxiliaries.Interfaces;
 using Halogen.Services.AppServices.Interfaces;
 using Halogen.Services.AppServices.Services;
 using Halogen.Services.DbServices.Interfaces;
