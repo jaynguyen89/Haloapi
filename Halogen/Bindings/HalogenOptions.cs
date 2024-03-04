@@ -12,6 +12,7 @@ public sealed class HalogenOptions {
         public string AwsSecretAccessKey { get; set; }
         public string AwsRegion { get; set; }
         public string AwsLogGroupName { get; set; }
+        public string EnableSecretCode { get; set; }
     }
 
     public class Local {

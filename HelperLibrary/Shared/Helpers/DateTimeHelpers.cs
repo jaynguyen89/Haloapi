@@ -26,7 +26,7 @@ public static class DateTimeHelpers {
         Enums.TimeUnit.Month => ToMilliseconds(value * Constants.DaysPerMonth, Enums.TimeUnit.Day),
         Enums.TimeUnit.Quarter => ToMilliseconds(value * Constants.MonthsPerQuarter, Enums.TimeUnit.Month),
         Enums.TimeUnit.Year => ToMilliseconds(value * Constants.DaysPerYear, Enums.TimeUnit.Day),
-        _ => value
+        _ => value,
     };
 
     public static string Format(this DateTime dateTime, Enums.DateFormat dateFormat, Enums.TimeFormat timeFormat) =>

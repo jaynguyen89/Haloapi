@@ -1,4 +1,4 @@
-﻿using Halogen.Bindings;
+﻿using Halogen.Bindings.ServiceBindings;
 
 namespace Halogen.Auxiliaries.Interfaces;
 

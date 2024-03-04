@@ -21,8 +21,9 @@ public sealed class PublicDataController: AppController {
         IEcosystem ecosystem,
         ILoggerService logger,
         IConfiguration configuration,
-        IHaloServiceFactory haloServiceFactory
-    ) : base(ecosystem, logger, configuration) {
+        IHaloServiceFactory haloServiceFactory,
+        IHaloConfigProvider haloConfigProvider
+    ) : base(ecosystem, logger, configuration, haloConfigProvider.GetHalogenConfigs()) {
         _localityService = haloServiceFactory.GetService<LocalityService>(Enums.ServiceType.DbService) ?? throw new HaloArgumentNullException<PublicDataController>(nameof(LocalityService));
     }
 
@@ -35,6 +36,7 @@ public sealed class PublicDataController: AppController {
 
         var publicData = new PublicData {
             Environment = _environment,
+            EnableSecretCode = _haloConfigs.EnableSecretCode,
             SecretCodeLength = Constants.SecretCodeLength,
             DateFormats = EnumHelpers.ToDictionaryWithValueAttribute<Enums.DateFormat>(),
             TimeFormats = EnumHelpers.ToDictionaryWithValueAttribute<Enums.TimeFormat>(),

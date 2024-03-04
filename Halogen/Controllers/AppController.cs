@@ -1,5 +1,6 @@
 ﻿using Halogen.Bindings;
 using Halogen.Bindings.ApiBindings;
+using Halogen.Bindings.ServiceBindings;
 using Halogen.DbModels;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
@@ -17,18 +18,20 @@ public class AppController: ControllerBase {
 
     protected readonly string _environment;
     protected readonly bool _useLongerId;
+    protected readonly HalogenConfigs _haloConfigs;
 
     protected internal AppController(
         IEcosystem ecosystem,
         ILoggerService logger,
-        IConfiguration configuration
-    )
-    {
+        IConfiguration configuration,
+        HalogenConfigs configs
+    ) {
         _environment = ecosystem.GetEnvironment();
         _useLongerId = ecosystem.GetUseLongerId();
         
         _logger = logger;
         _configuration = configuration;
+        _haloConfigs = configs;
         
         var (isEssential, maxAge, expiration) = (
             bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{_environment}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings.IsEssential)}")),
@@ -46,6 +49,12 @@ public class AppController: ControllerBase {
             SameSite = SameSiteMode.None,
             Secure = isEssential,
         };
+    }
+
+    protected bool? IsSecretCodeValid(string secretCode, Account account) {
+        if (!Equals(account.SecretCode, secretCode)) return default;
+        return !account.SecretCodeTimestamp.HasValue ||
+               account.SecretCodeTimestamp.Value.Compute(_haloConfigs.SecretCodeValidityDuration, _haloConfigs.SecretCodeValidityDurationUnit) >= DateTime.UtcNow;
     }
 
     protected bool IsDeviceTrusted(DeviceInformation device, TrustedDevice[] trustedDevices) {

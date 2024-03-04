@@ -48,17 +48,6 @@ public static class Enums {
         Email,
     }
 
-    /// <summary>
-    /// For the endpoint that forwards token to email or SMS.
-    /// No Two-Factor PIN in here as it is supposed to be obtained from Authenticator App.
-    /// </summary>
-    public enum TokenType {
-        EmailRegistration,
-        PhoneRegistration,
-        OneTimePassword,
-        AccountRecovery,
-    }
-
     public enum HashAlgorithm {
         BCrypt,
         Rsa,

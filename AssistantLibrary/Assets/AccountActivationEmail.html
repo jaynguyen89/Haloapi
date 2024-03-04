@@ -73,12 +73,13 @@
         
         <div class="paragraph space-vertical">
             Your new account on CLIENT_APPLICATION_NAME has been created successfully.
-            Please click <a href="CLIENT_BASE_URI/activate-account?email-address=EMAIL_ADDRESS&username=USER_NAME&activation-token=REGISTRATION_TOKEN">here</a> to activate your account.
+            Please click <a href="CLIENT_BASE_URI/activate-account/ACCOUNT_ID?email-address=EMAIL_ADDRESS&username=USER_NAME&activation-token=REGISTRATION_TOKEN">here</a> to 
+            activate your account.
         </div>
         
         <div class="paragraph space-vertical">
             If the above link does not work, please copy and paste this link into your preferred web browser:
-            <p class="text-url z-depth-1 grey lighten-4">CLIENT_BASE_URI/activate-account?email-address=EMAIL_ADDRESS&username=USER_NAME&activation-token=REGISTRATION_TOKEN</p>
+            <p class="text-url z-depth-1 grey lighten-4">CLIENT_BASE_URI/activate-account/ACCOUNT_ID?email-address=EMAIL_ADDRESS&username=USER_NAME&activation-token=REGISTRATION_TOKEN</p>
         </div>
         
         <br/>
@@ -88,7 +89,7 @@
                 <li>
                     <b>The activation link only stays valid until VALID_UNTIL_DATETIME.</b>
                     If you do not activate your account within the validity period,
-                    you have to <a href="CLIENT_BASE_URI/request-activation-email?email-address=EMAIL_ADDRESS&username=USER_NAME&activation-token=REGISTRATION_TOKEN">request another Account Activation email</a>.
+                    you have to <a href="CLIENT_BASE_URI/request-activation-email/ACCOUNT_ID?email-address=EMAIL_ADDRESS&username=USER_NAME&activation-token=REGISTRATION_TOKEN">request another Account Activation email</a>.
                 </li>
                 <li>
                     If you have something to ask, please have a look at the <a href="CLIENT_BASE_URI/faqs/account-registration">Account Registration FAQ</a>

@@ -1,5 +1,6 @@
 ﻿using Halogen.Auxiliaries.Interfaces;
 using Halogen.Bindings;
+using Halogen.Bindings.ServiceBindings;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Helpers;
@@ -90,7 +91,10 @@ public sealed class HaloConfigProvider: IHaloConfigProvider {
             _configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.SecretCodeValidityDurationUnit)}").ToEnum(Enums.TimeUnit.Minute)
         );
 
-        var secretCodeSmsContent = _configuration.GetValue<string>($"{smsContentsOptionKey}{nameof(HalogenOptions.Local.SmsContents.SecretCodeSms)}");
+        var (secretCodeSmsContent, enableSecretCode) = (
+            _configuration.GetValue<string>($"{smsContentsOptionKey}{nameof(HalogenOptions.Local.SmsContents.SecretCodeSms)}"),
+            bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.ServerSettings)}{Constants.Colon}{nameof(HalogenOptions.ServerSettings.EnableSecretCode)}"))
+        );
 
         return new HalogenConfigs {
             ClientBaseUri = _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.ClientBaseUri)}"),
@@ -127,6 +131,7 @@ public sealed class HaloConfigProvider: IHaloConfigProvider {
             SecretCodeValidityDuration = secretCodeValidityDuration,
             SecretCodeValidityDurationUnit = secretCodeValidityDurationUnit,
             SecretCodeSmsContent = secretCodeSmsContent,
+            EnableSecretCode = enableSecretCode,
         };
     }
 }

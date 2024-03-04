@@ -1,6 +1,6 @@
 ﻿using HelperLibrary.Shared;
 
-namespace Halogen.Bindings;
+namespace Halogen.Bindings.ServiceBindings;
 
 public sealed class HalogenConfigs {
     
@@ -71,4 +71,6 @@ public sealed class HalogenConfigs {
     public Enums.TimeUnit SecretCodeValidityDurationUnit { get; set; }
 
     public string SecretCodeSmsContent { get; set; } = null!;
+    
+    public bool EnableSecretCode { get; set; }
 }

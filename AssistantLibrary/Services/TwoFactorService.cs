@@ -40,7 +40,7 @@ public sealed class TwoFactorService: ServiceBase, ITwoFactorService {
 
         return new TwoFactorData {
             QrCodeImageUrl = setupCodeData.QrCodeSetupImageUrl,
-            ManualEntryKey = setupCodeData.ManualEntryKey
+            ManualEntryKey = setupCodeData.ManualEntryKey,
         };
     }
 

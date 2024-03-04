@@ -7,6 +7,8 @@ public sealed class PublicData {
 
     public string Environment { get; set; } = null!;
     
+    public bool EnableSecretCode { get; set; }
+    
     public int SecretCodeLength { get; set; }
 
     public EnumProp[] DateFormats { get; set; } = null!;

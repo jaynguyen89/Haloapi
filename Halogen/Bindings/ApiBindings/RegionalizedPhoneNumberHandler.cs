@@ -6,6 +6,7 @@ using Halogen.Services.DbServices.Interfaces;
 using Halogen.Services.DbServices.Services;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Helpers;
+using Newtonsoft.Json;
 
 namespace Halogen.Bindings.ApiBindings;
 
@@ -19,6 +20,8 @@ public sealed class RegionalizedPhoneNumber {
     
     public string Simplify() => $"{RegionCode}{Constants.Comma}{PhoneNumber}";
 
+    public string ToPhoneNumber() => $"{Constants.Plus}{RegionCode}{PhoneNumber}";
+
     public static RegionalizedPhoneNumber Convert(string simplifiedPhoneNumber) {
         var tokens = simplifiedPhoneNumber.Split(Constants.Comma);
         return new RegionalizedPhoneNumber {
@@ -26,6 +29,8 @@ public sealed class RegionalizedPhoneNumber {
             PhoneNumber = tokens[1],
         };
     }
+
+    public static RegionalizedPhoneNumber? Deserialize(string serializedPhoneNumber) => JsonConvert.DeserializeObject<RegionalizedPhoneNumber>(serializedPhoneNumber);
 }
 
 public sealed class RegionalizedPhoneNumberHandler {

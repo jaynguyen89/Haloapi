@@ -25,8 +25,9 @@ public sealed class AccountController: AppController {
         IEcosystem ecosystem,
         ILoggerService logger,
         IConfiguration configuration,
-        IHaloServiceFactory haloServiceFactory
-    ) : base(ecosystem, logger, configuration) {
+        IHaloServiceFactory haloServiceFactory,
+        IHaloConfigProvider haloConfigProvider
+    ) : base(ecosystem, logger, configuration, haloConfigProvider.GetHalogenConfigs()) {
         _contextService = haloServiceFactory.GetService<ContextService>(Enums.ServiceType.DbService) ?? throw new HaloArgumentNullException<AccountController>(nameof(ContextService));
         _accountService = haloServiceFactory.GetService<AccountService>(Enums.ServiceType.DbService) ?? throw new HaloArgumentNullException<AccountController>(nameof(AccountService));
     }
