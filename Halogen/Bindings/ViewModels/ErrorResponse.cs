@@ -13,19 +13,19 @@ public sealed class ErrorResponse: ContentResult {
 
     public ErrorResponse() {
         StatusCode = (int)HttpStatusCode.InternalServerError;
-        Content = JsonConvert.SerializeObject(new { statusCodeName = StatusCodeName });
+        Content = JsonConvert.SerializeObject(new { status = StatusCode, statusCodeName = StatusCodeName });
         ContentType = Constants.ContentTypes["json"];
     }
     
     public ErrorResponse(HttpStatusCode statusCode) {
         StatusCode = (int)statusCode;
-        Content = JsonConvert.SerializeObject(new { statusCodeName = StatusCodeName });
+        Content = JsonConvert.SerializeObject(new { status = StatusCode, statusCodeName = StatusCodeName });
         ContentType = Constants.ContentTypes["json"];
     }
     
     public ErrorResponse(HttpStatusCode statusCode, object value) {
         StatusCode = (int)statusCode;
-        Content = JsonConvert.SerializeObject(new { statusCodeName = StatusCodeName, value });
+        Content = JsonConvert.SerializeObject(new { status = StatusCode, statusCodeName = StatusCodeName, value });
         ContentType = Constants.ContentTypes["json"];
     }
 }

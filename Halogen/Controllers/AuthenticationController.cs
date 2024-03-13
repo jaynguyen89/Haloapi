@@ -153,6 +153,7 @@ public sealed class AuthenticationController: AppController {
                 Priority = MailPriority.High,
                 TemplateName = Enums.EmailTemplate.AccountActivationEmail,
                 Placeholders = new Dictionary<string, string> {
+                    { "ACCOUNT_ID", accountId },
                     { "EMAIL_ADDRESS", newAccount.EmailAddress! },
                     { "REGISTRATION_TOKEN", Uri.EscapeDataString(newAccount.EmailAddressToken!) },
                     { "USER_NAME", newAccount.Username is null ? string.Empty : Uri.EscapeDataString(newAccount.Username)},
@@ -168,6 +169,7 @@ public sealed class AuthenticationController: AppController {
         }
         else {
             var smsContent = _haloConfigs.AccountActivationSmsContent
+                             .Replace("ACCOUNT_ID", accountId)
                              .Replace("CLIENT_BASE_URI", _haloConfigs.ClientBaseUri)
                              .Replace("PHONE_NUMBER", registrationData.PhoneNumber!.Simplify())
                              .Replace("REGISTRATION_TOKEN", Uri.EscapeDataString(newProfile.PhoneNumberToken!))
@@ -190,25 +192,25 @@ public sealed class AuthenticationController: AppController {
     }
 
     [ServiceFilter(typeof(RecaptchaAuthorize))]
-    [HttpGet("send-secret-code/{destination}")]
-    public async Task<IActionResult> SendSecretCode([FromHeader] string accountId, [FromRoute] Enums.TokenDestination destination) {
+    [HttpGet("send-secret-code")]
+    public async Task<IActionResult> SendSecretCode([FromHeader] string accountId, [FromQuery] Enums.TokenDestination destination) {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(SendSecretCode) });
 
         if (!_haloConfigs.EnableSecretCode) return new ErrorResponse(HttpStatusCode.Continue);
         
         var account = await _accountService.GetAccountById(accountId);
-        if (account is null) return new ErrorResponse(HttpStatusCode.UnprocessableEntity);
+        if (account is null) return new ErrorResponse();
 
         var profile = await _profileService.GetProfileByAccountId(accountId);
-        if (profile is null) return new ErrorResponse(HttpStatusCode.UnprocessableEntity);
+        if (profile is null) return new ErrorResponse();
 
         if (destination == Enums.TokenDestination.Sms) {
-            if (!profile.PhoneNumber.IsString()) return new ErrorResponse(HttpStatusCode.FailedDependency);
+            if (!profile.PhoneNumber.IsString()) return new ErrorResponse(HttpStatusCode.UnprocessableEntity);
             if (!profile.PhoneNumberToken.IsString() || !profile.PhoneNumberTokenTimestamp.HasValue) return new ErrorResponse(HttpStatusCode.NotFound);
             if (profile.PhoneNumberTokenTimestamp.Value > DateTime.UtcNow) return new ErrorResponse(HttpStatusCode.Gone);
         }
         else {
-            if (!account.EmailAddress.IsString()) return new ErrorResponse(HttpStatusCode.FailedDependency);
+            if (!account.EmailAddress.IsString()) return new ErrorResponse(HttpStatusCode.UnprocessableEntity);
             if (!account.EmailAddressToken.IsString() || !account.EmailAddressTokenTimestamp.HasValue) return new ErrorResponse(HttpStatusCode.NotFound);
             if (account.EmailAddressTokenTimestamp.Value > DateTime.UtcNow) return new ErrorResponse(HttpStatusCode.Gone);
         }
@@ -473,7 +475,7 @@ public sealed class AuthenticationController: AppController {
             var secretCodeValidation = IsSecretCodeValid(tokenData.SecretCode!, account);
             
             if (!secretCodeValidation.HasValue) return new ErrorResponse(HttpStatusCode.Forbidden);
-            if (!secretCodeValidation.Value) return new ErrorResponse(HttpStatusCode.Gone);
+            if (!secretCodeValidation.Value) return new ErrorResponse(HttpStatusCode.Gone, new { data = "secret-code" });
         }
         
         var profile = await _profileService.GetProfileByAccountId(accountId);
@@ -489,6 +491,8 @@ public sealed class AuthenticationController: AppController {
                 account.EmailAddressToken = null;
                 account.EmailAddressTokenTimestamp = null;
                 account.EmailConfirmed = true;
+                account.SecretCode = default;
+                account.SecretCodeTimestamp = default;
 
                 return await _accountService.UpdateAccount(account);
             })
@@ -501,14 +505,32 @@ public sealed class AuthenticationController: AppController {
                 profile.PhoneNumberToken = null;
                 profile.PhoneNumberTokenTimestamp = null;
                 profile.PhoneNumberConfirmed = true;
+                account.SecretCode = default;
+                account.SecretCodeTimestamp = default;
 
-                return await _profileService.UpdateProfile(profile);
+                var profileUpdateResult = await _profileService.UpdateProfile(profile);
+                var accountUpdateResult = await _accountService.UpdateAccount(account);
+
+                if (profileUpdateResult is null || accountUpdateResult is null)
+                    return default;
+
+                return profileUpdateResult.Value && accountUpdateResult.Value;
             };
 
+        await _contextService.StartTransaction();
         var result = activationExpression.Invoke().Result;
-        if (!result.HasValue) return new ErrorResponse(HttpStatusCode.Conflict);
+        if (!result.HasValue) {
+            await _contextService.RevertTransaction();
+            return new ErrorResponse(HttpStatusCode.Conflict);
+        }
 
-        return !result.Value ? new ErrorResponse(HttpStatusCode.Gone) : new SuccessResponse();
+        if (!result.Value) {
+            await _contextService.RevertTransaction();
+            return new ErrorResponse(HttpStatusCode.Gone, new { data = "activation-token" });
+        }
+
+        await _contextService.ConfirmTransaction();
+        return new SuccessResponse();
     }
 
     [ServiceFilter(typeof(RecaptchaAuthorize))]

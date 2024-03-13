@@ -13,5 +13,6 @@ public partial class Account {
         PasswordSalt = salt,
         HashPassword = hashedPassword,
         Username = username,
+        NormalizedUsername = username?.ToLower(),
     };
 }

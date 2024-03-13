@@ -4,7 +4,7 @@ namespace Halogen.Bindings.ApiBindings;
 
 public sealed class TokenData {
     
-    public Enums.TokenDestination Destination { get; set; } // forward-token, renew-token
+    public Enums.TokenDestination Destination { get; set; } // forward-token, renew-token, activate-account
     
     public bool IsOtp { get; set; } // forward-token
     
