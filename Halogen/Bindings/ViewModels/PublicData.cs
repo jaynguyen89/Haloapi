@@ -27,6 +27,8 @@ public sealed class PublicData {
 
     public EnumProp[] BirthFormats { get; set; } = null!;
 
+    public EnumProp[] PhoneNumberFormats { get; set; } = null!;
+
     public EnumProp[] UnitSystems { get; set; } = null!;
 
     public EnumProp[] CareerFormats { get; set; } = null!;

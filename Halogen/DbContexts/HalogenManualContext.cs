@@ -41,7 +41,10 @@ public partial class HalogenDbContext {
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
         base.OnConfiguring(optionsBuilder);
-        if (!optionsBuilder.IsConfigured) optionsBuilder.UseSqlServer(_connectionString);
+        if (!optionsBuilder.IsConfigured)
+            optionsBuilder
+                .UseLazyLoadingProxies()
+                .UseSqlServer(_connectionString);
     }
 }
 

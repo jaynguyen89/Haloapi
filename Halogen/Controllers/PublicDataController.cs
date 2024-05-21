@@ -46,6 +46,7 @@ public sealed class PublicDataController: AppController {
             Themes = EnumHelpers.ToDictionaryWithValueAttribute<Enums.ApplicationTheme>(),
             NameFormats = EnumHelpers.ToDictionaryWithValueAttribute<Enums.NameFormat>(),
             BirthFormats = EnumHelpers.ToDictionaryWithValueAttribute<Enums.BirthFormat>(),
+            PhoneNumberFormats = EnumHelpers.ToDictionaryWithValueAttribute<Enums.PhoneNumberFormat>(),
             UnitSystems = EnumHelpers.ToDictionaryWithValueAttribute<Enums.UnitSystem>(),
             CareerFormats = EnumHelpers.ToDictionaryWithValueAttribute<Enums.CareerFormat>(),
             VisibilityFormats = EnumHelpers.ToDictionaryWithValueAttribute<Enums.Visibility>(),

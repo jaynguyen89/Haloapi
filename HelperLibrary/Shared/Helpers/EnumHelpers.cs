@@ -31,6 +31,8 @@ public sealed class EnumProp {
 }
 
 public static class EnumHelpers {
+
+    public static byte Length<T>() => (byte)Convert.ChangeType(Enum.GetNames(typeof(T)).Length, TypeCode.Byte);
     
     /// <summary>
     /// To get StringValue and ByteValue of enums having CompositeValue attribute.
@@ -122,5 +124,4 @@ public static class EnumHelpers {
             Code = attributes[0].CodeValue,
             Display = attributes[0].StringValue,
         }).ToArray();
-    
 }

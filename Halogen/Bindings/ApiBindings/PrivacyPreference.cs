@@ -3,39 +3,14 @@
 namespace Halogen.Bindings.ApiBindings; 
 
 public class VisibilityPolicy {
-        
+    
+    // If Visibility == VisibleToSomeConnections || VisibleToGroups, then PrivacyPolicy.VisibleToIds will have Ids of Accounts or Groups accordingly
     public Enums.Visibility Visibility { get; set; }
 }
 
 public interface IPolicyWithDataFormat {
         
     byte DataFormat { get; set; }
-}
-
-public interface IPolicyWithSingleTarget {
-    
-    string? VisibleToTargetId { get; set; }
-        
-    string? TargetTypeName { get; set; }
-}
-
-public interface IPolicyWithMultipleTargets {
-    
-    string[] VisibleToTargetIds { get; set; }
-        
-    string TargetTypeName { get; set; }
-}
-
-public interface IPolicyWithMultipleTypedTargets {
-    
-    TypedTarget[] TypedTargets { get; set; }
-    
-    public sealed class TypedTarget {
-
-        public string[] VisibleToTargetIds { get; set; } = null!;
-
-        public string TargetTypeName { get; set; } = null!;
-    }
 }
 
 public sealed class PrivacyPreference {
@@ -48,18 +23,16 @@ public sealed class PrivacyPreference {
 
     public PrivacyPolicy CareerPreference { get; set; } = null!;
 
-    public Enums.Visibility PhoneNumberVisibility { get; set; }
+    public PrivacyPolicy PhoneNumberPreference { get; set; } = null!;
 
     public SecurityPolicy SecurityPreference { get; set; } = null!;
 }
     
-public sealed class PrivacyPolicy: VisibilityPolicy, IPolicyWithDataFormat, IPolicyWithSingleTarget {
+public sealed class PrivacyPolicy: VisibilityPolicy, IPolicyWithDataFormat {
 
     public byte DataFormat { get; set; }
-
-    public string? VisibleToTargetId { get; set; }
-
-    public string? TargetTypeName { get; set; }
+    
+    public string[]? VisibleToIds { get; set; }
 }
     
 public sealed class ProfilePolicy {
@@ -67,8 +40,6 @@ public sealed class ProfilePolicy {
     public bool HiddenToSearchEngines { get; set; }
     
     public bool HiddenToStrangers { get; set; }
-    
-    public string? ReachableByTypeName { get; set; }
 }
     
 public sealed class SecurityPolicy {

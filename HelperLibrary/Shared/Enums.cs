@@ -271,15 +271,56 @@ public static class Enums {
         ShowJobTitleOnly,
     }
 
+    public enum PhoneNumberFormat {
+        [Value("Ex: (+12)412 345 678")]
+        WithRegionCode_SpaceDelimited,
+        [Value("Ex: (+12)412.345.678")]
+        WithRegionCode_DotDelimited,
+        [Value("Ex: (+12)-412-345-678")]
+        WithRegionCode_HyphenDelimited,
+        [Value("Ex: +12412345678")]
+        WithRegionCode_Plain,
+        [Value("Ex: 0412 345 678")]
+        NoRegionCode_SpaceDelimited,
+        [Value("Ex: 0412.345.678")]
+        NoRegionCode_DotDelimited,
+        [Value("Ex: 0412-345-678")]
+        NoRegionCode_HyphenDelimited,
+        [Value("Ex: 0412345678")]
+        NoRegionCode_Plain,
+    }
+
     public enum Visibility {
         [Value("Visible to public")]
         VisibleToPublic,
         [Value("Visible to all connections")]
         VisibleToAllConnections,
-        [Value("Visible to a group")]
-        VisibleToAGroup,
+        [Value("Visible to some connections")]
+        VisibleToSomeConnections,
+        [Value("Visible to some groups of connections")]
+        VisibleToGroups,
         [Value("Visible to self")]
         VisibleToSelf,
+    }
+
+    public enum DeviceType {
+        [Value("Smart phones or tables and other handheld devices")]
+        Mobile,
+        [Value("Laptops, desktops, mini-PC, compusticks")]
+        Computer,
+        [Value("Smart TV, automobile head-unit, and streaming or casting devices")]
+        Electronic,
+        [Value("Other devices that support web browsing or app stores")]
+        Other,
+    }
+    
+    public enum OS {
+        Android,
+        iOS,
+        MacOS,
+        Windows,
+        Linux,
+        Other,
     }
 
     public enum EmailTemplate {

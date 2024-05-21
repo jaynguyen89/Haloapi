@@ -20,17 +20,20 @@ public partial class Preference {
             ProfilePreference = new ProfilePolicy(),
             NamePreference = new PrivacyPolicy {
                 DataFormat = (byte)Enums.NameFormat.ShowFullName,
-                Visibility = Enums.Visibility.VisibleToPublic
+                Visibility = Enums.Visibility.VisibleToPublic,
             },
             BirthPreference = new PrivacyPolicy {
                 DataFormat = (byte)Enums.BirthFormat.ShowMonthYearOnly,
-                Visibility = Enums.Visibility.VisibleToPublic
+                Visibility = Enums.Visibility.VisibleToPublic,
             },
             CareerPreference = new PrivacyPolicy {
                 DataFormat = (byte)Enums.CareerFormat.ShowJobTitleOnly,
                 Visibility = Enums.Visibility.VisibleToPublic,
             },
-            PhoneNumberVisibility = Enums.Visibility.VisibleToSelf,
+            PhoneNumberPreference = new PrivacyPolicy {
+                DataFormat = (byte)Enums.PhoneNumberFormat.WithRegionCode_SpaceDelimited,
+                Visibility = Enums.Visibility.VisibleToSelf,
+            },
             SecurityPreference = new SecurityPolicy()
         })
     };
