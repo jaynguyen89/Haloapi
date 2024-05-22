@@ -3,7 +3,7 @@ using Halogen.Bindings.ViewModels;
 using HelperLibrary.Shared.Logger;
 using Newtonsoft.Json;
 
-namespace Halogen.FactoriesAndMiddlewares;
+namespace Halogen.Auxiliaries;
 
 public sealed class GlobalErrorHandler {
 

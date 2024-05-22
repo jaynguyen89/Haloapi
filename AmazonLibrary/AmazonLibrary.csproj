@@ -8,12 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Autofac" Version="6.4.0" />
-    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.3.51" />
-    <PackageReference Include="AWSSDK.S3" Version="3.7.9.19" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
+    <PackageReference Include="Autofac" Version="8.0.0" />
+    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.303.9" />
+    <PackageReference Include="AWSSDK.S3" Version="3.7.308.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
   </ItemGroup>
 
   <ItemGroup>

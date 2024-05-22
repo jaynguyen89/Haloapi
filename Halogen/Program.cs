@@ -8,6 +8,7 @@ using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using AWS.Logger;
 using Halogen.Attributes;
+using Halogen.Auxiliaries;
 using Halogen.Bindings;
 using Halogen.FactoriesAndMiddlewares;
 using Halogen.Services;
