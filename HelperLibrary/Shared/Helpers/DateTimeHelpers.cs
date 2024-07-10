@@ -2,12 +2,12 @@
 
 public static class DateTimeHelpers {
     
-    public static int? GetAge(this DateTime? dateTime) {
-        if (dateTime is null) return default;
+    public static int? GetAge(this DateTime? dateTime, int minAge = 15) {
+        if (dateTime is null || dateTime > DateTime.UtcNow) return default;
 
         var age = DateTime.UtcNow.Year - dateTime.Value.Year;
         if (dateTime > DateTime.UtcNow.AddYears(age)) age--;
-        return age;
+        return age > minAge ? age : default;
     }
 
     public static long ToTimestamp(this DateTime any) => ((DateTimeOffset)any).ToUnixTimeMilliseconds();
