@@ -646,7 +646,7 @@ public sealed class AuthenticationController: AppController {
         var preAuthenticatedUser = new Authorization {
             AccountId = account.Id,
             AuthorizationToken = await _cryptoService.CreateSha512Hash(StringHelpers.GenerateRandomString(Constants.RandomStringDefaultLength, true)),
-            AuthorizedTimestamp = account.OneTimePasswordTimestamp.Value.ToTimestamp()
+            AuthorizedTimestamp = account.OneTimePasswordTimestamp.Value.ToTimestamp(),
         };
         _httpContext.Session.SetString($"{nameof(preAuthenticatedUser)}{Constants.Underscore}{account.Id}", JsonConvert.SerializeObject(preAuthenticatedUser));
 

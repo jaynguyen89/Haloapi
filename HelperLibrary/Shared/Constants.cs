@@ -28,8 +28,8 @@ public static class Constants {
     public const int HoursPerDay = 24;
     public const int DaysPerWeek = 7;
     public const int DaysPerMonth = 30;
-    public const int MonthsPerQuarter = 3;
-    public const int DaysPerYear = 365;
+    public const int MonthsPerYear = 12;
+    public const double DaysPerYear = 365.24235;
 
     public const int RandomStringDefaultLength = 40;
     public const int SecretCodeLength = 8;
