@@ -4,11 +4,18 @@
 	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/Abbreviations/=DDMMYYYYS/@EntryIndexedValue">DDMMYYYYS</s:String>
 	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/Abbreviations/=HHMMC/@EntryIndexedValue">HHMMC</s:String>
 	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/Abbreviations/=HHMMD/@EntryIndexedValue">HHMMD</s:String>
+	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/Abbreviations/=HHMMSSC/@EntryIndexedValue">HHMMSSC</s:String>
+	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/Abbreviations/=HHMMSSD/@EntryIndexedValue">HHMMSSD</s:String>
+	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/Abbreviations/=HHMMSSTTC/@EntryIndexedValue">HHMMSSTTC</s:String>
 	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/Abbreviations/=HHMMTTC/@EntryIndexedValue">HHMMTTC</s:String>
 	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/Abbreviations/=HHMMTTD/@EntryIndexedValue">HHMMTTD</s:String>
+	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/Abbreviations/=HHMMTTSSD/@EntryIndexedValue">HHMMTTSSD</s:String>
+	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/Abbreviations/=MMDDYYYYD/@EntryIndexedValue">MMDDYYYYD</s:String>
 	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/Abbreviations/=WDDMMMYYYY/@EntryIndexedValue">WDDMMMYYYY</s:String>
 	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/Abbreviations/=WDDMMYYYYD/@EntryIndexedValue">WDDMMYYYYD</s:String>
 	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/Abbreviations/=WDDMMYYYYS/@EntryIndexedValue">WDDMMYYYYS</s:String>
+	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/Abbreviations/=WMMDDYYYYD/@EntryIndexedValue">WMMDDYYYYD</s:String>
+	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/Abbreviations/=WMMDDYYYYS/@EntryIndexedValue">WMMDDYYYYS</s:String>
 	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/Abbreviations/=YYYYMMDDD/@EntryIndexedValue">YYYYMMDDD</s:String>
 	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/Abbreviations/=YYYYMMDDS/@EntryIndexedValue">YYYYMMDDS</s:String>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=Alexandrite/@EntryIndexedValue">True</s:Boolean>
@@ -18,6 +25,9 @@
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=DDMMYYYYS/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=HHMMC/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=HHMMD/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=hhmmssc/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=hhmmssd/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=hhmmssttc/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=HHMMTTC/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=HHMMTTD/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=Lucidify/@EntryIndexedValue">True</s:Boolean>

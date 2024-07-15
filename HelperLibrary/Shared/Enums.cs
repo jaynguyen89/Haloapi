@@ -114,25 +114,37 @@ public static class Enums {
         WDDMMMYYYY,
         [Value("dd/MM/yyyy")]
         DDMMYYYYS,
-        [Value("ddd, dd/MM/YYYY")]
+        [Value("ddd, dd/MM/yyyy")]
         WDDMMYYYYS,
         [Value("dd-MM-yyyy")]
         DDMMYYYYD,
-        [Value("ddd, dd-MM-YYYY")]
+        [Value("ddd, dd-MM-yyyy")]
         WDDMMYYYYD,
-        [Value("yyyy/MM/dd")]
-        YYYYMMDDS,
-        [Value("yyyy-MM-dd")]
-        YYYYMMDDD,
+        [Value("MM-dd-yyyy")]
+        MMDDYYYYD,
+        [Value("MM/dd/yyyy")]
+        MMDDYYYYS,
+        [Value("ddd, MM-dd-yyyy")]
+        WMMDDYYYYD,
+        [Value("ddd, MM/dd/yyyy")]
+        WMMDDYYYYS,
     }
     
     public enum TimeFormat {
+        [Value("hh:mm:ss tt")]
+        HHMMSSTTC,
         [Value("hh:mm tt")]
         HHMMTTC,
+        [Value("HH:mm:ss")]
+        HHMMSSC,
         [Value("HH:mm")]
         HHMMC,
+        [Value("hh.mm.ss tt")]
+        HHMMTTSSD,
         [Value("hh.mm tt")]
         HHMMTTD,
+        [Value("HH.mm.ss")]
+        HHMMSSD,
         [Value("HH.mm")]
         HHMMD,
     }

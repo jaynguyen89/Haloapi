@@ -17,15 +17,31 @@ public static class DateTimeHelpers {
         return dateTime.AddMilliseconds(addition ? valueInMilliseconds : valueInMilliseconds * -1);
     }
 
-    public static long ToMilliseconds(this int value, Enums.TimeUnit unit) => unit switch {
-        Enums.TimeUnit.Second => value * Constants.TicksPerSecond,
-        Enums.TimeUnit.Minute => ToMilliseconds(value * Constants.SecondsPerMinute, Enums.TimeUnit.Second),
-        Enums.TimeUnit.Hour => ToMilliseconds(value * Constants.MinutesPerHour, Enums.TimeUnit.Minute),
-        Enums.TimeUnit.Day => ToMilliseconds(value * Constants.HoursPerDay, Enums.TimeUnit.Hour),
-        Enums.TimeUnit.Week => ToMilliseconds(value * Constants.DaysPerWeek, Enums.TimeUnit.Day),
-        _ => value,
-    };
+    public static long ToMilliseconds(this int value, Enums.TimeUnit unit) {
+        if (unit == Enums.TimeUnit.Millisecond) return value;
+        if (unit == Enums.TimeUnit.Second) return value * Constants.TicksPerSecond;
 
-    public static string Format(this DateTime dateTime, Enums.DateFormat dateFormat, Enums.TimeFormat timeFormat) =>
-        dateTime.ToString($"{dateFormat.GetValue()} {timeFormat.GetValue()}");
+        var timeSpan = unit switch {
+            Enums.TimeUnit.Hour => TimeSpan.FromHours(value),
+            Enums.TimeUnit.Day => TimeSpan.FromDays(value),
+            Enums.TimeUnit.Week => TimeSpan.FromDays(value * Constants.DaysPerWeek),
+            Enums.TimeUnit.Month => TimeSpan.FromDays(value * Constants.DaysPerMonth),
+            Enums.TimeUnit.Year => TimeSpan.FromDays(value * (int)Constants.DaysPerYear),
+            _ => TimeSpan.FromMinutes(value), // case Enums.TimeUnit.Minute
+        };
+
+        return (long)timeSpan.TotalMilliseconds;
+    }
+
+    public static string Format(this DateTime dateTime, Enums.DateFormat? dateFormat, Enums.TimeFormat? timeFormat) {
+        if (dateFormat is null && timeFormat is null)
+            throw new Exception("Unable to format DateTime object: both Date and Time formats are null.");
+        
+        if (dateFormat is not null && timeFormat is not null)
+            return dateTime.ToString($"{dateFormat.GetValue()}, {timeFormat.GetValue()}");
+
+        return dateFormat is null
+            ? dateTime.ToString($"{timeFormat!.Value.GetValue()}")
+            : dateTime.ToString($"{dateFormat!.Value.GetValue()}");
+    }
 }
