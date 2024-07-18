@@ -1,4 +1,6 @@
-﻿namespace HelperLibrary.Shared.Helpers;
+﻿using System.Reflection;
+
+namespace HelperLibrary.Shared.Helpers;
 
 [AttributeUsage(AttributeTargets.Field)]
 public class ValueAttribute : Attribute {
@@ -32,7 +34,7 @@ public sealed class EnumProp {
 
 public static class EnumHelpers {
 
-    public static byte Length<T>() => (byte)Convert.ChangeType(Enum.GetNames(typeof(T)).Length, TypeCode.Byte);
+    public static byte Length<T>() where T: Enum => (byte)Convert.ChangeType(Enum.GetNames(typeof(T)).Length, TypeCode.Byte);
     
     /// <summary>
     /// To get StringValue and ByteValue of enums having CompositeValue attribute.
@@ -72,13 +74,12 @@ public static class EnumHelpers {
     /// Convert a string to an enum property provided the string matches 1 property of the enum
     /// </summary>
     /// <param name="any"></param>
-    /// <param name="defaultValue"></param>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public static T ToEnum<T>(this string any, T defaultValue)
-        where T: struct => Enum.TryParse<T>(any, true, out var result) ? result : defaultValue;
+    public static T? ToEnum<T>(this string any)
+        where T: struct => Enum.TryParse<T>(any, true, out var result) ? result : null;
     
-    public static T? GetEnumByValueAttribute<T>(this string value) {
+    public static T? GetEnumByValueAttribute<T>(this string value) where T: struct {
         var enumType = typeof(T);
         try {
             foreach (T? val in Enum.GetValues(enumType)) {
@@ -88,26 +89,29 @@ public static class EnumHelpers {
                 if (attributes[0].StringValue == value) return val;
             }
 
-            return default;
+            return null;
         }
         catch (ArgumentException) {
-            return default;
+            return null;
         }
     }
 
-    public static string[] GetAllEnumProperties<T>() => (string[])typeof(T)
+    public static string[] GetAllPropertiesForSimpleEnums<T>() where T: Enum =>
+        typeof(T).GetFields().Select(field => field.Name).Skip(1).ToArray();
+
+    public static string[] GetAllPropertiesForAttributedEnums<T>() where T: Enum => typeof(T)
         .GetFields()
-        .Select(x => new { 
-            att = x.GetCustomAttributes(false)
+        .Select(fieldInfo => new { 
+            ValueAttribute = fieldInfo.GetCustomAttributes(false)
                 .OfType<ValueAttribute>()
                 .FirstOrDefault(),
-            x,
+            FieldInfo = fieldInfo,
         })
-        .Where(x => x.att != null)
-        .Select(x => x.x.GetValue(null))
+        .Where(attribute => attribute.ValueAttribute is not null)
+        .Select(attribute => attribute.FieldInfo.Name)
         .ToArray();
 
-    public static EnumProp[] ToDictionaryWithValueAttribute<T>() => (
+    public static EnumProp[] ToArrayWithValueAttribute<T>() where T: Enum => (
         from T val in Enum.GetValues(typeof(T))
         let fieldInfo = typeof(T).GetField(val.ToString()!)
         let attributes = (ValueAttribute[])fieldInfo!.GetCustomAttributes(typeof(ValueAttribute), false)
@@ -116,7 +120,7 @@ public static class EnumHelpers {
             Display = attributes[0].StringValue,
         }).ToArray();
     
-    public static EnumProp[] ToDictionaryWithCompositeValueAttribute<T>() => (
+    public static EnumProp[] ToArrayWithCompositeAttribute<T>() where T: Enum => (
         from T val in Enum.GetValues(typeof(T))
         let fieldInfo = typeof(T).GetField(val.ToString()!)
         let attributes = (CompositeValueAttribute[])fieldInfo!.GetCustomAttributes(typeof(CompositeValueAttribute), false)

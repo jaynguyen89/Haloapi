@@ -60,7 +60,7 @@ public sealed class RoleService: DbServiceBase, IRoleService {
             return await _dbContext.AccountRoles
                                    .Where(x => x.AccountId.Equals(accountId))
                                    .Select(x => x.Role.Name)
-                                   .Select(x => x.ToEnum(Enums.Role.Customer))
+                                   .Select(x => x.ToEnum<Enums.Role>() ?? Enums.Role.Customer)
                                    .ToArrayAsync();
         }
         catch (ArgumentNullException e) {

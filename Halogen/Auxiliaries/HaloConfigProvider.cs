@@ -46,7 +46,7 @@ public sealed class HaloConfigProvider: IHaloConfigProvider {
             int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.EmailTokenMinLength)}")),
             int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.EmailTokenMaxLength)}")),
             int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.EmailTokenValidityDuration)}")),
-            _configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.EmailTokenValidityDurationUnit)}").ToEnum(Enums.TimeUnit.Hour)
+            _configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.EmailTokenValidityDurationUnit)}").ToEnum<Enums.TimeUnit>()
         );
         
         var (
@@ -56,11 +56,11 @@ public sealed class HaloConfigProvider: IHaloConfigProvider {
             int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.OtpMinLength)}")),
             int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.OtpMaxLength)}")),
             int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.OtpValidityDuration)}")),
-            _configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.OtpValidityDurationUnit)}").ToEnum(Enums.TimeUnit.Hour),
+            _configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.OtpValidityDurationUnit)}").ToEnum<Enums.TimeUnit>(),
             int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.RecoveryTokenMinLength)}")),
             int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.RecoveryTokenMaxLength)}")),
             int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.RecoveryTokenValidityDuration)}")),
-            _configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.RecoveryTokenValidityDurationUnit)}").ToEnum(Enums.TimeUnit.Hour)
+            _configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.RecoveryTokenValidityDurationUnit)}").ToEnum<Enums.TimeUnit>()
         );
         
         var (
@@ -70,11 +70,11 @@ public sealed class HaloConfigProvider: IHaloConfigProvider {
             int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.PhoneTokenMinLength)}")),
             int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.PhoneTokenMaxLength)}")),
             int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.PhoneTokenValidityDuration)}")),
-            _configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.PhoneTokenValidityDurationUnit)}").ToEnum(Enums.TimeUnit.Hour),
+            _configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.PhoneTokenValidityDurationUnit)}").ToEnum<Enums.TimeUnit>(),
             int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.LoginFailedThreshold)}")),
             int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.LockOutThreshold)}")),
             int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.LockOutDuration)}")),
-            _configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.LockOutDurationUnit)}").ToEnum(Enums.TimeUnit.Hour)
+            _configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.LockOutDurationUnit)}").ToEnum<Enums.TimeUnit>()
         );
         
         var (
@@ -86,9 +86,9 @@ public sealed class HaloConfigProvider: IHaloConfigProvider {
             _configuration.GetValue<string>($"{smsContentsOptionKey}{nameof(HalogenOptions.Local.SmsContents.TwoFactorPinSms)}"),
             _configuration.GetValue<string>($"{smsContentsOptionKey}{nameof(HalogenOptions.Local.SmsContents.OneTimePasswordSms)}"),
             int.Parse(_configuration.GetValue<string>($"{baseSessionSettingsOptionKey}{nameof(HalogenOptions.Local.SessionSettings.AuthenticationValidityDuration)}")),
-            _configuration.GetValue<string>($"{baseSessionSettingsOptionKey}{nameof(HalogenOptions.Local.SessionSettings.AuthenticationValidityDurationUnit)}").ToEnum(Enums.TimeUnit.Minute),
+            _configuration.GetValue<string>($"{baseSessionSettingsOptionKey}{nameof(HalogenOptions.Local.SessionSettings.AuthenticationValidityDurationUnit)}").ToEnum<Enums.TimeUnit>(),
             int.Parse(_configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.SecretCodeValidityDuration)}")),
-            _configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.SecretCodeValidityDurationUnit)}").ToEnum(Enums.TimeUnit.Minute)
+            _configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.SecretCodeValidityDurationUnit)}").ToEnum<Enums.TimeUnit>()
         );
 
         var (secretCodeSmsContent, enableSecretCode) = (
@@ -105,31 +105,31 @@ public sealed class HaloConfigProvider: IHaloConfigProvider {
             EmailTokenMinLength = emailTokenMinLength,
             EmailTokenMaxLength = emailTokenMaxLength,
             EmailTokenValidityDuration = emailTokenValidityDuration,
-            EmailTokenValidityDurationUnit = emailTokenValidityDurationUnit,
+            EmailTokenValidityDurationUnit = emailTokenValidityDurationUnit ?? Enums.TimeUnit.Hour,
             OtpMinLength = otpMinLength,
             OtpMaxLength = otpMaxLength,
             OtpValidityDuration = otpValidityDuration,
-            OtpValidityDurationUnit = otpValidityDurationUnit,
+            OtpValidityDurationUnit = otpValidityDurationUnit ?? Enums.TimeUnit.Hour,
             RecoveryTokenMinLength = recoveryTokenMinLength,
             RecoveryTokenMaxLength = recoveryTokenMaxLength,
             RecoveryTokenValidityDuration = recoveryTokenValidityDuration,
-            RecoveryTokenValidityDurationUnit = recoveryTokenValidityDurationUnit,
+            RecoveryTokenValidityDurationUnit = recoveryTokenValidityDurationUnit ?? Enums.TimeUnit.Hour,
             PhoneTokenMinLength = phoneTokenMinLength,
             PhoneTokenMaxLength = phoneTokenMaxLength,
             PhoneTokenValidityDuration = phoneTokenValidityDuration,
-            PhoneTokenValidityDurationUnit = phoneTokenValidityDurationUnit,
+            PhoneTokenValidityDurationUnit = phoneTokenValidityDurationUnit ?? Enums.TimeUnit.Hour,
             LoginFailedThreshold = loginFailedThreshold,
             LockOutThreshold = lockOutThreshold,
             LockOutDuration = lockOutDuration,
-            LockOutDurationUnit = lockOutDurationUnit,
+            LockOutDurationUnit = lockOutDurationUnit ?? Enums.TimeUnit.Hour,
             AccountActivationSmsContent = accountActivationSmsContent,
             AccountRecoverySmsContent = accountRecoverySmsContent,
             TwoFactorPinSmsContent = twoFactorPinSmsContent,
             OneTimePasswordSmsContent = oneTimePasswordSmsContent,
             AuthenticationValidityDuration = authenticationValidityDuration,
-            AuthenticationValidityDurationUnit = authenticationValidityDurationUnit,
+            AuthenticationValidityDurationUnit = authenticationValidityDurationUnit ?? Enums.TimeUnit.Minute,
             SecretCodeValidityDuration = secretCodeValidityDuration,
-            SecretCodeValidityDurationUnit = secretCodeValidityDurationUnit,
+            SecretCodeValidityDurationUnit = secretCodeValidityDurationUnit ?? Enums.TimeUnit.Minute,
             SecretCodeSmsContent = secretCodeSmsContent,
             EnableSecretCode = enableSecretCode,
         };
