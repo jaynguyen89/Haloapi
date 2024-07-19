@@ -25,7 +25,7 @@ public sealed class PreferenceService: DbServiceBase, IPreferenceService {
         catch (DbUpdateException e) {
             _logger.Log(new LoggerBinding<PreferenceService> {
                 Location = $"{nameof(InsertNewPreference)}.{nameof(DbUpdateException)}",
-                Severity = Enums.LogSeverity.Error, Data = e,
+                Severity = Enums.LogSeverity.Error, E = e,
             });
             return default;
         }
@@ -39,14 +39,14 @@ public sealed class PreferenceService: DbServiceBase, IPreferenceService {
         catch (ArgumentNullException e) {
             _logger.Log(new LoggerBinding<PreferenceService> {
                 Location = $"{nameof(GetPreferenceByAccountId)}.{nameof(ArgumentNullException)}",
-                Severity = Enums.LogSeverity.Error, Data = e,
+                Severity = Enums.LogSeverity.Error, E = e,
             });
             return default;
         }
         catch (InvalidOperationException e) {
             _logger.Log(new LoggerBinding<PreferenceService> {
                 Location = $"{nameof(GetPreferenceByAccountId)}.{nameof(InvalidOperationException)}",
-                Severity = Enums.LogSeverity.Error, Data = e,
+                Severity = Enums.LogSeverity.Error, E = e,
             });
             return default;
         }

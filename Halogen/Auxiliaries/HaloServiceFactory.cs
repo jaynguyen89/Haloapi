@@ -43,35 +43,35 @@ public sealed class HaloServiceFactory: IHaloServiceFactory {
         catch (ArgumentException e) {
             _logger.Log(new LoggerBinding<HaloServiceFactory> {
                 Location = $"{nameof(GetService)}.{nameof(ArgumentException)}",
-                Severity = Enums.LogSeverity.Error, Data = e,
+                Severity = Enums.LogSeverity.Error, E = e,
             });
             return default;
         }
         catch (NotSupportedException e) {
             _logger.Log(new LoggerBinding<HaloServiceFactory> {
                 Location = $"{nameof(GetService)}.{nameof(NotSupportedException)}",
-                Severity = Enums.LogSeverity.Error, Data = e,
+                Severity = Enums.LogSeverity.Error, E = e,
             });
             return default;
         }
         catch (TargetInvocationException e) {
             _logger.Log(new LoggerBinding<HaloServiceFactory> {
                 Location = $"{nameof(GetService)}.{nameof(TargetInvocationException)}",
-                Severity = Enums.LogSeverity.Error, Data = e,
+                Severity = Enums.LogSeverity.Error, E = e,
             });
             return default;
         }
         catch (MethodAccessException e) {
             _logger.Log(new LoggerBinding<HaloServiceFactory> {
                 Location = $"{nameof(GetService)}.{nameof(MethodAccessException)}",
-                Severity = Enums.LogSeverity.Error, Data = e,
+                Severity = Enums.LogSeverity.Error, E = e,
             });
             return default;
         }
         catch (MemberAccessException e) {
             _logger.Log(new LoggerBinding<HaloServiceFactory> {
                 Location = $"{nameof(GetService)}.{nameof(MemberAccessException)}",
-                Severity = Enums.LogSeverity.Error, Data = e,
+                Severity = Enums.LogSeverity.Error, E = e,
             });
             return default;
         }

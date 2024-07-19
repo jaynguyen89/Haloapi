@@ -122,7 +122,7 @@ public sealed class DateTimeHelpersTest {
 
     [Test]
     public void Test_Format() {
-        Assert.Throws<Exception>(() => new DateTime(2000, 9, 9, 9, 9, 9).Format(null, null));
+        Assert.Throws<ParamsNullException>(() => new DateTime(2000, 9, 9, 9, 9, 9).Format(null, null));
         
         var datetimes = new[] {
             new DateTime(2000, 9, 9, 9, 9, 9),

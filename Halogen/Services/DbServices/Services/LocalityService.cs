@@ -22,7 +22,7 @@ public sealed class LocalityService: DbServiceBase, ILocalityService {
         catch (ArgumentNullException e) {
             _logger.Log(new LoggerBinding<LocalityService> {
                 Location = $"{nameof(GetTelephoneCodes)}.{nameof(ArgumentNullException)}",
-                Severity = Enums.LogSeverity.Error, Data = e,
+                Severity = Enums.LogSeverity.Error, E = e,
             });
             return default;
         }
@@ -36,7 +36,7 @@ public sealed class LocalityService: DbServiceBase, ILocalityService {
         catch (ArgumentNullException e) {
             _logger.Log(new LoggerBinding<LocalityService> {
                 Location = $"{nameof(GetLocalitiesForPublicData)}.{nameof(ArgumentNullException)}",
-                Severity = Enums.LogSeverity.Error, Data = e,
+                Severity = Enums.LogSeverity.Error, E = e,
             });
             return default;
         }

@@ -35,7 +35,7 @@ public static class DateTimeHelpers {
 
     public static string Format(this DateTime dateTime, Enums.DateFormat? dateFormat, Enums.TimeFormat? timeFormat) {
         if (dateFormat is null && timeFormat is null)
-            throw new Exception("Unable to format DateTime object: both Date and Time formats are null.");
+            throw new ParamsNullException("Unable to format DateTime object: both Date and Time formats are null.");
         
         if (dateFormat is not null && timeFormat is not null)
             return dateTime.ToString($"{dateFormat.GetValue()}, {timeFormat.GetValue()}");

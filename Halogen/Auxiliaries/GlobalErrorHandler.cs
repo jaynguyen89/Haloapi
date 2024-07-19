@@ -27,7 +27,7 @@ public sealed class GlobalErrorHandler {
     public async Task HandleError(HttpContext context, Exception exception) {
         _logger.Log(new LoggerBinding<GlobalErrorHandler> {
             Message = "Uncaught exception, possibly from the service factories. Please check previous logs for more clues.",
-            Data = exception
+            E = exception
         });
 
         context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;

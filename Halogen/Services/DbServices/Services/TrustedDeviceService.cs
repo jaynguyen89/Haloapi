@@ -22,7 +22,7 @@ public sealed class TrustedDeviceService: DbServiceBase, ITrustedDeviceService {
         catch (ArgumentNullException e) {
             _logger.Log(new LoggerBinding<TrustedDeviceService> {
                 Location = $"{nameof(GetTrustedDevicesForAccount)}.{nameof(ArgumentNullException)}",
-                Severity = Enums.LogSeverity.Error, Data = e,
+                Severity = Enums.LogSeverity.Error, E = e,
             });
             return default;
         }

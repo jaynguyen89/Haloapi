@@ -23,7 +23,7 @@ public class LoginInformation {
         var phoneNumberErrors = new List<string>();
         if (PhoneNumber is not null) phoneNumberErrors = phoneNumberErrors.Concat(await phoneNumberHandler.VerifyPhoneNumberData(PhoneNumber)).ToList();
 
-        return ListHelper.MergeDataValidationErrors(
+        return ListHelpers.MergeDataValidationErrors(
             new KeyValuePair<string, List<string>>(nameof(EmailAddress), emailAddressErrors),
             new KeyValuePair<string, List<string>>(nameof(PhoneNumber), phoneNumberErrors)
         );

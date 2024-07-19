@@ -27,7 +27,7 @@ public sealed class ProfileService: DbServiceBase, IProfileService {
         catch (DbUpdateException e) {
             _logger.Log(new LoggerBinding<ProfileService> {
                 Location = $"{nameof(InsertNewProfile)}.{nameof(DbUpdateException)}",
-                Severity = Enums.LogSeverity.Error, Data = e,
+                Severity = Enums.LogSeverity.Error, E = e,
             });
             return default;
         }
@@ -46,7 +46,7 @@ public sealed class ProfileService: DbServiceBase, IProfileService {
         catch (ArgumentNullException e) {
             _logger.Log(new LoggerBinding<ProfileService> {
                 Location = $"{nameof(IsPhoneNumberAvailableForNewAccount)}.{nameof(ArgumentNullException)}",
-                Severity = Enums.LogSeverity.Error, Data = e,
+                Severity = Enums.LogSeverity.Error, E = e,
             });
             return default;
         }
@@ -60,14 +60,14 @@ public sealed class ProfileService: DbServiceBase, IProfileService {
         catch (ArgumentNullException e) {
             _logger.Log(new LoggerBinding<ProfileService> {
                 Location = $"{nameof(GetProfileByAccountId)}.{nameof(ArgumentNullException)}",
-                Severity = Enums.LogSeverity.Error, Data = e,
+                Severity = Enums.LogSeverity.Error, E = e,
             });
             return default;
         }
         catch (InvalidOperationException e) {
             _logger.Log(new LoggerBinding<ProfileService> {
                 Location = $"{nameof(GetProfileByAccountId)}.{nameof(InvalidOperationException)}",
-                Severity = Enums.LogSeverity.Error, Data = e,
+                Severity = Enums.LogSeverity.Error, E = e,
             });
             return default;
         }
@@ -84,7 +84,7 @@ public sealed class ProfileService: DbServiceBase, IProfileService {
         catch (DbUpdateException e) {
             _logger.Log(new LoggerBinding<ProfileService> {
                 Location = $"{nameof(UpdateProfile)}.{nameof(DbUpdateException)}",
-                Severity = Enums.LogSeverity.Error, Data = e,
+                Severity = Enums.LogSeverity.Error, E = e,
             });
             return default;
         }
@@ -100,14 +100,14 @@ public sealed class ProfileService: DbServiceBase, IProfileService {
         catch (ArgumentNullException e) {
             _logger.Log(new LoggerBinding<ProfileService> {
                 Location = $"{nameof(GetProfileByPhoneNumber)}.{nameof(ArgumentNullException)}",
-                Severity = Enums.LogSeverity.Error, Data = e,
+                Severity = Enums.LogSeverity.Error, E = e,
             });
             return default;
         }
         catch (InvalidOperationException e) {
             _logger.Log(new LoggerBinding<ProfileService> {
                 Location = $"{nameof(GetProfileByPhoneNumber)}.{nameof(InvalidOperationException)}",
-                Severity = Enums.LogSeverity.Error, Data = e,
+                Severity = Enums.LogSeverity.Error, E = e,
             });
             return default;
         }
@@ -125,14 +125,14 @@ public sealed class ProfileService: DbServiceBase, IProfileService {
         catch (ArgumentNullException e) {
             _logger.Log(new LoggerBinding<ProfileService> {
                 Location = $"{nameof(GetAccountByPhoneNumber)}.{nameof(ArgumentNullException)}",
-                Severity = Enums.LogSeverity.Error, Data = e,
+                Severity = Enums.LogSeverity.Error, E = e,
             });
             return default;
         }
         catch (InvalidOperationException e) {
             _logger.Log(new LoggerBinding<ProfileService> {
                 Location = $"{nameof(GetAccountByPhoneNumber)}.{nameof(InvalidOperationException)}",
-                Severity = Enums.LogSeverity.Error, Data = e,
+                Severity = Enums.LogSeverity.Error, E = e,
             });
             return default;
         }

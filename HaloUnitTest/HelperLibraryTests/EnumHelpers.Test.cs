@@ -2,6 +2,7 @@ using HelperLibrary.Shared.Helpers;
 
 namespace HaloUnitTest.HelperLibraryTests;
 
+[TestFixture]
 public sealed class EnumHelpersTest {
     
     private enum SimpleEnum {

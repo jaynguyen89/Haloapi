@@ -62,7 +62,7 @@ public sealed class ClickatellSmsHttpService: ServiceBase, IClickatellSmsHttpSer
                                           .ToArrayAsync();
         }
         catch (ArgumentNullException e) {
-            _logger.Log(new LoggerBinding<ClickatellSmsHttpService> { Location = nameof(SendSingleSms), Severity = Enums.LogSeverity.Error, Data = e });
+            _logger.Log(new LoggerBinding<ClickatellSmsHttpService> { Location = nameof(SendSingleSms), Severity = Enums.LogSeverity.Error, E = e });
             return default;
         }
     }
@@ -81,7 +81,7 @@ public sealed class ClickatellSmsHttpService: ServiceBase, IClickatellSmsHttpSer
                                           .ToArrayAsync();
         }
         catch (ArgumentNullException e) {
-            _logger.Log(new LoggerBinding<ClickatellSmsHttpService> { Location = nameof(SendMultipleSms), Severity = Enums.LogSeverity.Error, Data = e });
+            _logger.Log(new LoggerBinding<ClickatellSmsHttpService> { Location = nameof(SendMultipleSms), Severity = Enums.LogSeverity.Error, E = e });
             return default;
         }
     }

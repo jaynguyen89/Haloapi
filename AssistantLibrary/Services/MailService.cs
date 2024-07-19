@@ -114,7 +114,7 @@ public sealed class MailService: ServiceBase, IMailService {
         catch (Exception e) {
             _logger.Log(new LoggerBinding<MailService> {
                 Location = $"{nameof(SendSingleEmail)}.{nameof(Exception)}",
-                Severity = Enums.LogSeverity.Error, Data = e,
+                Severity = Enums.LogSeverity.Error, E = e,
             });
             return false;
         }
