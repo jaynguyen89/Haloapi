@@ -1,9 +1,21 @@
 using DeepCopy;
 using Newtonsoft.Json;
+using System.Text;
 
 namespace HelperLibrary.Shared.Helpers;
 
 public static class ObjectHelpers {
+    
+    public static byte[] EncodeDataAscii(this object data) => Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(data));
+    
+    public static byte[] EncodeDataUtf8(this object data) => Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(data));
+
+    public static T? DecodeUtf8<T>(this byte[] data) {
+        var decodedData = Encoding.UTF8.GetString(data);
+        return typeof(T).IsPrimitive
+            ? (T) Convert.ChangeType(decodedData, typeof(T))
+            : JsonConvert.DeserializeObject<T>(decodedData);
+    }
 
     public static T SerializedClone<T>(this T any) {
         var serialized = JsonConvert.SerializeObject(any);
