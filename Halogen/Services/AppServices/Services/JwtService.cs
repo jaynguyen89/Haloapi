@@ -34,13 +34,13 @@ public sealed class JwtService: AppServiceBase, IJwtService {
         );
 
         var jwtToken = new JwtSecurityToken(
-            issuers.Split(Constants.Semicolon)[0],
-            audiences.Split(Constants.Semicolon)[0],
+            issuers!.Split(Constants.Semicolon)[0],
+            audiences!.Split(Constants.Semicolon)[0],
             jwtClaims,
             DateTime.UtcNow,
-            DateTime.UtcNow.AddMinutes(int.Parse(expiration)),
+            DateTime.UtcNow.AddMinutes(int.Parse(expiration!)),
             new SigningCredentials(
-                new SymmetricSecurityKey(signingKeys.Split(Constants.Semicolon)[0].EncodeDataAscii()),
+                new SymmetricSecurityKey(signingKeys!.Split(Constants.Semicolon)[0].EncodeDataAscii()),
                 SecurityAlgorithms.HmacSha512Signature
             )
         );

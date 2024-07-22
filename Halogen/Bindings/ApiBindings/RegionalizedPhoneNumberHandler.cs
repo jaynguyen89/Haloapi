@@ -45,7 +45,7 @@ public sealed class RegionalizedPhoneNumberHandler {
         IConfiguration configuration,
         IHaloServiceFactory haloServiceFactory
     ) {
-        _cacheKey = configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{nameof(HalogenOptions.CacheKeys)}{Constants.Colon}{nameof(HalogenOptions.CacheKeys.TelephoneCodes)}");
+        _cacheKey = configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{nameof(HalogenOptions.CacheKeys)}{Constants.Colon}{nameof(HalogenOptions.CacheKeys.TelephoneCodes)}")!;
         
         var cacheService = haloServiceFactory.GetService<RedisCache>(Enums.ServiceType.AppService);
         var localityService = haloServiceFactory.GetService<LocalityService>(Enums.ServiceType.DbService);
@@ -61,7 +61,7 @@ public sealed class RegionalizedPhoneNumberHandler {
         phoneNumber.RegionCode = Regex.Replace(phoneNumber.RegionCode.Trim(), Constants.MultiSpace, string.Empty);
         phoneNumber.PhoneNumber = Regex.Replace(phoneNumber.PhoneNumber.Trim(), Constants.MultiSpace, string.Empty);
         
-        if (!telephoneCodes.Any(x => x.Equals(phoneNumber.RegionCode))) errors.Add($"{nameof(RegionalizedPhoneNumber.RegionCode).Lucidify()} is not found or haven't been supported yet.");
+        if (!telephoneCodes.Any(x => x.Equals(phoneNumber.RegionCode))) errors.Add($"{nameof(RegionalizedPhoneNumber.RegionCode).Lucidify()} is not found or hasn't been supported yet.");
         errors = errors.Concat(phoneNumber.PhoneNumber.VerifyPhoneNumber()).ToList();
 
         return errors.ToArray();

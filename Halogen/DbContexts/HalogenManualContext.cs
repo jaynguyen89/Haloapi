@@ -8,7 +8,7 @@ namespace Halogen.DbContexts;
 
 public partial class HalogenDbContext {
     
-    private readonly string _connectionString;
+    private readonly string _connectionString = "";
 
     public HalogenDbContext(IEcosystem ecosystem, IConfiguration configuration) {
         var environment = ecosystem.GetEnvironment();

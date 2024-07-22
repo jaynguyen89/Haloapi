@@ -38,14 +38,14 @@ public sealed class PublicData {
     public CountryData[] Countries { get; set; } = null!;
     
     public sealed class CountryData {
+
+        public string Name { get; set; } = null!;
         
-        public string Name { get; set; }
+        public string IsoCode2Char { get; set; } = null!;
         
-        public string IsoCode2Char { get; set; }
+        public string IsoCode3Char { get; set; } = null!;
         
-        public string IsoCode3Char { get; set; }
-        
-        public string TelephoneCode { get; set; }
+        public string TelephoneCode { get; set; } = null!;
 
         public static implicit operator CountryData(Locality locality) => new() {
             Name = locality.Name,
