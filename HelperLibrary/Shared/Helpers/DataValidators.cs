@@ -63,7 +63,7 @@ public static partial class DataValidators {
         var lengthTest = new Regex(@"^.{1,65}$");
         if (!lengthTest.IsMatch(name)) errors.Add($"{variableName.Lucidify()} is too {name.ShortOrLong(1, 65)}. Min 1, max 65 characters.");
 
-        var characterTest = new Regex(@"^[\w \'\.\-]+$");
+        var characterTest = new Regex(@"^[a-zA-Z _\'\.\-]+$");
         if (!characterTest.IsMatch(name)) errors.Add($"{variableName.Lucidify()} should only contain alphabetical letters, dots, hyphens and single quotes.");
 
         return errors;

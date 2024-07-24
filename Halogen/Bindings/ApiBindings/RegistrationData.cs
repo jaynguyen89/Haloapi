@@ -65,7 +65,7 @@ public sealed class RegistrationProfileData {
 
     public Dictionary<string, List<string>> VerifyRegistrationProfileData() {
         var allErrors = new Dictionary<string, List<string>>();
-        //if (Gender.HasValue && Gender > (byte) Enums.GenderType.NotSpecified) allErrors.Add(nameof(Gender), new List<string>{ $"{nameof(Gender)} is not recognized." });
+        if (Gender is > (byte) Enums.Gender.NotSpecified) allErrors.Add(nameof(Gender), [$"{nameof(Gender)} is not recognized."]);
 
         var givenNameErrors = new List<string>();
         if (GivenName.IsString()) {

@@ -38,5 +38,5 @@ public class AuthenticationData: LoginInformation {
     
     public DeviceInformation? DeviceInformation { get; set; }
 
-    public async Task<Dictionary<string, List<string>>> VerifyAuthenticationData(RegionalizedPhoneNumberHandler phoneNumberHandler) => await VerifyLoginInformation(phoneNumberHandler);
+    public virtual async Task<Dictionary<string, List<string>>> VerifyAuthenticationData(RegionalizedPhoneNumberHandler phoneNumberHandler) => await VerifyLoginInformation(phoneNumberHandler);
 }

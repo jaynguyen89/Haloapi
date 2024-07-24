@@ -41,7 +41,7 @@ public sealed class PublicDataController: AppController {
             DateFormats = EnumHelpers.ToArrayWithValueAttribute<Enums.DateFormat>(),
             TimeFormats = EnumHelpers.ToArrayWithValueAttribute<Enums.TimeFormat>(),
             NumberFormats = EnumHelpers.ToArrayWithValueAttribute<Enums.NumberFormat>(),
-            Genders = EnumHelpers.ToArrayWithValueAttribute<Enums.GenderType>(),
+            Genders = EnumHelpers.ToArrayWithValueAttribute<Enums.Gender>(),
             Languages = EnumHelpers.ToArrayWithCompositeAttribute<Enums.Language>(),
             Themes = EnumHelpers.ToArrayWithValueAttribute<Enums.ApplicationTheme>(),
             NameFormats = EnumHelpers.ToArrayWithValueAttribute<Enums.NameFormat>(),

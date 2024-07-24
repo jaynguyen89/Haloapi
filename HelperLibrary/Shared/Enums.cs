@@ -30,7 +30,7 @@ public static class Enums {
         Base64,
     }
 
-    public enum GenderType {
+    public enum Gender {
         [Value("Male")]
         Male,
         [Value("Female")]

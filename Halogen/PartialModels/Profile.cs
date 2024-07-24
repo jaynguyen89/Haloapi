@@ -23,7 +23,7 @@ public partial class Profile {
             ? StringHelpers.GenerateRandomString(NumberHelpers.GetRandomNumberInRangeInclusive(phoneTokenMinLength, phoneTokenMaxLength))
             : default,
         PhoneNumberTokenTimestamp = !registerByEmailAddress ? new DateTime() : default,
-        Gender = profileData?.Gender ?? (byte) Enums.GenderType.NotSpecified,
+        Gender = profileData?.Gender ?? (byte) Enums.Gender.NotSpecified,
         GivenName = profileData?.GivenName,
         MiddleName = profileData?.MiddleName,
         LastName = profileData?.FamilyName,

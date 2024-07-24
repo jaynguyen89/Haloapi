@@ -31,6 +31,6 @@ public sealed class GlobalErrorHandler {
         });
 
         context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-        await context.Response.WriteAsync(JsonConvert.SerializeObject(new ErrorResponse(HttpStatusCode.InternalServerError)));
+        await context.Response.WriteAsync(JsonConvert.SerializeObject(new ErrorResponse(HttpStatusCode.InternalServerError, exception.Message)));
     }
 }
