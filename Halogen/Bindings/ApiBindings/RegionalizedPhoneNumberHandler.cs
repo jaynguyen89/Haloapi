@@ -1,7 +1,9 @@
 ﻿using System.Text.RegularExpressions;
 using Halogen.Auxiliaries.Interfaces;
 using Halogen.Services.AppServices.Interfaces;
+using Halogen.Services.AppServices.Services;
 using Halogen.Services.DbServices.Interfaces;
+using Halogen.Services.DbServices.Services;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Helpers;
 using Newtonsoft.Json;
@@ -51,8 +53,8 @@ public sealed class RegionalizedPhoneNumberHandler {
     ) {
         _cacheKey = configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{nameof(HalogenOptions.CacheKeys)}{Constants.Colon}{nameof(HalogenOptions.CacheKeys.TelephoneCodes)}")!;
         
-        var cacheService = haloServiceFactory.GetService<ICacheService>(Enums.ServiceType.AppService);
-        var localityService = haloServiceFactory.GetService<ILocalityService>(Enums.ServiceType.DbService);
+        var cacheService = haloServiceFactory.GetService<RedisCache>(Enums.ServiceType.AppService);
+        var localityService = haloServiceFactory.GetService<LocalityService>(Enums.ServiceType.DbService);
 
         _cacheService = cacheService ?? throw new HaloArgumentNullException<RegionalizedPhoneNumberHandler>(nameof(cacheService));
         _localityService = localityService ?? throw new HaloArgumentNullException<RegionalizedPhoneNumberHandler>(nameof(localityService));

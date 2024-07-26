@@ -6,6 +6,8 @@ public class ServiceBase: IServiceBase {
     
     protected readonly ILoggerService _logger;
 
+    protected internal ServiceBase() { }
+
     protected internal ServiceBase(
         ILoggerService logger
     ) {

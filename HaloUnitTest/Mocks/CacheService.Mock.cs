@@ -1,5 +1,6 @@
 using Halogen.Bindings.ServiceBindings;
 using Halogen.Services.AppServices.Interfaces;
+using Halogen.Services.AppServices.Services;
 using Moq;
 
 namespace HaloUnitTest.Mocks;
@@ -8,15 +9,15 @@ internal sealed class CacheServiceMock: MockBase {
 
     private static readonly Lazy<CacheServiceMock> CacheSvMock = new(() => new CacheServiceMock());
 
-    private readonly Mock<ICacheService> _cacheSvMock;
+    private readonly Mock<RedisCache> _cacheSvMock;
 
     private CacheServiceMock() {
-        _cacheSvMock = Simulate<ICacheService>();
+        _cacheSvMock = Simulate<RedisCache>();
     }
 
-    internal static Mock<ICacheService> Instance() => CacheSvMock.Value._cacheSvMock;
+    internal static Mock<RedisCache> Instance() => CacheSvMock.Value._cacheSvMock;
 
-    internal static ICacheService Instance<T, TK>(string propertyName, T value, TK returnVal) {
+    internal static RedisCache Instance<T, TK>(string propertyName, T value, TK returnVal) {
         var cacheSvMock = Instance();
         switch (propertyName) {
             case nameof(ICacheService.InsertCacheEntry):

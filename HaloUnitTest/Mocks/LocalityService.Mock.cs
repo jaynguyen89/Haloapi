@@ -1,5 +1,6 @@
 using Halogen.DbModels;
 using Halogen.Services.DbServices.Interfaces;
+using Halogen.Services.DbServices.Services;
 using Moq;
 
 namespace HaloUnitTest.Mocks;
@@ -9,15 +10,15 @@ internal sealed class LocalityServiceMock: MockBase {
 
     private static readonly Lazy<LocalityServiceMock> LocalitySvMock = new(() => new LocalityServiceMock());
 
-    private readonly Mock<ILocalityService> _localitySvMock;
+    private readonly Mock<LocalityService> _localitySvMock;
 
     private LocalityServiceMock() {
-        _localitySvMock = Simulate<ILocalityService>();
+        _localitySvMock = Simulate<LocalityService>();
     }
 
-    internal static Mock<ILocalityService> Instance() => LocalitySvMock.Value._localitySvMock;
+    internal static Mock<LocalityService> Instance() => LocalitySvMock.Value._localitySvMock;
 
-    internal static ILocalityService Instance<T>(string propertyName, T[] returnVal) {
+    internal static LocalityService Instance<T>(string propertyName, T[] returnVal) {
         var localitySvMock = Instance();
         switch (propertyName) {
             case nameof(ILocalityService.GetTelephoneCodes):

@@ -18,7 +18,11 @@ internal class MockBase {
         Mocker.Use(Forge<T>());
     }
 
-    internal T Make<T>() where T: class => Mocker.CreateInstance<T>();
+    internal T Create<T>() where T: class => Mocker.CreateInstance<T>();
+
+    internal T Get<T>() where T: class => Mocker.Get<T>();
+
+    internal Mock<T> Obtain<T>() where T: class => Mocker.GetMock<T>();
 
     internal static Mock<T> Simulate<T>() where T: class => new();
 }

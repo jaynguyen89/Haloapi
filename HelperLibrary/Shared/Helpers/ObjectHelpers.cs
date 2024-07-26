@@ -17,6 +17,28 @@ public static class ObjectHelpers {
             : JsonConvert.DeserializeObject<T>(decodedData);
     }
 
+    public static Stream ToStream<T>(this T any, string type = nameof(MemoryStream)) {
+        var streamExecutor = type switch {
+            nameof(FileStream) => (Func<Task<Stream>>)(async () => {
+                var fileStream = new FileStream("", FileMode.Create);
+                await fileStream.WriteAsync(((byte[])[0, 1, 2]).AsMemory(0, 3));
+                fileStream.Position = 0;
+                return fileStream;
+            }),
+            _ => async () => {
+                var memoryStream = new MemoryStream();
+                var writer = new StreamWriter(memoryStream);
+                await writer.WriteAsync(JsonConvert.SerializeObject(any));
+                await writer.FlushAsync();
+                memoryStream.Position = 0;
+                await writer.DisposeAsync();
+                return memoryStream;
+            },
+        };
+
+        return streamExecutor.Invoke().Result;
+    }
+
     public static T SerializedClone<T>(this T any) {
         var serialized = JsonConvert.SerializeObject(any);
         return JsonConvert.DeserializeObject<T>(serialized)!;

@@ -1,5 +1,4 @@
 using Halogen.Auxiliaries.Interfaces;
-using Halogen.Services;
 using HelperLibrary.Shared;
 using Moq;
 
@@ -20,8 +19,8 @@ internal sealed class HaloServiceFactoryMock: MockBase {
 
     internal static IHaloServiceFactory Instance<T>(KeyValuePair<Enums.ServiceType, T>[] vals) {
         var haloServiceFactoryMock = Instance();
-        foreach (var val in vals)
-            haloServiceFactoryMock.Setup(m => m.GetService<T>(val.Key)).Returns(val.Value);
+        foreach (var (key, val) in vals)
+            haloServiceFactoryMock.Setup(m => m.GetService<T>(key)).Returns(val);
         
         return haloServiceFactoryMock.Object;
     }

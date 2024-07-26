@@ -8,6 +8,8 @@ public class DbServiceBase: ServiceBase, IDbServiceBase {
 
     protected readonly HalogenDbContext _dbContext;
 
+    protected DbServiceBase() { }
+
     protected DbServiceBase(
         ILoggerService logger,
         HalogenDbContext dbContext

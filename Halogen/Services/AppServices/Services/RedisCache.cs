@@ -8,13 +8,15 @@ using Microsoft.Extensions.Caching.Distributed;
 
 namespace Halogen.Services.AppServices.Services; 
 
-internal sealed class RedisCache: AppServiceBase, ICacheService {
+public class RedisCache: AppServiceBase, ICacheService {
 
     public bool IsEnabled { get; set; }
     public int SlidingExpiration { get; set; }
     public int AbsoluteExpiration { get; set; }
 
     private readonly IDistributedCache _redisCache;
+
+    public RedisCache() { }
 
     public RedisCache(
         IDistributedCache redisCache,
@@ -35,7 +37,7 @@ internal sealed class RedisCache: AppServiceBase, ICacheService {
         AbsoluteExpiration = absoluteExpiration;
     }
 
-    public async Task InsertCacheEntry(CacheEntry entry) {
+    public virtual async Task InsertCacheEntry(CacheEntry entry) {
         _logger.Log(new LoggerBinding<RedisCache> { Location = nameof(InsertCacheEntry) });
         if (!IsEnabled) return;
 
@@ -49,7 +51,7 @@ internal sealed class RedisCache: AppServiceBase, ICacheService {
         );
     }
 
-    public async Task<T?> GetCacheEntry<T>(string key) {
+    public virtual async Task<T?> GetCacheEntry<T>(string key) {
         _logger.Log(new LoggerBinding<RedisCache> { Location = nameof(GetCacheEntry) });
         if (!IsEnabled) return default;
 
@@ -65,7 +67,7 @@ internal sealed class RedisCache: AppServiceBase, ICacheService {
         }
     }
 
-    public async Task RemoveCacheEntry(string key) {
+    public virtual async Task RemoveCacheEntry(string key) {
         _logger.Log(new LoggerBinding<RedisCache> { Location = nameof(RemoveCacheEntry) });
         if (!IsEnabled) return;
         await _redisCache.RemoveAsync(key);

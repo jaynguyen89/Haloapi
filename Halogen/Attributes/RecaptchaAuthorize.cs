@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Net;
+﻿using System.Net;
 using AssistantLibrary;
 using AssistantLibrary.Interfaces;
 using AssistantLibrary.Services;

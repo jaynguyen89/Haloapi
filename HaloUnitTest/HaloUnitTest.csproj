@@ -29,10 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="AmazonLibraryTests\" />
     <Folder Include="AssistantLibraryTests\" />
-    <Folder Include="HalogenApiTests\Attributes\" />
-    <Folder Include="MediaLibraryTests\" />
   </ItemGroup>
 
   <ItemGroup>
