@@ -1,8 +1,9 @@
 using Halogen.Services.AppServices.Services;
 using Moq;
 
-namespace HaloUnitTest.Mocks;
+namespace HaloUnitTest.Mocks.HaloApi.Services;
 
+// Singleton
 internal sealed class SessionServiceMock: MockBase {
 
     private static readonly Lazy<SessionServiceMock> SessionSvMock = new(() => new SessionServiceMock());
@@ -18,7 +19,7 @@ internal sealed class SessionServiceMock: MockBase {
     internal static SessionService Instance<T>(T[] vals) {
         var sessionSvMock = Instance();
         foreach (var val in vals)
-            sessionSvMock.Setup(m => m.Get<T>(nameof(T))).Returns(val);
+            sessionSvMock.Setup(m => m.Get<T>(typeof(T).Name)).Returns(val);
 
         return sessionSvMock.Object;
     }

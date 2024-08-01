@@ -3,7 +3,7 @@ using Halogen.Services.DbServices.Interfaces;
 using Halogen.Services.DbServices.Services;
 using Moq;
 
-namespace HaloUnitTest.Mocks;
+namespace HaloUnitTest.Mocks.HaloApi.Services;
 
 // Singleton
 internal sealed class LocalityServiceMock: MockBase {

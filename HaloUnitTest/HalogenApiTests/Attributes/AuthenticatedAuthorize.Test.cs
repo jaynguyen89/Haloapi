@@ -3,11 +3,16 @@ using Halogen.Attributes;
 using Halogen.Auxiliaries.Interfaces;
 using Halogen.Bindings.ViewModels;
 using HaloUnitTest.Mocks;
+using HaloUnitTest.Mocks.HaloApi.Auxiliaries;
+using HaloUnitTest.Mocks.HaloApi.Services;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Helpers;
 using HelperLibrary.Shared.Logger;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Primitives;
 using Authorization = Halogen.Bindings.ServiceBindings.Authorization;
 
@@ -17,42 +22,36 @@ namespace HaloUnitTest.HalogenApiTests.Attributes;
 public sealed class AuthenticatedAuthorizeTest {
 
     private ILoggerService _loggerMock;
-    private Authorization _authorization;
-    private Dictionary<string, StringValues> _headers;
+    private Authorization _authorization = null!;
+    private AuthorizationFilterContext _authorizationFilterCtx;
 
-    [SetUp]
+    [OneTimeSetUp]
     public void SetUp() {
         _loggerMock = MockBase.Simulate<ILoggerService>().Object;
-        _authorization = new Authorization {
-            AccountId = "2bda928a540d412e8297b2c880eb8ef0",
-            Roles = [Enums.Role.Customer],
-            BearerToken = "3fc9b689459d738f8c88a3a48aa9e33542016b7a4052e001aaa536fca74813cb",
-            AuthorizationToken = "f41f3fa625ff120ddca7ef456bf66371ecea23c129f4e4c32367101edb516cf8",
-            RefreshToken = "",
-            AuthorizedTimestamp = DateTime.UtcNow.ToTimestamp(),
-            ValidityDuration = 2.ToMilliseconds(Enums.TimeUnit.Hour),
-        };
-        _headers = new Dictionary<string, StringValues> {
+        MockAuthorization(out _authorization);
+        
+        var requestHeaders = new Dictionary<string, StringValues> {
             { "AccountId", "2bda928a540d412e8297b2c880eb8ef0" },
             { "Authorization", "Bearer 3fc9b689459d738f8c88a3a48aa9e33542016b7a4052e001aaa536fca74813cb" },
             { "AuthorizationToken", "f41f3fa625ff120ddca7ef456bf66371ecea23c129f4e4c32367101edb516cf8" },
         };
+        var httpContext = HttpContextMock.Instance(nameof(HttpContext.Request.Headers), requestHeaders);
+        var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
+        _authorizationFilterCtx = new AuthorizationFilterContext(actionContext, new List<IFilterMetadata>());
     }
 
+    [TearDown]
+    public void TearDown() => MockAuthorization(out _authorization);
+
     [Test]
-    public void Test_OnAuthorization_AccountId() {
-        _authorization.AccountId = "2097939e8322471ba14aa3779441b5db";
+    public void Test_OnAuthorization_Failure_AccountId() {
+        _authorization.AccountId = "something";
         var haloSvFactoryMock = MockHaloServiceFactory(_authorization);
-        var authenticatedAuthorize = new AuthenticatedAuthorize(_loggerMock, haloSvFactoryMock);
-
-        var httpContext = HttpContextMock.Instance(nameof(HttpContext.Request.Headers), _headers);
-        var authorizationFilterContext = AuthorizationFilterContextMock.Instance([
-            new KeyValuePair<string, HttpContext>(nameof(AuthorizationFilterContext.HttpContext), httpContext),
-        ]);
         
-        authenticatedAuthorize.OnAuthorization(authorizationFilterContext);
+        var authenticatedAuthorize = new AuthenticatedAuthorize(_loggerMock, haloSvFactoryMock);
+        authenticatedAuthorize.OnAuthorization(_authorizationFilterCtx);
 
-        var result = authorizationFilterContext.Result as ErrorResponse;
+        var result = _authorizationFilterCtx.Result as ErrorResponse;
         Assert.That(result, Is.Not.Null);
 
         var expect = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InvalidUser.GetValue()}");
@@ -63,19 +62,79 @@ public sealed class AuthenticatedAuthorizeTest {
     }
     
     [Test]
-    public void Test_OnAuthorization_BearerToken() {
+    public void Test_OnAuthorization_Failure_BearerToken() {
+        _authorization.BearerToken = "Bearer something";
+        var haloSvFactoryMock = MockHaloServiceFactory(_authorization);
         
+        var authenticatedAuthorize = new AuthenticatedAuthorize(_loggerMock, haloSvFactoryMock);
+        authenticatedAuthorize.OnAuthorization(_authorizationFilterCtx);
+
+        var result = _authorizationFilterCtx.Result as ErrorResponse;
+        Assert.That(result, Is.Not.Null);
+
+        var expect = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.MismatchedBearerToken.GetValue()}");
+        Assert.Multiple(() => {
+            Assert.That(result.StatusCode, Is.EqualTo(expect.StatusCode));
+            Assert.That(result.Content, Is.EqualTo(expect.Content));
+        });
     }
     
     [Test]
-    public void Test_OnAuthorization_AuthToken() {
+    public void Test_OnAuthorization_Failure_AuthToken() {
+        _authorization.AuthorizationToken = "something";
+        var haloSvFactoryMock = MockHaloServiceFactory(_authorization);
         
+        var authenticatedAuthorize = new AuthenticatedAuthorize(_loggerMock, haloSvFactoryMock);
+        authenticatedAuthorize.OnAuthorization(_authorizationFilterCtx);
+
+        var result = _authorizationFilterCtx.Result as ErrorResponse;
+        Assert.That(result, Is.Not.Null);
+
+        var expect = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.MismatchedAuthToken.GetValue()}");
+        Assert.Multiple(() => {
+            Assert.That(result.StatusCode, Is.EqualTo(expect.StatusCode));
+            Assert.That(result.Content, Is.EqualTo(expect.Content));
+        });
     }
     
     [Test]
-    public void Test_OnAuthorization_AuthTimestamp() {
+    public void Test_OnAuthorization_Failure_AuthTimestamp() {
+        _authorization.AuthorizedTimestamp = DateTime.UtcNow.AddHours(-2.1).ToTimestamp();
+        var haloSvFactoryMock = MockHaloServiceFactory(_authorization);
         
+        var authenticatedAuthorize = new AuthenticatedAuthorize(_loggerMock, haloSvFactoryMock);
+        authenticatedAuthorize.OnAuthorization(_authorizationFilterCtx);
+
+        var result = _authorizationFilterCtx.Result as ErrorResponse;
+        Assert.That(result, Is.Not.Null);
+
+        var expect = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.AuthorizationExpired.GetValue()}");
+        Assert.Multiple(() => {
+            Assert.That(result.StatusCode, Is.EqualTo(expect.StatusCode));
+            Assert.That(result.Content, Is.EqualTo(expect.Content));
+        });
     }
+
+    [Test]
+    public void Test_OnAuthorization_Success() {
+        var haloSvFactoryMock = MockHaloServiceFactory(_authorization);
+        
+        var authenticatedAuthorize = new AuthenticatedAuthorize(_loggerMock, haloSvFactoryMock);
+        authenticatedAuthorize.OnAuthorization(_authorizationFilterCtx);
+
+        var result = _authorizationFilterCtx.Result as ErrorResponse;
+        Assert.That(result, Is.Null);
+    }
+    
+    private static void MockAuthorization(out Authorization auth) => auth = new() {
+        AccountId = "2bda928a540d412e8297b2c880eb8ef0",
+        Roles = [Enums.Role.Customer],
+        BearerToken = "3fc9b689459d738f8c88a3a48aa9e33542016b7a4052e001aaa536fca74813cb",
+        AuthorizationToken = "f41f3fa625ff120ddca7ef456bf66371ecea23c129f4e4c32367101edb516cf8",
+        RefreshToken = string.Empty,
+        AuthorizedTimestamp = DateTime.UtcNow.ToTimestamp(),
+        ValidityDuration = 2.ToMilliseconds(Enums.TimeUnit.Hour),
+    };
 
     private static IHaloServiceFactory MockHaloServiceFactory(Authorization auth) {
         var sessionSvMock = SessionServiceMock.Instance<Authorization>([auth]);

@@ -1,9 +1,21 @@
+using HelperLibrary.Shared.Ecosystem;
 using Moq;
 using Moq.AutoMock;
 
 namespace HaloUnitTest.Mocks;
 
 internal class MockBase {
+    
+    protected internal readonly IEcosystem EcosystemMock = new Ecosystem {
+        Environment = "NUnit",
+        UseLongerId = false,
+        ServerSetting = new Ecosystem.ServerSettings {
+            AwsAccessKeyId = string.Empty,
+            AwsSecretAccessKey = string.Empty,
+            AwsRegion = string.Empty,
+        },
+    };
+    
     private AutoMocker Mocker { get; }
 
     internal MockBase() {

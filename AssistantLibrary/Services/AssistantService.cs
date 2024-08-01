@@ -21,7 +21,7 @@ public sealed class AssistantService: ServiceBase, IAssistantService {
         IConfiguration configuration
     ): base(ecosystem, logger, configuration) { }
     
-    public async Task<RecaptchaResponse?> IsHumanActivity(string clientToken) {
+    public async Task<RecaptchaResponse> IsHumanActivity(string clientToken) {
         _logger.Log(new LoggerBinding<AssistantService> { Location = nameof(IsHumanActivity) });
         var httpClient = new HttpClient();
         var (secretKey, endpoint, contentType) = (
@@ -37,7 +37,7 @@ public sealed class AssistantService: ServiceBase, IAssistantService {
         var httpResponse = await httpClient.PostAsJsonAsync($"?secret={secretKey}&response={clientToken}", HttpCompletionOption.ResponseContentRead);
         return !httpResponse.IsSuccessStatusCode
             ? new RecaptchaResponse()
-            : JsonConvert.DeserializeObject<RecaptchaResponse>(await httpResponse.Content.ReadAsStringAsync());
+            : JsonConvert.DeserializeObject<RecaptchaResponse>(await httpResponse.Content.ReadAsStringAsync())!;
     }
 
     public byte[] GenerateQrImage(string information, FileStream? image) {

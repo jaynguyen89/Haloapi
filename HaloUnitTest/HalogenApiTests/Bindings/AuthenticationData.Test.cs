@@ -3,6 +3,8 @@ using Halogen.Bindings.ApiBindings;
 using Halogen.Services.AppServices.Interfaces;
 using Halogen.Services.DbServices.Interfaces;
 using HaloUnitTest.Mocks;
+using HaloUnitTest.Mocks.HaloApi.Auxiliaries;
+using HaloUnitTest.Mocks.HaloApi.Services;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Helpers;
 
@@ -17,7 +19,7 @@ public sealed class AuthenticationDataTest {
     private const string ConfigKey = $"{nameof(HalogenOptions)}{Constants.Colon}{nameof(HalogenOptions.CacheKeys)}{Constants.Colon}{nameof(HalogenOptions.CacheKeys.TelephoneCodes)}";
     private const string ConfigValue = "mock_cache_key_locality_region_codes";
 
-    [SetUp]
+    [OneTimeSetUp]
     public void Setup() {
         var configMock = ConfigurationMock.Instance(new KeyValuePair<string, string>(ConfigKey, ConfigValue));
 

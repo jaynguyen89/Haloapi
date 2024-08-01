@@ -5,7 +5,7 @@ namespace AssistantLibrary.Bindings;
 
 public sealed class RecaptchaResponse {
     [JsonProperty("success")]
-    public bool Result { get; set; }
+    public bool IsHuman { get; set; }
     
     [JsonProperty("challenge_ts")]
     public DateTime? VerifiedOn { get; set; }

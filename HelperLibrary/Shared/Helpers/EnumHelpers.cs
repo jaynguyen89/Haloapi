@@ -1,24 +1,6 @@
-﻿using System.Reflection;
+﻿using HelperLibrary.Attributes;
 
 namespace HelperLibrary.Shared.Helpers;
-
-[AttributeUsage(AttributeTargets.Field)]
-public class ValueAttribute : Attribute {
-    public string StringValue { get; set; }
-
-    public ValueAttribute(string stringValue) {
-        StringValue = stringValue;
-    }
-}
-
-[AttributeUsage(AttributeTargets.Field)]
-public sealed class CompositeValueAttribute: ValueAttribute {
-    public string CodeValue { get; set; }
-
-    public CompositeValueAttribute(string stringValue, string codeValue): base(stringValue) {
-        CodeValue = codeValue;
-    }
-}
 
 /// <summary>
 /// The 2 classes below are used to convert the Enums into object with EnumProp schema

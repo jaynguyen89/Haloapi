@@ -3,10 +3,10 @@ using AssistantLibrary;
 using AssistantLibrary.Bindings;
 using AssistantLibrary.Interfaces;
 using AssistantLibrary.Services;
-using Halogen.Bindings;
-using Halogen.Bindings.ViewModels;
-using Halogen.Bindings.ServiceBindings;
 using Halogen.Auxiliaries.Interfaces;
+using Halogen.Bindings;
+using Halogen.Bindings.ServiceBindings;
+using Halogen.Bindings.ViewModels;
 using Halogen.Services.AppServices.Interfaces;
 using Halogen.Services.AppServices.Services;
 using HelperLibrary.Shared;
@@ -47,9 +47,11 @@ public sealed class TwoFactorAuthorize: AuthorizeAttribute, IAuthorizationFilter
         if (!_twoFactorEnabled) return;
 
         var twoFactorSecretKey = _sessionService.Get<string>(nameof(HttpHeaderKeys.TwoFactorToken));
-        if (!twoFactorSecretKey.IsString())
+        if (!twoFactorSecretKey.IsString()) {
             context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(TwoFactorAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.NoTwoFactorToken.GetValue()}");
-
+            return;
+        }
+            
         var (_, twoFactorToken) = context.HttpContext.Request.Headers.Single(x => x.Key.ToLower().Equals(nameof(HttpHeaderKeys.TwoFactorToken).ToLower()));
         var isTwoFactorTokenValid = _twoFactorService.VerifyTwoFactorAuthenticationPin(new VerifyTwoFactorBinding {
             PinCode = twoFactorToken,

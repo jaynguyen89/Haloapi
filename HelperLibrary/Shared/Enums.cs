@@ -1,4 +1,5 @@
-﻿using HelperLibrary.Shared.Helpers;
+﻿using HelperLibrary.Attributes;
+using HelperLibrary.Shared.Helpers;
 
 namespace HelperLibrary.Shared;
 
@@ -92,6 +93,10 @@ public static class Enums {
         NoTwoFactorToken,
         [Value("Mismatched Two-Factor Token")]
         InvalidTwoFactorToken,
+        [Value("Missing Recaptcha Token")]
+        NoRecaptchaToken,
+        [Value("Human Verification Failed")]
+        RecaptchaNotAHuman,
     }
 
     public enum Role {

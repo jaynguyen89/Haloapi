@@ -3,8 +3,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 using Moq;
 
-namespace HaloUnitTest.Mocks;
+namespace HaloUnitTest.Mocks.HaloApi.Auxiliaries;
 
+// Singleton
 internal sealed class HttpContextMock: MockBase {
 
     private static readonly Lazy<HttpContextMock> HttpCtxMock = new(() => new HttpContextMock());

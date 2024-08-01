@@ -9,7 +9,7 @@ public sealed class RegionalizedPhoneNumberTest {
 
     private RegionalizedPhoneNumber _phoneNumber;
 
-    [SetUp]
+    [OneTimeSetUp]
     public void Setup() {
         _phoneNumber = new RegionalizedPhoneNumber {
             RegionCode = "99",

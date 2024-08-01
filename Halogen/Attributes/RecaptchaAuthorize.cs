@@ -3,10 +3,11 @@ using AssistantLibrary;
 using AssistantLibrary.Interfaces;
 using AssistantLibrary.Services;
 using Halogen.Bindings;
-using Halogen.Bindings.ViewModels;
 using Halogen.Bindings.ServiceBindings;
+using Halogen.Bindings.ViewModels;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
+using HelperLibrary.Shared.Helpers;
 using HelperLibrary.Shared.Logger;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -40,8 +41,12 @@ public sealed class RecaptchaAuthorize: AuthorizeAttribute, IAuthorizationFilter
         var requestHeaders = context.HttpContext.Request.Headers;
         var (_, recaptchaToken) = requestHeaders.Single(x => x.Key.Equals(nameof(HttpHeaderKeys.RecaptchaToken)));
 
-        var isHuman = _assistantService.IsHumanActivity(recaptchaToken).Result;
-        if (isHuman is null || !isHuman.Result)
-            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, nameof(RecaptchaAuthorize));
+        try {
+            var recaptchaResponse = _assistantService.IsHumanActivity(recaptchaToken).Result;
+            if (!recaptchaResponse.IsHuman)
+                context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.RecaptchaNotAHuman.GetValue()}");
+        } catch (Exception) {
+            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.NoRecaptchaToken.GetValue()}");
+        }
     }
 }

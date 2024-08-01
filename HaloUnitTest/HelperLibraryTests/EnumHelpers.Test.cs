@@ -1,3 +1,4 @@
+using HelperLibrary.Attributes;
 using HelperLibrary.Shared.Helpers;
 
 namespace HaloUnitTest.HelperLibraryTests;

@@ -10,7 +10,7 @@ public sealed class RegistrationDataTest {
 
     private RegionalizedPhoneNumberHandler _mockPhoneNumberHandler;
 
-    [SetUp]
+    [OneTimeSetUp]
     public void Setup() {
         _mockPhoneNumberHandler = It.IsAny<RegionalizedPhoneNumberHandler>();
         

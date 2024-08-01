@@ -2,7 +2,7 @@ using Halogen.Auxiliaries.Interfaces;
 using HelperLibrary.Shared;
 using Moq;
 
-namespace HaloUnitTest.Mocks;
+namespace HaloUnitTest.Mocks.HaloApi.Auxiliaries;
 
 // Singleton
 internal sealed class HaloServiceFactoryMock: MockBase {

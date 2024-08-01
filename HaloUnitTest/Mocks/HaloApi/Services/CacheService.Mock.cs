@@ -3,8 +3,9 @@ using Halogen.Services.AppServices.Interfaces;
 using Halogen.Services.AppServices.Services;
 using Moq;
 
-namespace HaloUnitTest.Mocks;
+namespace HaloUnitTest.Mocks.HaloApi.Services;
 
+// Singleton
 internal sealed class CacheServiceMock: MockBase {
 
     private static readonly Lazy<CacheServiceMock> CacheSvMock = new(() => new CacheServiceMock());

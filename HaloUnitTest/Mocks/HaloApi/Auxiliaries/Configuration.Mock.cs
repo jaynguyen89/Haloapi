@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Moq;
 
-namespace HaloUnitTest.Mocks;
+namespace HaloUnitTest.Mocks.HaloApi.Auxiliaries;
 
 // Singleton
 internal sealed class ConfigurationMock: MockBase {
@@ -16,13 +16,13 @@ internal sealed class ConfigurationMock: MockBase {
 
     internal static Mock<IConfiguration> Instance() => ConfigMock.Value._configMock;
 
-    internal static IConfiguration Instance(KeyValuePair<string, string> val) {
+    internal static IConfiguration Instance(KeyValuePair<string, string> val, bool keyless = false) {
         var configMock = Instance();
         
         var configSectionMock = Simulate<IConfigurationSection>();
         configSectionMock.Setup(m => m.Value).Returns(val.Value);
 
-        configMock.Setup(m => m.GetSection(val.Key)).Returns(configSectionMock.Object);
+        configMock.Setup(m => m.GetSection(keyless ? It.IsAny<string>() : val.Key)).Returns(configSectionMock.Object);
         return configMock.Object;
     }
 }
