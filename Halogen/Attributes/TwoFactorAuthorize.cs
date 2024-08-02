@@ -53,8 +53,13 @@ public sealed class TwoFactorAuthorize: AuthorizeAttribute, IAuthorizationFilter
         }
             
         var (_, twoFactorToken) = context.HttpContext.Request.Headers.Single(x => x.Key.ToLower().Equals(nameof(HttpHeaderKeys.TwoFactorToken).ToLower()));
+        if (!twoFactorToken.ToString().IsString()) {
+            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(TwoFactorAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.MissingTwoFactorToken.GetValue()}");
+            return;
+        }
+
         var isTwoFactorTokenValid = _twoFactorService.VerifyTwoFactorAuthenticationPin(new VerifyTwoFactorBinding {
-            PinCode = twoFactorToken,
+            PinCode = twoFactorToken!,
             SecretKey = twoFactorSecretKey!
         });
         

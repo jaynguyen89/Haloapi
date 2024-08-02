@@ -36,7 +36,7 @@ public sealed class RecaptchaAuthorizeTest {
         
         MockAssistantServiceFactory(out _assistantSvFactoryMock, new RecaptchaResponse {
             IsHuman = true,
-            HostName = "NUnit",
+            HostName = MockBase.Environment,
         });
         
         MockAuthorizationFilterContext(out _authorizationFilterCtx, new Dictionary<string, StringValues> {
@@ -50,7 +50,7 @@ public sealed class RecaptchaAuthorizeTest {
         
         MockAssistantServiceFactory(out _assistantSvFactoryMock, new RecaptchaResponse {
             IsHuman = true,
-            HostName = "NUnit",
+            HostName = MockBase.Environment,
         });
         
         MockAuthorizationFilterContext(out _authorizationFilterCtx, new Dictionary<string, StringValues> {
@@ -91,7 +91,7 @@ public sealed class RecaptchaAuthorizeTest {
     public void Test_OnAuthorization_RecaptchaFailure() {
         MockAssistantServiceFactory(out _assistantSvFactoryMock, new RecaptchaResponse {
             IsHuman = false,
-            HostName = "NUnit",
+            HostName = MockBase.Environment,
         });
         
         var recaptchaAuthorize = new RecaptchaAuthorize(MockBase.EcosystemMock, _loggerMock, _configMock, _assistantSvFactoryMock);

@@ -89,8 +89,10 @@ public static class Enums {
         AuthorizationExpired,
         [Value("Invalid Role")]
         InvalidRole,
-        [Value("Missing Two-Factor Token")]
+        [Value("Two-Factor Token Not Found")]
         NoTwoFactorToken,
+        [Value("Missing Two Factor Token")]
+        MissingTwoFactorToken,
         [Value("Mismatched Two-Factor Token")]
         InvalidTwoFactorToken,
         [Value("Missing Recaptcha Token")]

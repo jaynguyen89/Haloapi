@@ -4,10 +4,12 @@ using Moq.AutoMock;
 
 namespace HaloUnitTest.Mocks;
 
-internal class MockBase {
-    
+internal class MockBase
+{
+    internal const string Environment = "NUnit";
+
     internal static readonly IEcosystem EcosystemMock = new Ecosystem {
-        Environment = "NUnit",
+        Environment = Environment,
         UseLongerId = false,
         ServerSetting = new Ecosystem.ServerSettings {
             AwsAccessKeyId = string.Empty,

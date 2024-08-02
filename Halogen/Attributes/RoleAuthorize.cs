@@ -30,7 +30,7 @@ public sealed class RoleAuthorize: AuthorizeAttribute, IAuthorizationFilter {
             return;
         }
             
-        if (!_authorizedRoles.Any(authenticatedUser!.Roles.Contains))
+        if (!_authorizedRoles.Any(authenticatedUser.Roles.Contains))
             context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(RoleAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InvalidRole.GetValue()}");
     }
 }
