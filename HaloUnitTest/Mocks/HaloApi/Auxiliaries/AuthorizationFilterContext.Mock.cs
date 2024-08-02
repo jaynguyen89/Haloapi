@@ -1,6 +1,9 @@
 using HelperLibrary.Attributes;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Routing;
 using Moq;
 
 namespace HaloUnitTest.Mocks.HaloApi.Auxiliaries;
@@ -11,7 +14,9 @@ namespace HaloUnitTest.Mocks.HaloApi.Auxiliaries;
 // ]);
 
 // Singleton
-[Problematic("This mock is unable to do SetupGet or Setup because no property in AuthorizationFilterContext is overridable.")]
+[Problematic("This mock's Instance() and Instance<T>() is unable to do SetupGet or Setup because no property in AuthorizationFilterContext is overridable.")]
+[Attention("Due to the described problem, only use the Actual<T>() method for Test Fixtures.")]
+[Todo("Extend the Actual<T>() method switch-case to set up mock data for other HttpContext properties.")]
 internal sealed class AuthorizationFilterContextMock: MockBase {
 
     private static readonly Lazy<AuthorizationFilterContextMock> AuthFilterCtxMock = new(() => new AuthorizationFilterContextMock());
@@ -34,5 +39,18 @@ internal sealed class AuthorizationFilterContextMock: MockBase {
             }
 
         return authFilterCtxMock.Object;
+    }
+
+    internal static AuthorizationFilterContext Actual<T>(KeyValuePair<string, T>[] keyVals) {
+        var actionContext = new ActionContext(new DefaultHttpContext(), new RouteData(), new ActionDescriptor());
+        
+        foreach (var (key, val) in keyVals) {
+            actionContext.HttpContext = key switch {
+                nameof(HttpContext.Request.Headers) => HttpContextMock.Instance(nameof(HttpContext.Request.Headers), val),
+                _ => actionContext.HttpContext,
+            };
+        }
+
+        return new AuthorizationFilterContext(actionContext, new List<IFilterMetadata>());
     }
 }

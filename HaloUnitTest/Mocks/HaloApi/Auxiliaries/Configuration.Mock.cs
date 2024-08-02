@@ -16,13 +16,13 @@ internal sealed class ConfigurationMock: MockBase {
 
     internal static Mock<IConfiguration> Instance() => ConfigMock.Value._configMock;
 
-    internal static IConfiguration Instance(KeyValuePair<string, string> val, bool keyless = false) {
+    internal static IConfiguration Instance(KeyValuePair<string, string> val) {
         var configMock = Instance();
         
         var configSectionMock = Simulate<IConfigurationSection>();
         configSectionMock.Setup(m => m.Value).Returns(val.Value);
 
-        configMock.Setup(m => m.GetSection(keyless ? It.IsAny<string>() : val.Key)).Returns(configSectionMock.Object);
+        configMock.Setup(m => m.GetSection(val.Key)).Returns(configSectionMock.Object);
         return configMock.Object;
     }
 }

@@ -13,7 +13,9 @@ using QRCoder;
 
 namespace AssistantLibrary.Services; 
 
-public sealed class AssistantService: ServiceBase, IAssistantService {
+public class AssistantService: ServiceBase, IAssistantService {
+
+    public AssistantService() { }
 
     public AssistantService(
         IEcosystem ecosystem,
@@ -21,7 +23,7 @@ public sealed class AssistantService: ServiceBase, IAssistantService {
         IConfiguration configuration
     ): base(ecosystem, logger, configuration) { }
     
-    public async Task<RecaptchaResponse> IsHumanActivity(string clientToken) {
+    public virtual async Task<RecaptchaResponse> IsHumanActivity(string clientToken) {
         _logger.Log(new LoggerBinding<AssistantService> { Location = nameof(IsHumanActivity) });
         var httpClient = new HttpClient();
         var (secretKey, endpoint, contentType) = (

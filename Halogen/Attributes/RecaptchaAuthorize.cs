@@ -41,12 +41,13 @@ public sealed class RecaptchaAuthorize: AuthorizeAttribute, IAuthorizationFilter
         var requestHeaders = context.HttpContext.Request.Headers;
         var (_, recaptchaToken) = requestHeaders.Single(x => x.Key.Equals(nameof(HttpHeaderKeys.RecaptchaToken)));
 
-        try {
-            var recaptchaResponse = _assistantService.IsHumanActivity(recaptchaToken).Result;
-            if (!recaptchaResponse.IsHuman)
-                context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.RecaptchaNotAHuman.GetValue()}");
-        } catch (Exception) {
+        if (!recaptchaToken.ToString().IsString()) {
             context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.NoRecaptchaToken.GetValue()}");
+            return;
         }
+
+        var recaptchaResponse = _assistantService.IsHumanActivity(recaptchaToken).Result;
+        if (!recaptchaResponse.IsHuman)
+            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.RecaptchaNotAHuman.GetValue()}");
     }
 }

@@ -1,6 +1,7 @@
 using System.Net;
 using Halogen.Attributes;
 using Halogen.Auxiliaries.Interfaces;
+using Halogen.Bindings.ServiceBindings;
 using Halogen.Bindings.ViewModels;
 using HaloUnitTest.Mocks;
 using HaloUnitTest.Mocks.HaloApi.Auxiliaries;
@@ -9,10 +10,7 @@ using HelperLibrary.Shared;
 using HelperLibrary.Shared.Helpers;
 using HelperLibrary.Shared.Logger;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Primitives;
 using Authorization = Halogen.Bindings.ServiceBindings.Authorization;
 
@@ -31,13 +29,13 @@ public sealed class AuthenticatedAuthorizeTest {
         MockAuthorization(out _authorization);
         
         var requestHeaders = new Dictionary<string, StringValues> {
-            { "AccountId", "2bda928a540d412e8297b2c880eb8ef0" },
-            { "Authorization", "Bearer 3fc9b689459d738f8c88a3a48aa9e33542016b7a4052e001aaa536fca74813cb" },
-            { "AuthorizationToken", "f41f3fa625ff120ddca7ef456bf66371ecea23c129f4e4c32367101edb516cf8" },
+            { nameof(HttpHeaderKeys.AccountId), "2bda928a540d412e8297b2c880eb8ef0" },
+            { nameof(HttpHeaderKeys.Authorization), "Bearer 3fc9b689459d738f8c88a3a48aa9e33542016b7a4052e001aaa536fca74813cb" },
+            { nameof(HttpHeaderKeys.AuthorizationToken), "f41f3fa625ff120ddca7ef456bf66371ecea23c129f4e4c32367101edb516cf8" },
         };
-        var httpContext = HttpContextMock.Instance(nameof(HttpContext.Request.Headers), requestHeaders);
-        var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
-        _authorizationFilterCtx = new AuthorizationFilterContext(actionContext, new List<IFilterMetadata>());
+        _authorizationFilterCtx = AuthorizationFilterContextMock.Actual([
+            new KeyValuePair<string, Dictionary<string, StringValues>>(nameof(HttpContext.Request.Headers), requestHeaders),
+        ]);
     }
 
     [TearDown]

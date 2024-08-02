@@ -20,6 +20,8 @@ public class ServiceBase {
     protected readonly string _recaptchaBaseOptionKey;
     protected readonly string _qrGeneratorBaseOptionKey;
 
+    internal protected ServiceBase() { }
+
     internal ServiceBase(
         IEcosystem ecosystem,
         ILoggerService logger,
@@ -35,8 +37,7 @@ public class ServiceBase {
         );
         
         var defaultPlaceholdersBaseOptionKey = $"{_mailServiceBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.DefaultPlaceholders)}{Constants.Colon}";
-        _clientApplicationName = _configuration.AsEnumerable().Single(x =>
-            x.Key.Equals($"{defaultPlaceholdersBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.DefaultPlaceholders.ClientApplicationName)}")).Value;
+        _clientApplicationName = _configuration.AsEnumerable().Single(x => x.Key.Equals($"{defaultPlaceholdersBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.DefaultPlaceholders.ClientApplicationName)}")).Value;
     }
 
     private void ParseBaseOptionKeys(

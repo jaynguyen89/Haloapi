@@ -6,7 +6,7 @@ namespace HaloUnitTest.Mocks;
 
 internal class MockBase {
     
-    protected internal readonly IEcosystem EcosystemMock = new Ecosystem {
+    internal static readonly IEcosystem EcosystemMock = new Ecosystem {
         Environment = "NUnit",
         UseLongerId = false,
         ServerSetting = new Ecosystem.ServerSettings {
