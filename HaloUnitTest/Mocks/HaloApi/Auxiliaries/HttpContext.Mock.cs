@@ -29,6 +29,9 @@ internal sealed class HttpContextMock: MockBase {
                 var bodyStream = val.ToStream();
                 httpContextMock.SetupGet(m => m.Request.Body).Returns(bodyStream);
                 break;
+            case nameof(HttpContext.Session):
+                httpContextMock.SetupGet(m => m.Session).Returns((ISession)val!);
+                break;
         }
 
         return httpContextMock.Object;

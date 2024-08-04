@@ -39,7 +39,10 @@ public sealed class AuthenticatedAuthorizeTest {
     }
 
     [TearDown]
-    public void TearDown() => MockAuthorization(out _authorization);
+    public void TearDown() {
+        MockAuthorization(out _authorization);
+        _authorizationFilterCtx.Result = null;
+    }
 
     [Test]
     public void Test_OnAuthorization_Failure_AccountId() {
@@ -135,7 +138,9 @@ public sealed class AuthenticatedAuthorizeTest {
     };
 
     private static IHaloServiceFactory MockHaloServiceFactory(Authorization auth) {
-        var sessionSvMock = SessionServiceMock.Instance<Authorization>([auth]);
+        var sessionSvMock = SessionServiceMock.Instance<Authorization>([
+            new KeyValuePair<string, Authorization>(nameof(Authorization), auth),
+        ]);
         
         var haloSvFactoryMock = HaloServiceFactoryMock.Instance<object>([
             new KeyValuePair<Enums.ServiceType, object>(Enums.ServiceType.AppService, sessionSvMock),

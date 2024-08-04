@@ -16,10 +16,10 @@ internal sealed class SessionServiceMock: MockBase {
 
     internal static Mock<SessionService> Instance() => SessionSvMock.Value._sessionSvMock;
 
-    internal static SessionService Instance<T>(T[] vals) {
+    internal static SessionService Instance<T>(KeyValuePair<string, T>[] keyVal) {
         var sessionSvMock = Instance();
-        foreach (var val in vals)
-            sessionSvMock.Setup(m => m.Get<T>(typeof(T).Name)).Returns(val);
+        foreach (var (key, val) in keyVal)
+            sessionSvMock.Setup(m => m.Get<T>(key)).Returns(val);
 
         return sessionSvMock.Object;
     }

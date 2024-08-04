@@ -10,9 +10,11 @@ using Microsoft.Extensions.Configuration;
 
 namespace AssistantLibrary.Services; 
 
-public sealed class TwoFactorService: ServiceBase, ITwoFactorService {
+public class TwoFactorService: ServiceBase, ITwoFactorService {
 
     private readonly TwoFactorAuthenticator _authenticator;
+
+    public TwoFactorService() { }
 
     public TwoFactorService(
         IEcosystem ecosystem,
@@ -22,7 +24,7 @@ public sealed class TwoFactorService: ServiceBase, ITwoFactorService {
         _authenticator = new TwoFactorAuthenticator();
     }
     
-    public TwoFactorData GetTwoFactorAuthenticationData(in GetTwoFactorBinding binding) {
+    public virtual TwoFactorData GetTwoFactorAuthenticationData(in GetTwoFactorBinding binding) {
         _logger.Log(new LoggerBinding<TwoFactorService> { Location = nameof(GetTwoFactorAuthenticationData) });
         
         var (projectName, qrImageSize) = (
@@ -44,7 +46,7 @@ public sealed class TwoFactorService: ServiceBase, ITwoFactorService {
         };
     }
 
-    public bool VerifyTwoFactorAuthenticationPin(in VerifyTwoFactorBinding binding) {
+    public virtual bool VerifyTwoFactorAuthenticationPin(in VerifyTwoFactorBinding binding) {
         _logger.Log(new LoggerBinding<TwoFactorService> { Location = nameof(VerifyTwoFactorAuthenticationPin) });
         var tolerance = _configuration.AsEnumerable().Single(x => x.Key.Equals($"{_twoFactorBaseOptionKey}{nameof(AssistantLibraryOptions.Local.TwoFactorSettings.ToleranceDuration)}")).Value;
         

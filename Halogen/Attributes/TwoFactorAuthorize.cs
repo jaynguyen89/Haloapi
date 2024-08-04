@@ -60,7 +60,7 @@ public sealed class TwoFactorAuthorize: AuthorizeAttribute, IAuthorizationFilter
 
         var isTwoFactorTokenValid = _twoFactorService.VerifyTwoFactorAuthenticationPin(new VerifyTwoFactorBinding {
             PinCode = twoFactorToken!,
-            SecretKey = twoFactorSecretKey!
+            SecretKey = twoFactorSecretKey!,
         });
         
         if (!isTwoFactorTokenValid)

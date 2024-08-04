@@ -1,4 +1,5 @@
 using HelperLibrary.Attributes;
+using HelperLibrary.Shared.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
@@ -14,7 +15,7 @@ namespace HaloUnitTest.Mocks.HaloApi.Auxiliaries;
 // ]);
 
 // Singleton
-[Problematic("This mock's Instance() and Instance<T>() is unable to do SetupGet or Setup because no property in AuthorizationFilterContext is overridable.")]
+[Problematic("This mock's methods Instance() and Instance<T>() is unable to do SetupGet or Setup because no property in AuthorizationFilterContext is overridable.")]
 [Attention("Due to the described problem, only use the Actual<T>() method for Test Fixtures.")]
 [Todo("Extend the Actual<T>() method switch-case to set up mock data for other HttpContext properties.")]
 internal sealed class AuthorizationFilterContextMock: MockBase {
@@ -43,14 +44,28 @@ internal sealed class AuthorizationFilterContextMock: MockBase {
 
     internal static AuthorizationFilterContext Actual<T>(KeyValuePair<string, T>[] keyVals) {
         var actionContext = new ActionContext(new DefaultHttpContext(), new RouteData(), new ActionDescriptor());
+        if (keyVals.Length == 0) return new AuthorizationFilterContext(actionContext, new List<IFilterMetadata>());
         
         foreach (var (key, val) in keyVals) {
             actionContext.HttpContext = key switch {
                 nameof(HttpContext.Request.Headers) => HttpContextMock.Instance(nameof(HttpContext.Request.Headers), val),
+                nameof(HttpContext.Session) => HttpContextMock.Instance(nameof(HttpContext.Session), val),
+                nameof(HttpContext.RequestServices) => HttpContextMock.Instance(nameof(HttpContext.RequestServices), val),
                 _ => actionContext.HttpContext,
             };
         }
 
         return new AuthorizationFilterContext(actionContext, new List<IFilterMetadata>());
+    }
+
+    internal static void AddMock<T>(ref AuthorizationFilterContext authFilterCtx, string propertyName, T any) {
+        switch (propertyName) {
+            case nameof(HttpContext.Session):
+                authFilterCtx.HttpContext.Session = (ISession)any!;
+                break;
+            case nameof(HttpContext.Request.Body):
+                authFilterCtx.HttpContext.Request.Body = any.ToStream();
+                break;
+        }
     }
 }

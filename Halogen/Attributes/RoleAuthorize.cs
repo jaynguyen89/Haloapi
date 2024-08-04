@@ -20,16 +20,25 @@ public sealed class RoleAuthorize: AuthorizeAttribute, IAuthorizationFilter {
     }
 
     public void OnAuthorization(AuthorizationFilterContext context) {
-        var logger = context.HttpContext.RequestServices.GetService<ILoggerService>();
-        logger?.Log(new LoggerBinding<RoleAuthorize> { Location = nameof(OnAuthorization) });
+        try {
+            var logger = context.HttpContext.RequestServices.GetService<ILoggerService>();
+            logger?.Log(new LoggerBinding<RoleAuthorize> { Location = nameof(OnAuthorization) });
+        } catch (ArgumentException) { }
 
         var session = context.HttpContext.Session;
-        var authenticatedUser = JsonConvert.DeserializeObject<Authorization>(session.GetString(nameof(Authorization)) ?? string.Empty);
-        if (authenticatedUser is null) {
+        Authorization? authenticatedUser;
+        try {
+            authenticatedUser = JsonConvert.DeserializeObject<Authorization>(session.GetString(nameof(Authorization)) ?? string.Empty);
+            if (authenticatedUser is null) {
+                context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(RoleAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InvalidUser.GetValue()}");
+                return;
+            }
+        }
+        catch (NullReferenceException) {
             context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(RoleAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InvalidUser.GetValue()}");
             return;
         }
-            
+
         if (!_authorizedRoles.Any(authenticatedUser.Roles.Contains))
             context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(RoleAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InvalidRole.GetValue()}");
     }

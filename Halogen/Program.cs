@@ -278,6 +278,7 @@ public static class Program {
     }
 
     private static void ConfigureContainer(ContainerBuilder builder) {
+        builder.RegisterInstance(builder).As<ContainerBuilder>();
         builder.RegisterInstance(_configuration).As<IConfiguration>();
         builder.RegisterType<HttpContextAccessor>().As<IHttpContextAccessor>().SingleInstance();
         
@@ -290,7 +291,7 @@ public static class Program {
                 AwsAccessKeyId = AwsAccessKeyId,
                 AwsSecretAccessKey = AwsSecretAccessKey
             }
-        }).As<IEcosystem>();
+        }).As<IEcosystem>().SingleInstance();
         
         builder.RegisterAssistantLibraryServices();
         builder.RegisterAmazonLibraryServices();
