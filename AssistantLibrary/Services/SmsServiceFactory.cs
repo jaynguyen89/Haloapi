@@ -1,6 +1,6 @@
 ﻿using AssistantLibrary.Interfaces;
 using AssistantLibrary.Interfaces.IServiceFactory;
-using AssistantLibrary.Services.SmsServices;
+using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Logger;
 using Microsoft.Extensions.Configuration;
@@ -18,20 +18,13 @@ public sealed class SmsServiceFactory: ServiceBase, ISmsServiceFactory {
         IConfiguration configuration
     ): base(ecosystem, logger, configuration) {
         _ecosystem = ecosystem;
-        _activeSmsServiceName = _configuration.AsEnumerable().Single(x => x.Key.Equals($"{_serviceFactoryBaseOptionKey}{nameof(AssistantLibraryOptions.Local.ServiceFactorySettings.ActiveSmsService)}")).Value;
+        _activeSmsServiceName = _assistantConfigs.ServiceFactorySettings.ActiveSmsService;
     }
 
-    // Todo: improve this by dynamically get the service using ServiceLocator
     public ISmsService GetActiveSmsService() {
-        if (!_activeSmsServiceName.Equals(nameof(ClickatellSmsHttpService)))
-            return new ClickatellSmsRestService(_ecosystem, _logger, _configuration);
+        var serviceType = Type.GetType(_activeSmsServiceName);
+        if (serviceType is null) throw new ServiceNotFoundByNameException(_activeSmsServiceName);
         
-        var (httpEndpoint, apiKey) = (
-            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{_clickatellBaseOptionKey}{nameof(AssistantLibraryOptions.Local.ClickatellHttpSettings.HttpEndpoint)}")).Value,
-            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{_clickatellBaseOptionKey}{nameof(AssistantLibraryOptions.Local.ClickatellHttpSettings.ApiKey)}")).Value
-        );
-
-        var clickatellBaseUrl = $"{httpEndpoint}?{nameof(apiKey)}={apiKey}";
-        return new ClickatellSmsHttpService(_ecosystem, _logger, _configuration, clickatellBaseUrl);
+        return (ISmsService)Activator.CreateInstance(serviceType, _ecosystem, _logger, _configuration)!;
     }
 }

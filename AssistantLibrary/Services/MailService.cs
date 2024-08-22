@@ -13,8 +13,6 @@ namespace AssistantLibrary.Services;
 public sealed class MailService: ServiceBase, IMailService {
 
     private readonly SmtpClient _smtpClient;
-    private readonly string _defaultSenderEmailAddress;
-    private readonly string _defaultSenderName;
     private MailMessage _mailMessage;
     private readonly Tuple<string, string> _defaultBodyPlaceholderValues;
 
@@ -25,43 +23,19 @@ public sealed class MailService: ServiceBase, IMailService {
     ): base(ecosystem, logger, configuration) {
         _smtpClient = new SmtpClient();
         ConfigureSmtpClient();
-        
-        var (defaultSenderEmailAddress, defaultSenderName) = (
-            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{_mailServiceBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.DefaultSenderAddress)}")).Value,
-            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{_mailServiceBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.DefaultSenderName)}")).Value
-        );
 
-        _defaultSenderEmailAddress = defaultSenderEmailAddress;
-        _defaultSenderName = defaultSenderName;
-
-        var defaultPlaceholdersBaseOptionKey = $"{_mailServiceBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.DefaultPlaceholders)}{Constants.Colon}";
-        var (halogenLogoUrl, clientBaseUri) = (
-            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{defaultPlaceholdersBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.DefaultPlaceholders.HalogenLogoUrl)}")).Value,
-            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{defaultPlaceholdersBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.DefaultPlaceholders.ClientBaseUri)}")).Value
-        );
-
-        _defaultBodyPlaceholderValues = new Tuple<string, string>(halogenLogoUrl, clientBaseUri);
+        _defaultBodyPlaceholderValues = new Tuple<string, string>(_assistantConfigs.MailServiceSettings.PlaceholderHalogenLogoUrl, _assistantConfigs.MailServiceSettings.PlaceholderClientBaseUri);
         _mailMessage = new MailMessage();
     }
     
     private void ConfigureSmtpClient() {
-        var serverCredentialsBaseOptionKey = $"{_mailServiceBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.ServerCredentials)}{Constants.Colon}";
-        var (serverHost, serverPort, useSsl, timeout, emailAddress, password) = (
-            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{_mailServiceBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.MailServerHost)}")).Value,
-            int.Parse(_configuration.AsEnumerable().Single(x => x.Key.Equals($"{_mailServiceBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.MailServerPort)}")).Value),
-            bool.Parse(_configuration.AsEnumerable().Single(x => x.Key.Equals($"{_mailServiceBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.UseSsl)}")).Value),
-            int.Parse(_configuration.AsEnumerable().Single(x => x.Key.Equals($"{_mailServiceBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.Timeout)}")).Value),
-            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{serverCredentialsBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.ServerCredentials.EmailAddress)}")).Value,
-            _configuration.AsEnumerable().Single(x => x.Key.Equals($"{serverCredentialsBaseOptionKey}{nameof(AssistantLibraryOptions.Local.MailServiceSettings.ServerCredentials.Password)}")).Value
-        );
-
-        _smtpClient.Host = serverHost;
-        _smtpClient.Port = serverPort;
-        _smtpClient.EnableSsl = useSsl;
-        _smtpClient.UseDefaultCredentials = !useSsl;
-        _smtpClient.Credentials = new NetworkCredential(emailAddress, password);
+        _smtpClient.Host = _assistantConfigs.MailServiceSettings.MailServerHost;
+        _smtpClient.Port = _assistantConfigs.MailServiceSettings.MailServerPort;
+        _smtpClient.EnableSsl = _assistantConfigs.MailServiceSettings.UseSsl;
+        _smtpClient.UseDefaultCredentials = !_assistantConfigs.MailServiceSettings.UseSsl;
+        _smtpClient.Credentials = new NetworkCredential(_assistantConfigs.MailServiceSettings.EmailAddressCredential, _assistantConfigs.MailServiceSettings.PasswordCredential);
         _smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
-        _smtpClient.Timeout = timeout;
+        _smtpClient.Timeout = _assistantConfigs.MailServiceSettings.Timeout;
     }
 
     private async Task<bool> Compose(MailBinding mail) {
@@ -70,7 +44,7 @@ public sealed class MailService: ServiceBase, IMailService {
         
         var (fromAddress, fromName) = mail.Sender is not null
             ? (mail.Sender.EmailAddress, mail.Sender.Name)
-            : (_defaultSenderEmailAddress, _defaultSenderName);
+            : (_assistantConfigs.MailServiceSettings.DefaultSenderEmailAddress, _assistantConfigs.MailServiceSettings.DefaultSenderName);
         
         _mailMessage = new MailMessage { From = new MailAddress(fromAddress, fromName) };
         
@@ -82,7 +56,7 @@ public sealed class MailService: ServiceBase, IMailService {
         _mailMessage.IsBodyHtml = true;
         _mailMessage.Priority = mail.Priority;
 
-        bodyContent = bodyContent!.SetDefaultEmailBodyValues(new Tuple<string, string, string>(_defaultBodyPlaceholderValues.Item1, _defaultBodyPlaceholderValues.Item2, _clientApplicationName));
+        bodyContent = bodyContent!.SetDefaultEmailBodyValues(new Tuple<string, string, string>(_defaultBodyPlaceholderValues.Item1, _defaultBodyPlaceholderValues.Item2, _assistantConfigs.MailServiceSettings.PlaceholderClientAppName));
         bodyContent = mail.Placeholders.Aggregate(bodyContent, (current, entry) => current.Replace(entry.Key, entry.Value));
         _mailMessage.Body = bodyContent;
         

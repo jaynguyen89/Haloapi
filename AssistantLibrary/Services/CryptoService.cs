@@ -13,16 +13,11 @@ namespace AssistantLibrary.Services;
 
 public sealed class CryptoService: ServiceBase, ICryptoService {
 
-    private readonly int _rsaKeySize;
-
     public CryptoService(
         IEcosystem ecosystem,
         ILoggerService logger,
         IConfiguration configuration
-    ): base(ecosystem, logger, configuration) {
-        var rsaKeySize = _configuration.AsEnumerable().Single(x => x.Key.Equals($"{_baseOptionKey}{nameof(AssistantLibraryOptions.Local.RsaKeyLength)}")).Value;
-        _rsaKeySize = int.Parse(rsaKeySize);
-    }
+    ): base(ecosystem, logger, configuration) { }
     
     public KeyValuePair<string, string> GenerateHashAndSalt(string plainText, int saltLength) {
         _logger.Log(new LoggerBinding<CryptoService> { Location = nameof(GenerateHashAndSalt) });
@@ -51,7 +46,7 @@ public sealed class CryptoService: ServiceBase, ICryptoService {
 
     public async Task<RsaKeyPair> GenerateRsaKeyPair() {
         _logger.Log(new LoggerBinding<CryptoService> { Location = nameof(GenerateRsaKeyPair) });
-        var rsaService = new RSACryptoServiceProvider(_rsaKeySize);
+        var rsaService = new RSACryptoServiceProvider(_assistantConfigs.RsaKeyLength);
 
         var privateKeyParam = rsaService.ExportParameters(true);
         var publicKeyParam = rsaService.ExportParameters(false);

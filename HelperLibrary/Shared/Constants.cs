@@ -42,8 +42,6 @@ public static class Constants {
     public static readonly List<string> InvalidTokens = new() { "--", "_@", "-@", ".-", "-.", "._", "_.", "@_", "@-", "__", "..", "_-", "-_" };
 
     public static readonly string[] TelephoneCodes = { "61", "84" };
-
-    public static int TwoFactorDefaultTolerance = 300; // seconds
     
     public static readonly string AssetsDirectoryPath = Path.GetDirectoryName(Directory.GetCurrentDirectory()) + @"/AssistantLibrary/Assets/";
     

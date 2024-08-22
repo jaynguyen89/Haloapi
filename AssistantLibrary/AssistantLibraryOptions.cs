@@ -57,6 +57,7 @@ public sealed class DefaultPlaceholders {
 public sealed class ServiceFactorySettings {
     public string ActiveMailService { get; set; }
     public string ActiveSmsService { get; set; }
+    public string ActiveTfaService { get; set; }
 }
 
 public sealed class ClickatellHttpSettings {

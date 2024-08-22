@@ -1,9 +1,7 @@
 ﻿using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using AssistantLibrary.Bindings;
-using AssistantLibrary.Interfaces.IServiceFactory;
 using AssistantLibrary.Interfaces.SmsServices;
-using HelperLibrary;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Helpers;
@@ -21,30 +19,30 @@ public sealed class ClickatellSmsHttpService: ServiceBase, IClickatellSmsHttpSer
     public ClickatellSmsHttpService(
         IEcosystem ecosystem,
         ILoggerService logger,
-        IConfiguration configuration,
-        string clickatellBaseUrl
+        IConfiguration configuration
     ): base(ecosystem, logger, configuration) {
         _httpClient = new HttpClient();
-        _clickatellBaseUrl = clickatellBaseUrl;
+
+        var (clickatellEndpoint, clickatellApiKey) = (_assistantConfigs.ClickatellSettings.HttpEndpoint, _assistantConfigs.ClickatellSettings.ApiKey);
+        _clickatellBaseUrl = $"{clickatellEndpoint}?{nameof(clickatellApiKey)}={clickatellApiKey}";
     }
 
     public async Task<string[]?> SendSingleSms(SingleSmsBinding binding) {
         _logger.Log(new LoggerBinding<ClickatellSmsHttpService> { Location = nameof(SendSingleSms) });
 
-        var contentType = _configuration.AsEnumerable().Single(x => x.Key.Equals($"{_clickatellBaseOptionKey}{nameof(AssistantLibraryOptions.Local.ClickatellHttpSettings.RequestContentType)}")).Value;
         _httpClient.DefaultRequestHeaders.Accept.Clear();
-        _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(Constants.ContentTypes[contentType]));
+        _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(Constants.ContentTypes[_assistantConfigs.ClickatellSettings.RequestContentType]));
 
-        var smsContent = Regex.Replace(binding.SmsContent, $@"\bCLIENT_APPLICATION_NAME\b", _clientApplicationName);
-        var encodedContent = Uri.EscapeDataString(smsContent); //Regex.Replace(smsContent, Constants.MonoSpace, Constants.Plus);
+        var smsContent = Regex.Replace(binding.SmsContent, $@"\bCLIENT_APPLICATION_NAME\b", _assistantConfigs.MailServiceSettings.PlaceholderClientAppName);
+        var encodedContent = Uri.EscapeDataString(smsContent);
         if (_environment.Equals(Constants.Local)) {
-            var receiverPhoneNumber = _configuration.AsEnumerable().Single(x => x.Key.Equals($"{_clickatellBaseOptionKey}{nameof(AssistantLibraryOptions.Local.ClickatellHttpSettings.DevTestPhoneNumber)}")).Value;
+            var receiverPhoneNumber = _assistantConfigs.ClickatellSettings.PhoneNumber;
             var requestUrl = $"{_clickatellBaseUrl}&to={receiverPhoneNumber}&content={encodedContent}";
             
             _httpClient.BaseAddress = new Uri(requestUrl);
             var httpResponse = await _httpClient.GetAsync($"", HttpCompletionOption.ResponseContentRead);
 
-            return httpResponse.IsSuccessStatusCode ? default : new [] {receiverPhoneNumber};
+            return httpResponse.IsSuccessStatusCode ? default : [receiverPhoneNumber];
         }
 
         try {

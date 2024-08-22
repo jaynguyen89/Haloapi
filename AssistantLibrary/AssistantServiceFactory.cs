@@ -1,4 +1,5 @@
 using System.Reflection;
+using HelperLibrary.Attributes;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
 using Microsoft.Extensions.Configuration;
@@ -6,6 +7,12 @@ using HelperLibrary.Shared.Logger;
 
 namespace AssistantLibrary;
 
+[Todo("Refactor this class as described in comment below")]
+/*
+/// This class is registered to Autofac Builder as a Singleton dependency.
+/// But each time we call GetService<T>(), a new instance of a service will be created, and it is bad.
+/// So refactor this class to make method GetService<T>() return an existing instance of a service if any, otherwise, return a new instance of the service.
+*/
 public sealed class AssistantServiceFactory: IAssistantServiceFactory {
 
     private readonly IEcosystem _ecosystem;

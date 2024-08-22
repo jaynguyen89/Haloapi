@@ -10,10 +10,6 @@ public class TwoFactorBinding {
 public sealed class GetTwoFactorBinding: TwoFactorBinding {
 
     public string EmailAddress { get; set; } = null!;
-
-    public string ProjectName { get; set; } = Constants.ProjectName;
-
-    public byte ImageSize { get; set; } = byte.MaxValue;
 }
 
 public sealed class VerifyTwoFactorBinding : TwoFactorBinding {
