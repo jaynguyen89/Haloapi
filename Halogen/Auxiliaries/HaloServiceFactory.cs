@@ -4,19 +4,13 @@ using Halogen.Auxiliaries.Interfaces;
 using Halogen.Services;
 using Halogen.Services.AppServices.Services;
 using Halogen.Services.HostedServices;
-using HelperLibrary.Attributes;
 using HelperLibrary.Shared;
+using HelperLibrary.Shared.Helpers;
 using HelperLibrary.Shared.Logger;
 using Microsoft.Extensions.Caching.Distributed;
 
 namespace Halogen.Auxiliaries; 
 
-[Todo("Refactor this class as described in comment below")]
-/*
-/// This class is registered to Autofac Builder as a Singleton dependency.
-/// But each time we call GetService<T>(), a new instance of a service will be created, and it is bad.
-/// So refactor this class to make method GetService<T>() return an existing instance of a service if any, otherwise, return a new instance of the service.
-*/
 public sealed class HaloServiceFactory: IHaloServiceFactory {
     
     private readonly HalogenDbContext _dbContext;
@@ -24,6 +18,8 @@ public sealed class HaloServiceFactory: IHaloServiceFactory {
     private readonly IConfiguration _configuration;
     private readonly IDistributedCache _redisCache;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    
+    private readonly Lazy<Dictionary<string, object>> _services = new(() => new Dictionary<string, object>());
 
     public HaloServiceFactory(
         HalogenDbContext dbContext,
@@ -41,11 +37,17 @@ public sealed class HaloServiceFactory: IHaloServiceFactory {
 
     public T? GetService<T>(Enums.ServiceType serviceType) {
         try {
-            return serviceType switch {
+            var serviceKey = typeof(T).FullName!;
+            if (_services.Value.ContainsKey(serviceKey)) return (T)_services.Value!.GetDictionaryValue(serviceKey)!;
+            
+            var service = serviceType switch {
                 Enums.ServiceType.DbService => (T)Activator.CreateInstance(typeof(T), _logger, _dbContext)!,
                 Enums.ServiceType.AppService => (T)GetAppService<T>(),
                 _ => (T)(IServiceBase)new HostedServiceBase(_logger),
             };
+            
+            _services.Value.Add(serviceKey, service!);
+            return service;
         }
         catch (ArgumentException e) {
             _logger.Log(new LoggerBinding<HaloServiceFactory> {
