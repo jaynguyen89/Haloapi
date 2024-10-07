@@ -7,7 +7,7 @@ public sealed class PublicData {
 
     public string Environment { get; set; } = null!;
     
-    public bool EnableSecretCode { get; set; }
+    public bool SecretCodeEnabled { get; set; }
     
     public int SecretCodeLength { get; set; }
 
@@ -36,6 +36,8 @@ public sealed class PublicData {
     public EnumProp[] VisibilityFormats { get; set; } = null!;
 
     public CountryData[] Countries { get; set; } = null!;
+
+    public string[] SupportedSocialAccounts { get; set; } = null!;
     
     public sealed class CountryData {
 

@@ -73,4 +73,6 @@ public sealed class HalogenConfigs {
     public string SecretCodeSmsContent { get; set; } = null!;
     
     public bool EnableSecretCode { get; set; }
+
+    public Enums.SocialAccountForRegistration[] SupportedSocialAccountForRegistration { get; set; } = null!;
 }

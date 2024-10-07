@@ -31,6 +31,21 @@ public static class Enums {
         Base64,
     }
 
+    public enum SocialAccountForRegistration {
+        [Value("Facebook")]
+        Facebook,
+        [Value("Google")]
+        Google,
+        [Value("Twitter")]
+        Twitter,
+        [Value("Instagram")]
+        Instagram,
+        [Value("Microsoft")]
+        Microsoft,
+        [Value("LinkedIn")]
+        LinkedIn,
+    }
+
     public enum Gender {
         [Value("Male")]
         Male,

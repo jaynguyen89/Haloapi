@@ -36,7 +36,7 @@ public sealed class PublicDataController: AppController {
 
         var publicData = new PublicData {
             Environment = _environment,
-            EnableSecretCode = _haloConfigs.EnableSecretCode,
+            SecretCodeEnabled = _haloConfigs.EnableSecretCode,
             SecretCodeLength = Constants.SecretCodeLength,
             DateFormats = EnumHelpers.ToArrayWithValueAttribute<Enums.DateFormat>(),
             TimeFormats = EnumHelpers.ToArrayWithValueAttribute<Enums.TimeFormat>(),
@@ -51,6 +51,10 @@ public sealed class PublicDataController: AppController {
             CareerFormats = EnumHelpers.ToArrayWithValueAttribute<Enums.CareerFormat>(),
             VisibilityFormats = EnumHelpers.ToArrayWithValueAttribute<Enums.Visibility>(),
             Countries = localities.Select(locality => (PublicData.CountryData)locality).ToArray(),
+            SupportedSocialAccounts = _haloConfigs.SupportedSocialAccountForRegistration
+                .Select(x => x.GetValue() ?? string.Empty)
+                .Where(x => x.IsString())
+                .ToArray(),
         };
         
         return new SuccessResponse(publicData);

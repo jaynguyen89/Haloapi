@@ -97,6 +97,7 @@ public sealed class DbSettings {
 public sealed class ServiceSettings {
     public string TwoFactorEnabled { get; set; }
     public string RecaptchaEnabled { get; set; }
+    public string SupportedSocialAccountForRegistration { get; set; }
 }
 
 public sealed class SecuritySettings {
