@@ -36,7 +36,7 @@ public partial class HalogenDbContext {
         var isLocal = environment.Equals(Constants.Local);
         _connectionString = isWindowsOS
             ? $"Server={winEndpoint};Database={dbName};Trusted_Connection=True;"
-            : $"Server={(isLocal ? $"{linEndpoint},{port}" : winEndpoint)};Database={dbName};User={username};Password={password};Trusted_Connection={(isLocal ? "False" : "True")};";
+            : $"Server={(isLocal ? $"{linEndpoint},{port}" : winEndpoint)};Database={dbName};User={username};Password={password};Trusted_Connection={(isLocal ? "False" : "True")};TrustServerCertificate=True;";
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {

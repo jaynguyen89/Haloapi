@@ -486,7 +486,7 @@ public sealed class AuthenticationController: AppController {
                 if (!Equals(account.EmailAddressToken, tokenData.CurrentToken)) return null;
 
                 var tokenElapsingTime = account.EmailAddressTokenTimestamp!.Value.Compute(_haloConfigs.EmailTokenValidityDuration, _haloConfigs.EmailTokenValidityDurationUnit);
-                if (tokenElapsingTime > DateTime.UtcNow) return false;
+                if (tokenElapsingTime < DateTime.UtcNow) return false;
 
                 account.EmailAddressToken = null;
                 account.EmailAddressTokenTimestamp = null;
@@ -500,7 +500,7 @@ public sealed class AuthenticationController: AppController {
                 if (!Equals(profile.PhoneNumberToken, tokenData.CurrentToken)) return null;
 
                 var tokenElapsingTime = profile.PhoneNumberTokenTimestamp!.Value.Compute(_haloConfigs.PhoneTokenValidityDuration, _haloConfigs.PhoneTokenValidityDurationUnit);
-                if (tokenElapsingTime > DateTime.UtcNow) return false;
+                if (tokenElapsingTime < DateTime.UtcNow) return false;
 
                 profile.PhoneNumberToken = null;
                 profile.PhoneNumberTokenTimestamp = null;

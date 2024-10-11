@@ -10,8 +10,8 @@ The following software and tools should be set up to prepare for the next step o
 - Please say a big NO to using Visual Studio Code as your primary IDE to simplify things, leave your brain for complex things that you will find soon later 😏
 - SDK: .NET 6 and C# 10 - downloadable from https://dotnet.microsoft.com/en-us/download
 - IDE:
-  - Jetbrains Rider 2022 or later is preferable.
-  - Alternative: Visual Studio 2019 or later. https://visualstudio.microsoft.com/downloads/
+  - Jetbrains Rider 2024 or later is preferable.
+  - Alternative: Visual Studio 2022 or later. https://visualstudio.microsoft.com/downloads/
 - Database tools:
   - MSSQL Server 2019 or later, Express edition is sufficient. https://www.microsoft.com/en-us/Download/details.aspx?id=101064
   - SQL Server Management Studio (SSMS). https://learn.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms?view=sql-server-ver16
@@ -38,7 +38,7 @@ The following software and tools should be set up to prepare for the next step o
 The API supports 4 environments: Local, Development, Staging and Production, in each of which it may behave a bit differently in some of its services. To run the app on your
 local computer, you need to prepare these things:
 
-- Add the following 5 variables into your local environment variables:
+- Add the following 5 variables into your local environment variables or `~/.bashrc`:
   - Halogen_Environment=Local
   - Halogen_UseLongerId=False
   - Halogen_AwsAccessKeyId=`<Your AWS Access Key ID>`
