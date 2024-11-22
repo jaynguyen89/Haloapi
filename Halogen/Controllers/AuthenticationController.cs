@@ -895,10 +895,10 @@ public sealed class AuthenticationController: AppController {
         if (account is null || profile is null) return new ErrorResponse();
         
         if (authenticatedByEmail && !account.EmailConfirmed)
-            return new ErrorResponse(HttpStatusCode.Locked);
+            return new ErrorResponse(HttpStatusCode.UnprocessableContent);
         
         return !profile.PhoneNumberConfirmed
-            ? new ErrorResponse(HttpStatusCode.Locked)
+            ? new ErrorResponse(HttpStatusCode.UnprocessableContent)
             : default;
     }
 
