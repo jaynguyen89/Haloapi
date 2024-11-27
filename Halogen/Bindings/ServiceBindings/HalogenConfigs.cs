@@ -10,6 +10,8 @@ public sealed class HalogenConfigs {
     
     public int SaltMaxLength { get; set; }
     
+    public bool TfaEnabled { get; set; }
+    
     public int TfaKeyMinLength { get; set; }
     
     public int TfaKeyMaxLength { get; set; }

@@ -5,7 +5,6 @@ using AssistantLibrary.Interfaces;
 using AssistantLibrary.Services;
 using Halogen.Auxiliaries.Interfaces;
 using Halogen.Bindings;
-using Halogen.Bindings.ServiceBindings;
 using Halogen.Bindings.ViewModels;
 using Halogen.Services.AppServices.Interfaces;
 using Halogen.Services.AppServices.Services;
@@ -15,6 +14,7 @@ using HelperLibrary.Shared.Helpers;
 using HelperLibrary.Shared.Logger;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Authorization = Halogen.Bindings.ServiceBindings.Authorization;
 
 namespace Halogen.Attributes; 
 
@@ -45,25 +45,15 @@ public sealed class TwoFactorAuthorize: AuthorizeAttribute, IAuthorizationFilter
     public void OnAuthorization(AuthorizationFilterContext context) {
         _logger.Log(new LoggerBinding<TwoFactorAuthorize> { Location = nameof(OnAuthorization) });
         if (!_twoFactorEnabled) return;
-
-        var twoFactorSecretKey = _sessionService.Get<string>(nameof(HttpHeaderKeys.TwoFactorToken));
-        if (!twoFactorSecretKey.IsString()) {
-            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(TwoFactorAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.NoTwoFactorToken.GetValue()}");
-            return;
-        }
-            
-        var (_, twoFactorToken) = context.HttpContext.Request.Headers.Single(x => x.Key.ToLower().Equals(nameof(HttpHeaderKeys.TwoFactorToken).ToLower()));
-        if (!twoFactorToken.ToString().IsString()) {
-            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(TwoFactorAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.MissingTwoFactorToken.GetValue()}");
-            return;
-        }
-
-        var isTwoFactorTokenValid = _twoFactorService.VerifyTwoFactorAuthenticationPin(new VerifyTwoFactorBinding {
-            PinCode = twoFactorToken!,
-            SecretKey = twoFactorSecretKey!,
-        });
         
-        if (!isTwoFactorTokenValid)
-            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(TwoFactorAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InvalidTwoFactorToken.GetValue()}");
+        var authenticatedUser = _sessionService.Get<Authorization>(nameof(Authorization));
+        if (authenticatedUser is null) {
+            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(TwoFactorAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InvalidUser.GetValue()}");
+            return;
+        }
+        
+        if (!authenticatedUser.TwoFactorConfirmed.HasValue) return;
+        if (!authenticatedUser.TwoFactorConfirmed.Value)
+            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(TwoFactorAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.NoTwoFactorToken.GetValue()}");
     }
 }

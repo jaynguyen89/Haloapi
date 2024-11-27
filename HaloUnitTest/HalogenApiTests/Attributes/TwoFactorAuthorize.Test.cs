@@ -93,7 +93,7 @@ public sealed class TwoFactorAuthorizeTest {
         var result = _authFilterCtx.Result as ErrorResponse;
         Assert.That(result, Is.Not.Null);
 
-        var expect = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(TwoFactorAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.MissingTwoFactorToken.GetValue()}");
+        var expect = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(TwoFactorAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.NoTwoFactorToken.GetValue()}");
         Assert.Multiple(() => {
             Assert.That(result.StatusCode, Is.EqualTo(expect.StatusCode));
             Assert.That(result.Content, Is.EqualTo(expect.Content));
@@ -111,7 +111,7 @@ public sealed class TwoFactorAuthorizeTest {
         var result = _authFilterCtx.Result as ErrorResponse;
         Assert.That(result, Is.Not.Null);
 
-        var expect = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(TwoFactorAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InvalidTwoFactorToken.GetValue()}");
+        var expect = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(TwoFactorAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.NoTwoFactorToken.GetValue()}");
         Assert.Multiple(() => {
             Assert.That(result.StatusCode, Is.EqualTo(expect.StatusCode));
             Assert.That(result.Content, Is.EqualTo(expect.Content));

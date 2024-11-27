@@ -45,7 +45,7 @@ public sealed class HalogenOptions {
                 public string ClockSkew { get; set; }
                 public string ValidIssuers { get; set; }
                 public string ValidAudiences { get; set; }
-                public string IssuerSigningKeys { get; set; }
+                public string IssuerSigningKey { get; set; }
                 public string Expiration { get; set; }
             }
         }

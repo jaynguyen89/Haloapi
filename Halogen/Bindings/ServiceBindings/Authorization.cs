@@ -17,4 +17,6 @@ public class Authorization {
     public long AuthorizedTimestamp { get; set; }
     
     public long ValidityDuration { get; set; }
+    
+    public bool? TwoFactorConfirmed { get; set; }
 }

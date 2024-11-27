@@ -106,10 +106,6 @@ public static class Enums {
         InvalidRole,
         [Value("Two-Factor Token Not Found")]
         NoTwoFactorToken,
-        [Value("Missing Two Factor Token")]
-        MissingTwoFactorToken,
-        [Value("Mismatched Two-Factor Token")]
-        InvalidTwoFactorToken,
         [Value("Missing Recaptcha Token")]
         NoRecaptchaToken,
         [Value("Human Verification Failed")]

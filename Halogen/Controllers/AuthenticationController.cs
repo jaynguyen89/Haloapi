@@ -555,19 +555,47 @@ public sealed class AuthenticationController: AppController {
                 account!.LockOutEnabled &&
                 account.LockOutOn!.Value.Compute(_haloConfigs.LockOutDuration, _haloConfigs.LockOutDurationUnit) <= DateTime.UtcNow
             ) || account.IsSuspended
-        ) return new ErrorResponse(HttpStatusCode.Locked);
+        ) return new ErrorResponse(HttpStatusCode.Locked, new {
+            isSuspended = account.IsSuspended,
+            timestamp = account.LockOutOn!.Value.ToTimestamp(),
+            loginFailedCount = account.LoginFailedCount,
+            lockOutCount = account.LockOutCount,
+        });
         
         var isPasswordMatched = _cryptoService.IsHashMatchesPlainText(account.HashPassword, authenticationData.Password);
 
         if (!isPasswordMatched) {
             var result = await UpdateLockoutAndSuspendOnFailedLogin(account);
-            return !result.HasValue || !result.Value
-                ? new ErrorResponse()
-                : new ErrorResponse(HttpStatusCode.Conflict, nameof(isPasswordMatched));
+            if (!result.HasValue || !result.Value) return new ErrorResponse();
+            return account.LockOutEnabled || account.IsSuspended
+                ? new ErrorResponse(HttpStatusCode.Locked, new {
+                    isSuspended = account.IsSuspended,
+                    timestamp = account.LockOutOn!.Value.ToTimestamp(),
+                    loginFailedCount = account.LoginFailedCount,
+                    lockOutCount = account.LockOutCount,
+                })
+                : new ErrorResponse(HttpStatusCode.Conflict, new {
+                    loginFailedCount = account.LoginFailedCount,
+                    lockOutCount = account.LockOutCount,
+                });
+        }
+
+        await _contextService.StartTransaction();
+
+        var resetLockoutResult = await ResetLockoutAndSuspendOnSuccessfulLogin(account);
+        if (!resetLockoutResult.HasValue || !resetLockoutResult.Value) {
+            await _contextService.RevertTransaction();
+            return new ErrorResponse();
         }
 
         var authenticatedUser = await CreateAuthenticatedUser(account, profile!);
-        return authenticatedUser is null ? new ErrorResponse() : new SuccessResponse(authenticatedUser);
+        if (authenticatedUser is null) {
+            await _contextService.RevertTransaction();
+            return new ErrorResponse();
+        }
+
+        await _contextService.ConfirmTransaction();
+        return new SuccessResponse(authenticatedUser);
     }
 
     [ServiceFilter(typeof(RecaptchaAuthorize))]
@@ -580,16 +608,17 @@ public sealed class AuthenticationController: AppController {
         if (errors.Any()) return new ErrorResponse(HttpStatusCode.BadRequest, errors);
 
         var (account, profile) = await GetAccountAndProfileByLoginInformation(new LoginInformation { EmailAddress = loginInformation.EmailAddress, PhoneNumber = loginInformation.PhoneNumber });
+        
+        var authenticateByEmailAddress = loginInformation.EmailAddress.IsString();
+        var dataError = VerifyAccountAndProfileData(account, profile, authenticateByEmailAddress);
+        if (dataError is not null) return dataError;
+        
         if (
             (
                 account!.LockOutEnabled &&
                 account.LockOutOn!.Value.Compute(_haloConfigs.LockOutDuration, _haloConfigs.LockOutDurationUnit) <= DateTime.UtcNow
             ) || account.IsSuspended
         ) return new ErrorResponse(HttpStatusCode.Locked);
-        
-        var authenticateByEmailAddress = loginInformation.EmailAddress.IsString();
-        var dataError = VerifyAccountAndProfileData(account, profile, authenticateByEmailAddress);
-        if (dataError is not null) return dataError;
 
         account.OneTimePassword = StringHelpers.GenerateRandomString(NumberHelpers.GetRandomNumberInRangeInclusive(_haloConfigs.OtpMinLength, _haloConfigs.OtpMaxLength));
         account.OneTimePasswordTimestamp = DateTime.UtcNow;
@@ -676,7 +705,12 @@ public sealed class AuthenticationController: AppController {
                 account.LockOutEnabled &&
                 account.LockOutOn!.Value.Compute(_haloConfigs.LockOutDuration, _haloConfigs.LockOutDurationUnit) <= DateTime.UtcNow
             ) || account.IsSuspended
-        ) return new ErrorResponse(HttpStatusCode.Locked);
+        ) return new ErrorResponse(HttpStatusCode.Locked, new {
+            isSuspended = account.IsSuspended,
+            timestamp = account.LockOutOn!.Value.ToTimestamp(),
+            loginFailedCount = account.LoginFailedCount,
+            lockOutCount = account.LockOutCount,
+        });
 
         var isOneTimePasswordMatchedAndValid =
             Equals(account.OneTimePassword, oneTimePassword) &&
@@ -684,18 +718,39 @@ public sealed class AuthenticationController: AppController {
 
         if (!isOneTimePasswordMatchedAndValid || !Equals(authenticationToken, preAuthenticatedUser.AuthorizationToken)) {
             var result = await UpdateLockoutAndSuspendOnFailedLogin(account);
-            return !result.HasValue || !result.Value
-                ? new ErrorResponse()
-                : new ErrorResponse(HttpStatusCode.Conflict);
+            if (!result.HasValue || !result.Value) return new ErrorResponse();
+            return account.LockOutEnabled || account.IsSuspended
+                ? new ErrorResponse(HttpStatusCode.Locked, new {
+                    isSuspended = account.IsSuspended,
+                    timestamp = account.LockOutOn!.Value.ToTimestamp(),
+                    loginFailedCount = account.LoginFailedCount,
+                    lockOutCount = account.LockOutCount,
+                })
+                : new ErrorResponse(HttpStatusCode.Conflict, new {
+                    loginFailedCount = account.LoginFailedCount,
+                    lockOutCount = account.LockOutCount,
+                });
         }
 
         var profile = await _profileService.GetProfileByAccountId(accountId);
         if (profile is null) return new ErrorResponse();
+
+        await _contextService.StartTransaction();
+        
+        var resetLockoutResult = await ResetLockoutAndSuspendOnSuccessfulLogin(account);
+        if (!resetLockoutResult.HasValue || !resetLockoutResult.Value) {
+            await _contextService.RevertTransaction();
+            return new ErrorResponse();
+        }
         
         var authenticatedUser = await CreateAuthenticatedUser(account, profile);
-        return authenticatedUser is null
-            ? new ErrorResponse()
-            : new SuccessResponse(authenticatedUser);
+        if (authenticatedUser is null) {
+            await _contextService.RevertTransaction();
+            return new ErrorResponse();
+        }
+
+        await _contextService.ConfirmTransaction();
+        return new SuccessResponse(authenticatedUser);
     }
 
     [ServiceFilter(typeof(RecaptchaAuthorize))]
@@ -812,6 +867,7 @@ public sealed class AuthenticationController: AppController {
 
     [ServiceFilter(typeof(AuthenticatedAuthorize))]
     [ServiceFilter(typeof(RecaptchaAuthorize))]
+    [ServiceFilter(typeof(TwoFactorAuthorize))]
     [HttpPatch("enable-or-renew-two-factor-authentication")]
     public async Task<IActionResult> EnableOrRenewTwoFactorAuthentication([FromHeader] string accountId) {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(EnableOrRenewTwoFactorAuthentication) });
@@ -854,6 +910,7 @@ public sealed class AuthenticationController: AppController {
     
     [ServiceFilter(typeof(AuthenticatedAuthorize))]
     [ServiceFilter(typeof(RecaptchaAuthorize))]
+    [ServiceFilter(typeof(TwoFactorAuthorize))]
     [HttpPatch("disable-two-factor-authentication/{twoFactorVerifyingToken}")]
     public async Task<IActionResult> DisableTwoFactorAuthentication([FromHeader] string accountId, [FromRoute] string twoFactorVerifyingToken) {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(DisableTwoFactorAuthentication) });
@@ -872,6 +929,31 @@ public sealed class AuthenticationController: AppController {
 
         var result = await _accountService.UpdateAccount(account);
         return !result.HasValue || !result.Value ? new ErrorResponse() : new SuccessResponse();
+    }
+
+    [ServiceFilter(typeof(AuthenticatedAuthorize))]
+    [ServiceFilter(typeof(RecaptchaAuthorize))]
+    [HttpPost("verify-tfa")]
+    public async Task<IActionResult> VerifyTwoFactorToken([FromHeader] string accountId, [FromHeader] string twoFactorToken) {
+        _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(VerifyTwoFactorToken) });
+        
+        if (!twoFactorToken.IsString()) return new ErrorResponse(HttpStatusCode.BadRequest);
+        if (!_haloConfigs.TfaEnabled) return new ErrorResponse(HttpStatusCode.Continue);
+        
+        var account = await _accountService.GetAccountById(accountId);
+        if (account is null) return new ErrorResponse();
+        if (!account.TwoFactorEnabled) return new ErrorResponse(HttpStatusCode.Continue);
+        if (!account.TwoFactorKeys.IsString()) return new ErrorResponse(HttpStatusCode.NotImplemented);
+        
+        var twoFactorKeys = JsonConvert.DeserializeObject<TwoFactorKeys>(account.TwoFactorKeys!);
+        if (twoFactorKeys is null) return new ErrorResponse();
+
+        var isTwoFactorTokenValid = _twoFactorService.VerifyTwoFactorAuthenticationPin(new VerifyTwoFactorBinding {
+            PinCode = twoFactorToken,
+            SecretKey = twoFactorKeys.SecretKey,
+        });
+        
+        return !isTwoFactorTokenValid ? new ErrorResponse(HttpStatusCode.Unauthorized) : new SuccessResponse();
     }
 
     private async Task<Tuple<Account?, Profile?>> GetAccountAndProfileByLoginInformation(LoginInformation loginInformation, bool shouldGetAdditionalData = true) {
@@ -893,9 +975,11 @@ public sealed class AuthenticationController: AppController {
 
     private static IActionResult? VerifyAccountAndProfileData(Account? account, Profile? profile, bool authenticatedByEmail = true) {
         if (account is null || profile is null) return new ErrorResponse();
-        
-        if (authenticatedByEmail && !account.EmailConfirmed)
-            return new ErrorResponse(HttpStatusCode.UnprocessableContent);
+
+        if (authenticatedByEmail)
+            return !account.EmailConfirmed
+                ? new ErrorResponse(HttpStatusCode.UnprocessableContent)
+                : default;
         
         return !profile.PhoneNumberConfirmed
             ? new ErrorResponse(HttpStatusCode.UnprocessableContent)
@@ -903,27 +987,34 @@ public sealed class AuthenticationController: AppController {
     }
 
     private async Task<bool?> UpdateLockoutAndSuspendOnFailedLogin(Account account) {
-        bool? result;
-            
-        if (++account.LoginFailedCount < _haloConfigs.LoginFailedThreshold) {
+        account.LoginFailedCount += 1;
+        if (account.LoginFailedCount < _haloConfigs.LoginFailedThreshold) {
             account.LockOutEnabled = false;
             account.LockOutOn = null;
-            result = await _accountService.UpdateAccount(account);
         }
         else {
             account.LockOutEnabled = true;
             account.LockOutOn = DateTime.UtcNow;
-
-            if (++account.LockOutCount < _haloConfigs.LockOutThreshold) {
+            account.LockOutCount += 1;
+            
+            if (account.LockOutCount < _haloConfigs.LockOutThreshold)
                 account.LoginFailedCount = 0;
-            }
             else account.IsSuspended = true;
-                
-            result = await _accountService.UpdateAccount(account);
         }
-
         if (account.LockOutEnabled || account.IsSuspended) _httpContext!.Session.Clear();
-        return result;
+        // Todo: Send email to notify Suspend status
+
+        return await _accountService.UpdateAccount(account);
+    }
+
+    private async Task<bool?> ResetLockoutAndSuspendOnSuccessfulLogin(Account account) {
+        account.LockOutEnabled = false;
+        account.LockOutOn = null;
+        account.LockOutCount = 0;
+        account.LoginFailedCount = 0;
+        account.IsSuspended = false;
+        
+        return await _accountService.UpdateAccount(account);
     }
 
     private async Task<Authorization?> CreateAuthenticatedUser(Account account, Profile profile) {
@@ -939,10 +1030,10 @@ public sealed class AuthenticationController: AppController {
             { ClaimTypes.Name, $"{profile.GivenName}{profile.MiddleName}{profile.LastName}" },
             { ClaimTypes.MobilePhone, profile.PhoneNumber ?? string.Empty },
             { ClaimTypes.SerialNumber, account.UniqueCode },
-            { ClaimTypes.DateOfBirth, profile.DateOfBirth.HasValue ? profile.DateOfBirth.Value.ToString(CultureInfo.InvariantCulture) : string.Empty }
+            { ClaimTypes.DateOfBirth, profile.DateOfBirth.HasValue ? profile.DateOfBirth.Value.ToString(CultureInfo.InvariantCulture) : string.Empty },
         });
 
-        var authenticatedTimestamp = DateTimeOffset.UtcNow.Millisecond;
+        var authenticatedTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         var authenticatedUser = new Authorization {
             AccountId = account.Id,
             Roles = roles,
@@ -950,7 +1041,10 @@ public sealed class AuthenticationController: AppController {
             AuthorizedTimestamp = authenticatedTimestamp,
             BearerToken = jwtToken,
             RefreshToken = await _cryptoService.CreateSha512Hash(StringHelpers.GenerateRandomString(Constants.RandomStringDefaultLength, true)),
-            ValidityDuration = _haloConfigs.AuthenticationValidityDuration.ToMilliseconds(_haloConfigs.AuthenticationValidityDurationUnit)
+            ValidityDuration = _haloConfigs.AuthenticationValidityDuration.ToMilliseconds(_haloConfigs.AuthenticationValidityDurationUnit),
+            TwoFactorConfirmed = !_haloConfigs.TfaEnabled
+                ? null
+                : account.TwoFactorEnabled ? false : null,
         };
         
         Response.Cookies.Append(nameof(Authorization.AuthorizedTimestamp), authenticatedTimestamp.ToString(), _cookieOptions);

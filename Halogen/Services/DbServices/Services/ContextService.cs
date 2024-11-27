@@ -10,6 +10,9 @@ public sealed class ContextService: DbServiceBase, IContextService {
 
     public async Task StartTransaction() {
         _logger.Log(new LoggerBinding<ContextService> { Location = nameof(StartTransaction) });
+        if (_dbContext.Database.CurrentTransaction is not null)
+            await RevertTransaction();
+        
         await _dbContext.Database.BeginTransactionAsync();
     }
 

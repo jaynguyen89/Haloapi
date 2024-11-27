@@ -12,9 +12,15 @@ public static class ObjectHelpers {
 
     public static T? DecodeUtf8<T>(this byte[] data) {
         var decodedData = Encoding.UTF8.GetString(data);
-        return typeof(T).IsPrimitive
-            ? (T) Convert.ChangeType(decodedData, typeof(T))
-            : JsonConvert.DeserializeObject<T>(decodedData);
+
+        try {
+            return typeof(T).IsPrimitive
+                ? (T)Convert.ChangeType(decodedData, typeof(T))
+                : JsonConvert.DeserializeObject<T>(decodedData);
+        }
+        catch (Exception) {
+            return (T)(object)Convert.ToBase64String(data);
+        }
     }
 
     public static Stream ToStream<T>(this T any, string type = nameof(MemoryStream)) {

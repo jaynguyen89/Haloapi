@@ -91,7 +91,8 @@ public sealed class HaloConfigProvider: IHaloConfigProvider {
             _configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.SecretCodeValidityDurationUnit)}")!.ToEnum<Enums.TimeUnit>()
         );
 
-        var (secretCodeSmsContent, enableSecretCode, supportedSocialAccounts) = (
+        var (tfaEnabled, secretCodeSmsContent, enableSecretCode, supportedSocialAccounts) = (
+            bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings.TwoFactorEnabled)}")!),
             _configuration.GetValue<string>($"{smsContentsOptionKey}{nameof(HalogenOptions.Local.SmsContents.SecretCodeSms)}"),
             bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.ServerSettings)}{Constants.Colon}{nameof(HalogenOptions.ServerSettings.EnableSecretCode)}")!),
             _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings.SupportedSocialAccountForRegistration)}")!
@@ -101,6 +102,7 @@ public sealed class HaloConfigProvider: IHaloConfigProvider {
             ClientBaseUri = _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.ClientBaseUri)}")!,
             SaltMinLength = saltMinLength,
             SaltMaxLength = saltMaxLength,
+            TfaEnabled = tfaEnabled,
             TfaKeyMinLength = tfaKeyMinLength,
             TfaKeyMaxLength = tfaKeyMaxLength,
             EmailTokenMinLength = emailTokenMinLength,
