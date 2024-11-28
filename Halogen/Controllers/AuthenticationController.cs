@@ -676,6 +676,7 @@ public sealed class AuthenticationController: AppController {
             AccountId = account.Id,
             AuthorizationToken = await _cryptoService.CreateSha512Hash(StringHelpers.GenerateRandomString(Constants.RandomStringDefaultLength, true)),
             AuthorizedTimestamp = account.OneTimePasswordTimestamp.Value.ToTimestamp(),
+            IsPreAuthorization = true,
         };
         _httpContext.Session.SetString($"{nameof(preAuthenticatedUser)}{Constants.Underscore}{account.Id}", JsonConvert.SerializeObject(preAuthenticatedUser));
 
@@ -683,9 +684,10 @@ public sealed class AuthenticationController: AppController {
         return new SuccessResponse(preAuthenticatedUser);
     }
 
+    [ServiceFilter(typeof(AuthenticatedAuthorize))]
     [ServiceFilter(typeof(RecaptchaAuthorize))]
-    [HttpPost("verify-otp/{oneTimePassword}")]
-    public async Task<IActionResult> VerifyOneTimePassword([FromHeader] string accountId, [FromHeader] string authenticationToken, [FromRoute] string oneTimePassword) {
+    [HttpPost("verify-otp")]
+    public async Task<IActionResult> VerifyOneTimePassword([FromHeader] string accountId, [FromHeader] string oneTimePassword) {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(VerifyOneTimePassword) });
         if (_httpContext is null) return new ErrorResponse();
 
@@ -716,7 +718,7 @@ public sealed class AuthenticationController: AppController {
             Equals(account.OneTimePassword, oneTimePassword) &&
             preAuthenticatedUser.AuthorizedTimestamp + _haloConfigs.OtpValidityDuration.ToMilliseconds(_haloConfigs.OtpValidityDurationUnit) < DateTime.UtcNow.ToTimestamp();
 
-        if (!isOneTimePasswordMatchedAndValid || !Equals(authenticationToken, preAuthenticatedUser.AuthorizationToken)) {
+        if (!isOneTimePasswordMatchedAndValid) {
             var result = await UpdateLockoutAndSuspendOnFailedLogin(account);
             if (!result.HasValue || !result.Value) return new ErrorResponse();
             return account.LockOutEnabled || account.IsSuspended
@@ -1045,6 +1047,7 @@ public sealed class AuthenticationController: AppController {
             TwoFactorConfirmed = !_haloConfigs.TfaEnabled
                 ? null
                 : account.TwoFactorEnabled ? false : null,
+            IsPreAuthorization = false,
         };
         
         Response.Cookies.Append(nameof(Authorization.AuthorizedTimestamp), authenticatedTimestamp.ToString(), _cookieOptions);

@@ -110,6 +110,10 @@ public static class Enums {
         NoRecaptchaToken,
         [Value("Human Verification Failed")]
         RecaptchaNotAHuman,
+        [Value("Pre-Authorized: Destination Missing")]
+        PreAuthorizeNoPath,
+        [Value("Pre-Authorize: Wrong Destination")]
+        PreAuthorizeWrongPath,
     }
 
     public enum Role {

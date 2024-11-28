@@ -220,6 +220,8 @@ public static class Program {
 
         builder.Services.AddScoped<RecaptchaAuthorize>();
         builder.Services.AddScoped<TwoFactorAuthorize>();
+        builder.Services.AddScoped<RoleAuthorize>();
+        builder.Services.AddScoped<AuthenticatedAuthorize>();
 
         var app = builder.Build();
 

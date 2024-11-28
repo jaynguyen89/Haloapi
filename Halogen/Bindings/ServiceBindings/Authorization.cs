@@ -19,4 +19,6 @@ public class Authorization {
     public long ValidityDuration { get; set; }
     
     public bool? TwoFactorConfirmed { get; set; }
+    
+    public bool IsPreAuthorization { get; set; }
 }

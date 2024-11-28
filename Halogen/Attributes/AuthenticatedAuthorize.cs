@@ -39,13 +39,15 @@ public sealed class AuthenticatedAuthorize: AuthorizeAttribute, IAuthorizationFi
             context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InvalidUser.GetValue()}");
             return;
         }
-        
-        var (_, bearerTokenHeader) = requestHeaders.Single(x => x.Key.ToLower().Equals(nameof(HttpHeaderKeys.Authorization).ToLower()));
-        var clientBearerToken = bearerTokenHeader.ToString().Split(Constants.MonoSpace).Last();
 
-        if (!Equals(authenticatedUser.BearerToken, clientBearerToken)) {
-            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.MismatchedBearerToken.GetValue()}");
-            return;
+        if (!authenticatedUser.IsPreAuthorization) {
+            var (_, bearerTokenHeader) = requestHeaders.Single(x => x.Key.ToLower().Equals(nameof(HttpHeaderKeys.Authorization).ToLower()));
+            var clientBearerToken = bearerTokenHeader.ToString().Split(Constants.MonoSpace).Last();
+            
+            if (!Equals(authenticatedUser.BearerToken, clientBearerToken)) {
+                context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.MismatchedBearerToken.GetValue()}");
+                return;
+            }
         }
         
         var (_, clientAuthorizationToken) = requestHeaders.Single(x => x.Key.ToLower().Equals(nameof(HttpHeaderKeys.AuthorizationToken).ToLower()));
@@ -56,5 +58,16 @@ public sealed class AuthenticatedAuthorize: AuthorizeAttribute, IAuthorizationFi
             
         if (authenticatedUser.AuthorizedTimestamp + authenticatedUser.ValidityDuration < DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())
             context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.AuthorizationExpired.GetValue()}");
+
+        if (!authenticatedUser.IsPreAuthorization) return;
+        
+        if (!context.HttpContext.Request.Path.HasValue) {
+            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.PreAuthorizeNoPath.GetValue()}");
+            return;
+        }
+
+        var destination = context.HttpContext.Request.Path.Value!;
+        if (!Equals(destination, "/authentication/verify-otp"))
+            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.PreAuthorizeWrongPath.GetValue()}");
     }
 }
