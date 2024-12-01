@@ -53,11 +53,11 @@ public sealed class RegionalizedPhoneNumberHandler {
     ) {
         _cacheKey = configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{nameof(HalogenOptions.CacheKeys)}{Constants.Colon}{nameof(HalogenOptions.CacheKeys.TelephoneCodes)}")!;
         
-        var cacheService = haloServiceFactory.GetService<RedisCache>(Enums.ServiceType.AppService);
-        var localityService = haloServiceFactory.GetService<LocalityService>(Enums.ServiceType.DbService);
+        var cacheServiceFactory = haloServiceFactory.GetService<CacheServiceFactory>(Enums.ServiceType.AppService) ?? throw new HaloArgumentNullException<RegionalizedPhoneNumberHandler>(nameof(CacheServiceFactory));
+        var localityService = haloServiceFactory.GetService<LocalityService>(Enums.ServiceType.DbService)  ?? throw new HaloArgumentNullException<RegionalizedPhoneNumberHandler>(nameof(LocalityService));;
 
-        _cacheService = cacheService ?? throw new HaloArgumentNullException<RegionalizedPhoneNumberHandler>(nameof(cacheService));
-        _localityService = localityService ?? throw new HaloArgumentNullException<RegionalizedPhoneNumberHandler>(nameof(localityService));
+        _cacheService = cacheServiceFactory.GetActiveCacheService();
+        _localityService = localityService;
     }
 
     public async Task<string[]> VerifyPhoneNumberData(RegionalizedPhoneNumber phoneNumber) {

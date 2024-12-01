@@ -2,34 +2,35 @@
 using Halogen.Bindings.ServiceBindings;
 using Halogen.Services.AppServices.Interfaces;
 using HelperLibrary.Shared;
+using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Helpers;
 using HelperLibrary.Shared.Logger;
 using Microsoft.Extensions.Caching.Distributed;
 
 namespace Halogen.Services.AppServices.Services; 
 
-public class RedisCache: AppServiceBase, ICacheService {
-
-    public bool IsEnabled { get; set; }
-    public int SlidingExpiration { get; set; }
-    public int AbsoluteExpiration { get; set; }
+public class RedisCache: AppServiceBase, IRedisCacheService {
+    private bool IsEnabled { get; }
+    private int SlidingExpiration { get; }
+    private int AbsoluteExpiration { get; }
 
     private readonly IDistributedCache _redisCache;
 
     public RedisCache() { }
 
     public RedisCache(
-        IDistributedCache redisCache,
         IConfiguration configuration,
-        ILoggerService logger
+        IEcosystem ecosystem,
+        ILoggerService logger,
+        IDistributedCache redisCache
     ): base(logger) {
         _redisCache = redisCache;
-        
-        var environment = configuration.GetValue<string>($"{nameof(Halogen)}{Constants.Underscore}Environment");
+
+        var environment = ecosystem.GetEnvironment();
         var (isEnabled, slidingExpiration, absoluteExpiration) = (
-            bool.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.IsEnabled)}")!),
-            int.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.SlidingExpiration)}")!),
-            int.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.AbsoluteExpiration)}")!)
+            bool.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings.IsEnabled)}")!),
+            int.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings.SlidingExpiration)}")!),
+            int.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings.AbsoluteExpiration)}")!)
         );
 
         IsEnabled = isEnabled;
@@ -37,13 +38,13 @@ public class RedisCache: AppServiceBase, ICacheService {
         AbsoluteExpiration = absoluteExpiration;
     }
 
-    public virtual async Task InsertCacheEntry(CacheEntry entry) {
+    public virtual async Task InsertCacheEntry(ICacheEntry entry) {
         _logger.Log(new LoggerBinding<RedisCache> { Location = nameof(InsertCacheEntry) });
         if (!IsEnabled) return;
 
         await _redisCache.SetAsync(
-            entry.Key,
-            entry.Value.EncodeDataUtf8(),
+            ((RedisCacheEntry)entry).Key,
+            ((RedisCacheEntry)entry).Value.EncodeDataUtf8(),
             new DistributedCacheEntryOptions {
                 SlidingExpiration = TimeSpan.FromSeconds(SlidingExpiration),
                 AbsoluteExpiration = DateTimeOffset.UtcNow.AddSeconds(AbsoluteExpiration)

@@ -31,9 +31,15 @@ public sealed class AuthenticatedAuthorize: AuthorizeAttribute, IAuthorizationFi
     public void OnAuthorization(AuthorizationFilterContext context) {
         _logger.Log(new LoggerBinding<AuthenticatedAuthorize> { Location = nameof(OnAuthorization) });
         var requestHeaders = context.HttpContext.Request.Headers;
-
-        var authenticatedUser = _sessionService.Get<Authorization>(nameof(Authorization));
+        var destination = context.HttpContext.Request.Path.Value!;
+        
         var (_, accountIdFromRequest) = requestHeaders.Single(x => x.Key.ToLower().Equals(nameof(HttpHeaderKeys.AccountId).ToLower()));
+        
+        var authenticatedUser = _sessionService.Get<Authorization>(
+            Equals(destination, "/authentication/verify-otp")
+                ? $"preAuthenticatedUser{Constants.Underscore}{accountIdFromRequest}"
+                : nameof(Authorization)
+        );
 
         if (!Equals(authenticatedUser!.AccountId, accountIdFromRequest.ToString())) {
             context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InvalidUser.GetValue()}");
@@ -50,14 +56,14 @@ public sealed class AuthenticatedAuthorize: AuthorizeAttribute, IAuthorizationFi
             }
         }
         
-        var (_, clientAuthorizationToken) = requestHeaders.Single(x => x.Key.ToLower().Equals(nameof(HttpHeaderKeys.AuthorizationToken).ToLower()));
+        var (_, clientAuthorizationToken) = requestHeaders.Single(x => x.Key.ToLower().Equals(nameof(HttpHeaderKeys.AccessToken).ToLower()));
         if (!Equals(authenticatedUser.AuthorizationToken, clientAuthorizationToken.ToString())) {
-            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.MismatchedAuthToken.GetValue()}");
+            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.MismatchedAccessToken.GetValue()}");
             return;
         }
             
-        if (authenticatedUser.AuthorizedTimestamp + authenticatedUser.ValidityDuration < DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())
-            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.AuthorizationExpired.GetValue()}");
+        // if (authenticatedUser.AuthorizedTimestamp + authenticatedUser.ValidityDuration < DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())
+        //     context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.AuthorizationExpired.GetValue()}");
 
         if (!authenticatedUser.IsPreAuthorization) return;
         
@@ -65,8 +71,7 @@ public sealed class AuthenticatedAuthorize: AuthorizeAttribute, IAuthorizationFi
             context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.PreAuthorizeNoPath.GetValue()}");
             return;
         }
-
-        var destination = context.HttpContext.Request.Path.Value!;
+        
         if (!Equals(destination, "/authentication/verify-otp"))
             context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.PreAuthorizeWrongPath.GetValue()}");
     }

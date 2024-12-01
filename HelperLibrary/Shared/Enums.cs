@@ -98,8 +98,8 @@ public static class Enums {
         InvalidUser,
         [Value("Mismatched Bearer Token")]
         MismatchedBearerToken,
-        [Value("Mismatched Authentication Token")]
-        MismatchedAuthToken,
+        [Value("Mismatched Access Token")]
+        MismatchedAccessToken,
         [Value("Authorization Expired")]
         AuthorizationExpired,
         [Value("Invalid Role")]

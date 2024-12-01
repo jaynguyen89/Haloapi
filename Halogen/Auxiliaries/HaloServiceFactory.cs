@@ -5,6 +5,7 @@ using Halogen.Services;
 using Halogen.Services.AppServices.Services;
 using Halogen.Services.HostedServices;
 using HelperLibrary.Shared;
+using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Helpers;
 using HelperLibrary.Shared.Logger;
 using Microsoft.Extensions.Caching.Distributed;
@@ -18,6 +19,7 @@ public sealed class HaloServiceFactory: IHaloServiceFactory {
     private readonly IConfiguration _configuration;
     private readonly IDistributedCache _redisCache;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IEcosystem _ecosystem;
     
     private readonly Lazy<Dictionary<string, object>> _services = new(() => new Dictionary<string, object>());
 
@@ -26,13 +28,15 @@ public sealed class HaloServiceFactory: IHaloServiceFactory {
         ILoggerService logger,
         IConfiguration configuration,
         IDistributedCache redisCache,
-        IHttpContextAccessor httpContextAccessor
+        IHttpContextAccessor httpContextAccessor,
+        IEcosystem ecosystem
     ) {
         _dbContext = dbContext;
         _logger = logger;
         _configuration = configuration;
         _redisCache = redisCache;
         _httpContextAccessor = httpContextAccessor;
+        _ecosystem = ecosystem;
     }
 
     public T? GetService<T>(Enums.ServiceType serviceType) {
@@ -88,7 +92,7 @@ public sealed class HaloServiceFactory: IHaloServiceFactory {
 
     private IServiceBase GetAppService<T>() => typeof(T).Name switch {
         nameof(JwtService) => new JwtService(_logger, _configuration),
-        nameof(RedisCache) => new RedisCache(_redisCache, _configuration, _logger),
+        nameof(CacheServiceFactory) => new CacheServiceFactory(_configuration, _logger, _ecosystem, _redisCache),
         _ => new SessionService(_httpContextAccessor, _logger),
     };
 }

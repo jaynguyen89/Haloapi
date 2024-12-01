@@ -20,7 +20,7 @@ public class AppController: ControllerBase {
     protected readonly bool _useLongerId;
     protected readonly HalogenConfigs _haloConfigs;
 
-    protected internal AppController(
+    public AppController(
         IEcosystem ecosystem,
         ILoggerService logger,
         IConfiguration configuration,

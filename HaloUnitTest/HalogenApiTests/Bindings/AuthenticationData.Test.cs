@@ -24,7 +24,7 @@ public sealed class AuthenticationDataTest {
         var configMock = ConfigurationMock.Instance(new KeyValuePair<string, string>(ConfigKey, ConfigValue));
 
         var localitySvMock = LocalityServiceMock.Instance(nameof(ILocalityService.GetTelephoneCodes), _regionCodes);
-        var cacheSvMock = CacheServiceMock.Instance<string, string[]>(nameof(ICacheService.GetCacheEntry), ConfigValue, _regionCodes);
+        var cacheSvMock = CacheServiceMock.Instance<string, string[]>(nameof(IRedisCacheService.GetCacheEntry), ConfigValue, _regionCodes);
         
         var haloSvFactoryMock = HaloServiceFactoryMock.Instance<object>([
             new KeyValuePair<Enums.ServiceType, object>(Enums.ServiceType.DbService, localitySvMock),

@@ -21,14 +21,14 @@ internal sealed class CacheServiceMock: MockBase {
     internal static RedisCache Instance<T, TK>(string propertyName, T value, TK returnVal) {
         var cacheSvMock = Instance();
         switch (propertyName) {
-            case nameof(ICacheService.InsertCacheEntry):
-                var cacheEntry = (CacheEntry)(object)value!;
+            case nameof(IRedisCacheService.InsertCacheEntry):
+                var cacheEntry = (RedisCacheEntry)(object)value!;
                 cacheSvMock.Setup(m => m.InsertCacheEntry(cacheEntry)).Returns(Task.CompletedTask);
                 break;
-            case nameof(ICacheService.GetCacheEntry):
+            case nameof(IRedisCacheService.GetCacheEntry):
                 cacheSvMock.Setup(m => m.GetCacheEntry<TK>((string)(object)value!)).ReturnsAsync(returnVal);
                 break;
-            case nameof(ICacheService.RemoveCacheEntry):
+            case nameof(IRedisCacheService.RemoveCacheEntry):
                 cacheSvMock.Setup(m => m.RemoveCacheEntry((string)(object)value!)).Returns(Task.CompletedTask);
                 break;
         }

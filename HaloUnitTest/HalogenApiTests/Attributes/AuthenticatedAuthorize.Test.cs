@@ -31,7 +31,7 @@ public sealed class AuthenticatedAuthorizeTest {
         var requestHeaders = new Dictionary<string, StringValues> {
             { nameof(HttpHeaderKeys.AccountId), "2bda928a540d412e8297b2c880eb8ef0" },
             { nameof(HttpHeaderKeys.Authorization), "Bearer 3fc9b689459d738f8c88a3a48aa9e33542016b7a4052e001aaa536fca74813cb" },
-            { nameof(HttpHeaderKeys.AuthorizationToken), "f41f3fa625ff120ddca7ef456bf66371ecea23c129f4e4c32367101edb516cf8" },
+            { nameof(HttpHeaderKeys.AccessToken), "f41f3fa625ff120ddca7ef456bf66371ecea23c129f4e4c32367101edb516cf8" },
         };
         _authorizationFilterCtx = AuthorizationFilterContextMock.Actual([
             new KeyValuePair<string, Dictionary<string, StringValues>>(nameof(HttpContext.Request.Headers), requestHeaders),
@@ -91,7 +91,7 @@ public sealed class AuthenticatedAuthorizeTest {
         var result = _authorizationFilterCtx.Result as ErrorResponse;
         Assert.That(result, Is.Not.Null);
 
-        var expect = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.MismatchedAuthToken.GetValue()}");
+        var expect = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.MismatchedAccessToken.GetValue()}");
         Assert.Multiple(() => {
             Assert.That(result.StatusCode, Is.EqualTo(expect.StatusCode));
             Assert.That(result.Content, Is.EqualTo(expect.Content));

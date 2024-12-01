@@ -51,6 +51,7 @@ public sealed class HalogenOptions {
         }
         
         public sealed class SessionSettings {
+            public string Name { get; set; }
             public string IdleTimeout { get; set; }
             public string IsEssential { get; set; }
             public string MaxAge { get; set; }
@@ -59,8 +60,16 @@ public sealed class HalogenOptions {
             public string AuthenticationValidityDuration { get; set; }
             public string AuthenticationValidityDurationUnit { get; set; }
         }
-        
-        public sealed class CacheSettings {
+
+        public sealed class MemoryCacheSettings {
+            public string IsEnabled { get; set; }
+            public string Size { get; set; }
+            public string Compaction { get; set; }
+            public string ScanFrequency { get; set; }
+            public string SlidingExpiration { get; set; }
+        }
+
+        public sealed class RedisCacheSettings {
             public string IsEnabled { get; set; }
             public string SlidingExpiration { get; set; }
             public string AbsoluteExpiration { get; set; }

@@ -618,7 +618,12 @@ public sealed class AuthenticationController: AppController {
                 account!.LockOutEnabled &&
                 account.LockOutOn!.Value.Compute(_haloConfigs.LockOutDuration, _haloConfigs.LockOutDurationUnit) <= DateTime.UtcNow
             ) || account.IsSuspended
-        ) return new ErrorResponse(HttpStatusCode.Locked);
+        ) return new ErrorResponse(HttpStatusCode.Locked, new {
+            isSuspended = account.IsSuspended,
+            timestamp = account.LockOutOn!.Value.ToTimestamp(),
+            loginFailedCount = account.LoginFailedCount,
+            lockOutCount = account.LockOutCount,
+        });
 
         account.OneTimePassword = StringHelpers.GenerateRandomString(NumberHelpers.GetRandomNumberInRangeInclusive(_haloConfigs.OtpMinLength, _haloConfigs.OtpMaxLength));
         account.OneTimePasswordTimestamp = DateTime.UtcNow;
@@ -678,14 +683,14 @@ public sealed class AuthenticationController: AppController {
             AuthorizedTimestamp = account.OneTimePasswordTimestamp.Value.ToTimestamp(),
             IsPreAuthorization = true,
         };
-        _httpContext.Session.SetString($"{nameof(preAuthenticatedUser)}{Constants.Underscore}{account.Id}", JsonConvert.SerializeObject(preAuthenticatedUser));
+        HttpContext.Session.SetString($"{nameof(preAuthenticatedUser)}{Constants.Underscore}{account.Id}", JsonConvert.SerializeObject(preAuthenticatedUser));
 
         await _contextService.ConfirmTransaction();
         return new SuccessResponse(preAuthenticatedUser);
     }
 
     [ServiceFilter(typeof(AuthenticatedAuthorize))]
-    [ServiceFilter(typeof(RecaptchaAuthorize))]
+    //[ServiceFilter(typeof(RecaptchaAuthorize))]
     [HttpPost("verify-otp")]
     public async Task<IActionResult> VerifyOneTimePassword([FromHeader] string accountId, [FromHeader] string oneTimePassword) {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(VerifyOneTimePassword) });

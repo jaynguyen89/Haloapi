@@ -17,6 +17,7 @@ using HelperLibrary.Shared.Helpers;
 using MediaLibrary.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
@@ -86,10 +87,10 @@ public static class Program {
 
         builder.Services.Configure<CookiePolicyOptions>(options => {
             options.CheckConsentNeeded = _ => shouldCheckCookieConsent;
-            options.MinimumSameSitePolicy = SameSiteMode.None;
+            // options.MinimumSameSitePolicy = SameSiteMode.Strict;
         });
         builder.Services.AddCors();
-        builder.Services.AddControllers();
+        builder.Services.AddControllers().AddControllersAsServices();
 
         var (apiVersion, apiName, apiDescription) = (
             _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.SwaggerInfo)}{Constants.Colon}{nameof(HalogenOptions.Local.SwaggerInfo.Version)}"),
@@ -156,21 +157,22 @@ public static class Program {
             };
         });
         
-        builder.Services.AddEndpointsApiExplorer();
+        //builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddAuthorization(options => {
             var defaultAuthorizationPolicyBuilder = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme);
             options.DefaultPolicy = defaultAuthorizationPolicyBuilder.RequireAuthenticatedUser().Build();
         });
 
-        var (idleTimeout, isEssential, maxAge) = (
+        var (name, idleTimeout, isEssential, maxAge) = (
+            _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings.Name)}")!,
             int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings.IdleTimeout)}")!),
             bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings.IsEssential)}")!),
             int.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings.MaxAge)}")!)
         );
-
+        
         builder.Services.AddSession(options => {
+            options.Cookie.Name = name;
             options.IdleTimeout = TimeSpan.FromMinutes(idleTimeout);
-            options.Cookie.Domain = nameof(Halogen);
             options.Cookie.HttpOnly = true;
             options.Cookie.IsEssential = isEssential;
             options.Cookie.MaxAge = TimeSpan.FromDays(maxAge);
@@ -180,11 +182,10 @@ public static class Program {
 
         //builder.Services.AddScoped<AutoValidateAntiforgeryTokenAttribute>();
         builder.Services
-               .AddMvc(options => {
-                   options.EnableEndpointRouting = false;
-                   //options.Filters.Add(typeof(AutoValidateAntiforgeryTokenAttribute));
-               })
-               .AddSessionStateTempDataProvider();
+            .AddMvc(options => {
+                options.EnableEndpointRouting = false;
+                //options.Filters.Add(typeof(AutoValidateAntiforgeryTokenAttribute));
+            });
 
         if (!environment.Equals(Constants.Local))
             builder.Services.AddLogging(options => options.AddAWSProvider(new AWSLoggerConfig {
@@ -193,18 +194,18 @@ public static class Program {
                 Credentials = new BasicAWSCredentials(awsAccessKeyId, awsSecretAccessKey)
             }));
 
-        var isCacheEnabled = bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.IsEnabled)}")!);
+        var isCacheEnabled = bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings.IsEnabled)}")!);
         if (isCacheEnabled)
             builder.Services.AddStackExchangeRedisCache(options => {
                 var (endpoint, port, password, ssl, defaultDb, abortConnect, allowAdmin, instanceName) = (
-                    _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection.Endpoint)}"),
-                    _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection.Port)}"),
-                    _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection.Password)}"),
-                    _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection.Ssl)}"),
-                    _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection.DefaultDb)}"),
-                    _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection.AbortConnect)}"),
-                    _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection.AllowAdmin)}"),
-                    _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Local.CacheSettings.Connection.InstanceName)}")
+                    _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings.Connection.Endpoint)}"),
+                    _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings.Connection.Port)}"),
+                    _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings.Connection.Password)}"),
+                    _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings.Connection.Ssl)}"),
+                    _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings.Connection.DefaultDb)}"),
+                    _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings.Connection.AbortConnect)}"),
+                    _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings.Connection.AllowAdmin)}"),
+                    _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings.Connection)}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings.Connection.InstanceName)}")
                 );
 
                 var connectionString = $"{endpoint}{Constants.Colon}{port}";
@@ -218,6 +219,8 @@ public static class Program {
                 options.InstanceName = instanceName;
             });
 
+        builder.Services.AddOptions();
+        
         builder.Services.AddScoped<RecaptchaAuthorize>();
         builder.Services.AddScoped<TwoFactorAuthorize>();
         builder.Services.AddScoped<RoleAuthorize>();
@@ -225,18 +228,15 @@ public static class Program {
 
         var app = builder.Build();
 
-        app.UseMiddleware<GlobalErrorHandler>();
-
-        app.UseSwagger();
-        app.UseSwaggerUI(options => options.SwaggerEndpoint($"/swagger/{apiVersion}/swagger.json", $"{apiName} {apiVersion}"));
-
         app.UseAuthentication();
         app.UseSession();
+        
+        app.UseSwagger();
+        app.UseSwaggerUI(options => options.SwaggerEndpoint($"/swagger/{apiVersion}/swagger.json", $"{apiName} {apiVersion}"));
+        
+        app.UseMiddleware<GlobalErrorHandler>();
 
-        app.UseRouting();
-        app.UseHttpsRedirection();
         app.UseCookiePolicy();
-        app.UseAuthorization();
         
         var corsOrigins = _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.SessionSettings.CorsOrigins)}");
         app.UseCors(options =>
@@ -245,6 +245,10 @@ public static class Program {
                    .AllowCredentials()
                    .WithOrigins(corsOrigins!.Split(Constants.Comma))
         );
+        
+        app.UseHttpsRedirection();
+        app.UseRouting();
+        app.UseAuthorization();
         
         if (!environment.Equals(Constants.Local)) {
             var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
@@ -280,7 +284,6 @@ public static class Program {
     private static void ConfigureContainer(ContainerBuilder builder) {
         builder.RegisterInstance(builder).As<ContainerBuilder>();
         builder.RegisterInstance(_configuration).As<IConfiguration>();
-        builder.RegisterType<HttpContextAccessor>().As<IHttpContextAccessor>().SingleInstance();
         
         var useLongerId = bool.Parse(_configuration.GetValue<string>($"{nameof(Halogen)}{Constants.Underscore}{nameof(Ecosystem.UseLongerId)}")!);
         builder.RegisterInstance(new Ecosystem {

@@ -40,7 +40,7 @@ public sealed class JwtService: AppServiceBase, IJwtService {
             DateTime.UtcNow,
             DateTime.UtcNow.AddMinutes(int.Parse(expiration!)),
             new SigningCredentials(
-                new SymmetricSecurityKey(signingKeys!.Split(Constants.Semicolon)[0].EncodeDataAscii()),
+                new SymmetricSecurityKey(signingKeys!.EncodeDataUtf8()),
                 SecurityAlgorithms.HmacSha512Signature
             )
         );

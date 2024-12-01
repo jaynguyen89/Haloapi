@@ -9,7 +9,7 @@ public sealed class HttpHeaderKeys {
 
     public string AccountId;
 
-    public string AuthorizationToken;
+    public string AccessToken;
 
     public string Authorization;
 #pragma warning restore CS0649
