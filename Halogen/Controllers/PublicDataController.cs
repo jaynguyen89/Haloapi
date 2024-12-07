@@ -40,66 +40,68 @@ public sealed class PublicDataController: AppController {
     /// </remarks>
     /// <response code="200">
     /// Successful request with data as follows:
+    /// <code>
     /// {
     ///     environment: string,
     ///     secretCodeEnabled: boolean,
     ///     secretCodeLength: number,
-    ///     dateFormats: Array<{
+    ///     dateFormats: Array:{
     ///         index: number,
     ///         display: string,
-    ///     }>,
-    ///     timeFormats: Array<{
+    ///     },
+    ///     timeFormats: Array:{
     ///         index: number,
     ///         display: string,
-    ///     }>,
-    ///     numberFormats: Array<{
+    ///     },
+    ///     numberFormats: Array:{
     ///         index: number,
     ///         display: string,
-    ///     }>,
-    ///     genders: Array<{
+    ///     },
+    ///     genders: Array:{
     ///         index: number,
     ///         display: string,
-    ///     }>,
-    ///     languages: Array<{
+    ///     },
+    ///     languages: Array:{
     ///         code: string,
     ///         display: string,
-    ///     }>,
-    ///     themes: Array<{
+    ///     },
+    ///     themes: Array:{
     ///         index: number,
     ///         display: string,
-    ///     }>,
-    ///     nameFormats: Array<{
+    ///     },
+    ///     nameFormats: Array:{
     ///         index: number,
     ///         display: string,
-    ///     }>,
-    ///     birthFormats: Array<{
+    ///     },
+    ///     birthFormats: Array:{
     ///         index: number,
     ///         display: string,
-    ///     }>,
-    ///     phoneNumberFormats: Array<{
+    ///     },
+    ///     phoneNumberFormats: Array:{
     ///         index: number,
     ///         display: string,
-    ///     }>,
-    ///     unitSystems: Array<{
+    ///     },
+    ///     unitSystems: Array:{
     ///         index: number,
     ///         display: string,
-    ///     }>,
-    ///     careerFormats: Array<{
+    ///     },
+    ///     careerFormats: Array:{
     ///         index: number,
     ///         display: string,
-    ///     }>,
-    ///     visibilityFormats: Array<{
+    ///     },
+    ///     visibilityFormats: Array:{
     ///         index: number,
     ///         display: string,
-    ///     }>,
-    ///     countries: Array<{
+    ///     },
+    ///     countries: Array:{
     ///         name: string,
     ///         isoCode2Char: string,
     ///         isoCode3Char: string,
     ///         telephoneCode: string,
-    ///     }>,
-    ///     supportedSocialAccounts: Array<string>,
+    ///     },
+    ///     supportedSocialAccounts: Array:string,
     /// }
+    /// </code>
     /// </response>
     /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [HttpGet("enums")]

@@ -32,6 +32,22 @@ public sealed class AccountController: AppController {
         _accountService = haloServiceFactory.GetService<AccountService>(Enums.ServiceType.DbService) ?? throw new HaloArgumentNullException<AccountController>(nameof(AccountService));
     }
 
+    /// <summary>
+    /// For guest. To check if the Email Address is unique in Halogen database.
+    /// </summary>
+    /// <remarks>
+    /// Request signature:
+    /// <!--
+    /// <code>
+    ///     GET /check-email-availability/{emailAddress}
+    ///     Headers
+    ///         RecaptchaToken: string
+    /// </code>
+    /// -->
+    /// </remarks>
+    /// <param name="emailAddress">The Email Address to be checked.</param>
+    /// <response code="200" data="isEmailAvailable:boolean">Successful request.</response>
+    /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [ServiceFilter(typeof(RecaptchaAuthorize))]
     [HttpGet("check-email-availability/{emailAddress}")]
     public async Task<IActionResult> IsEmailAddressAvailable([FromRoute] string emailAddress) {

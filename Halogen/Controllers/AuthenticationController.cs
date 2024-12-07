@@ -228,7 +228,7 @@ public sealed class AuthenticationController: AppController {
 
     /// <summary>
     /// For guest. To send a Secret Code to Email Address or Phone Number, whichever is the main credential set by user if they have both.
-    /// The Secret Code will be sent <b>only</b> if the Account or Profile has an <u>active<u> Token for Account validation.
+    /// The Secret Code will be sent <b>only</b> if the Account or Profile has an <u>active</u> Token for Account validation.
     /// This endpoint is configurable on or off and protected by Google Recaptcha.
     /// </summary>
     /// <remarks>
@@ -330,7 +330,7 @@ public sealed class AuthenticationController: AppController {
     /// <summary>
     /// For guest. To forward the Token for Account validation to the other credential, which is Phone Number or Email Address if they don't have access to the current credential.
     /// Only the Tokens for Account Recovery and One-Time Password can be forwarded. The other Tokens should be renewed, meaning it is bounded to the credential.
-    /// The Token can <b>only</b> be forwarded if it is existed <b>and</b> <u>not<u/> expired.
+    /// The Token can <b>only</b> be forwarded if it is existed <b>and</b> <u>not</u> expired.
     /// This endpoint is protected by Google Recaptcha and Secret Code.
     /// </summary>
     /// <remarks>
@@ -715,46 +715,45 @@ public sealed class AuthenticationController: AppController {
     /// -->
     /// </remarks>
     /// <param name="authenticationData">The data required for login.</param>
-    /// <returns>
-    /// Successful login receives data in the following format:
+    /// <response code="200">
+    /// Successful request with data as follows:
     /// <code>
-    ///     {
-    ///         accountId: string,
-    ///         roles: Array<number>, // expects an array of enums
-    ///         bearerToken: string,
-    ///         authorizationToken: string,
-    ///         refreshToken: string,
-    ///         authorizedTimestamp: number,
-    ///         validityDuration: number,
-    ///         twoFactorConfirmed?: boolean,
-    ///         isPreAuthorization: false,
-    ///     }
+    /// {
+    ///     accountId: string,
+    ///     roles: Array:number, // expects an array of enums
+    ///     bearerToken: string,
+    ///     authorizationToken: string,
+    ///     refreshToken: string,
+    ///     authorizedTimestamp: number,
+    ///     validityDuration: number,
+    ///     twoFactorConfirmed?: boolean,
+    ///     isPreAuthorization: false,
+    /// }
     /// </code>
-    /// </returns>
-    /// <response code="200">Successful request.</response>
+    /// </response>
     /// <response code="400">Bad Request - The validation for login data was failed.</response>
     /// <response code="422">Unprocessable Content - The Account has not been activated.</response>
     /// <response code="409">
-    ///     Conflict - The Password is incorrect.
-    ///     This Status Code comes with the following Response Body:
-    ///     <code>
-    ///         {
-    ///             loginFailedCount: number,
-    ///             lockOutCount: number,
-    ///         }
-    ///     </code>
+    /// Conflict - The Password is incorrect.
+    /// This Status Code comes with the following Response Body:
+    /// <code>
+    /// {
+    ///     loginFailedCount: number,
+    ///     lockOutCount: number,
+    /// }
+    /// </code>
     /// </response>
     /// <response code="423">
-    ///     Locked - The Account has been locked out or suspended due to many attempts of failed logins.
-    ///     This Status Code comes with the following Response Body:
-    ///     <code>
-    ///         {
-    ///             isSuspended: boolean,
-    ///             timestamp: number,
-    ///             loginFailedCount: number,
-    ///             lockOutCount: number,
-    ///         }
-    ///     </code>
+    /// Locked - The Account has been locked out or suspended due to many attempts of failed logins.
+    /// This Status Code comes with the following Response Body:
+    /// <code>
+    /// {
+    ///     isSuspended: boolean,
+    ///     timestamp: number,
+    ///     loginFailedCount: number,
+    ///     lockOutCount: number,
+    /// }
+    /// </code>
     /// </response>
     /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [ServiceFilter(typeof(RecaptchaAuthorize))]
@@ -842,31 +841,30 @@ public sealed class AuthenticationController: AppController {
     /// -->
     /// </remarks>
     /// <param name="loginInformation">The data required for login.</param>
-    /// <returns>
-    /// Successful login receives data in the following format:
+    /// <response code="200">
+    /// Successful request with data as follows:
     /// <code>
-    ///     {
-    ///         accountId: string,
-    ///         authorizationToken: string,
-    ///         authorizedTimestamp: number,
-    ///         isPreAuthorization: true,
-    ///     }
+    /// {
+    ///     accountId: string,
+    ///     authorizationToken: string,
+    ///     authorizedTimestamp: number,
+    ///     isPreAuthorization: true,
+    /// }
     /// </code>
-    /// </returns>
-    /// <response code="200">Successful request.</response>
+    /// </response>
     /// <response code="400">Bad Request - The validation for login data was failed.</response>
     /// <response code="422">Unprocessable Content - The Account has not been activated.</response>
     /// <response code="423">
-    ///     Locked - The Account has been locked out or suspended due to many attempts of failed logins.
-    ///     This Status Code comes with the following Response Body:
-    ///     <code>
-    ///         {
-    ///             isSuspended: boolean,
-    ///             timestamp: number,
-    ///             loginFailedCount: number,
-    ///             lockOutCount: number,
-    ///         }
-    ///     </code>
+    /// Locked - The Account has been locked out or suspended due to many attempts of failed logins.
+    /// This Status Code comes with the following Response Body:
+    /// <code>
+    /// {
+    ///     isSuspended: boolean,
+    ///     timestamp: number,
+    ///     loginFailedCount: number,
+    ///     lockOutCount: number,
+    /// }
+    /// </code>
     /// </response>
     /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [ServiceFilter(typeof(RecaptchaAuthorize))]
@@ -995,45 +993,44 @@ public sealed class AuthenticationController: AppController {
     /// </remarks>
     /// <param name="accountId">The Account ID of the Pre-Authenticated User.</param>
     /// <param name="oneTimePassword">The One-Time Password.</param>
-    /// <returns>
-    /// Successful login receives data in the following format:
+    /// <response code="200">
+    /// Successful request with data as follows:
     /// <code>
-    ///     {
-    ///         accountId: string,
-    ///         roles: Array<number>, // expects an array of enums
-    ///         bearerToken: string,
-    ///         authorizationToken: string,
-    ///         refreshToken: string,
-    ///         authorizedTimestamp: number,
-    ///         validityDuration: number,
-    ///         twoFactorConfirmed?: boolean,
-    ///         isPreAuthorization: false,
-    ///     }
+    /// {
+    ///     accountId: string,
+    ///     roles: Array:number, // expects an array of enums
+    ///     bearerToken: string,
+    ///     authorizationToken: string,
+    ///     refreshToken: string,
+    ///     authorizedTimestamp: number,
+    ///     validityDuration: number,
+    ///     twoFactorConfirmed?: boolean,
+    ///     isPreAuthorization: false,
+    /// }
     /// </code>
-    /// </returns>
-    /// <response code="200">Successful request.</response>
+    /// </response>
     /// <response code="410">Gone - The Pre-Authenticated data has expired.</response>
     /// <response code="409">
-    ///     Conflict - The Password is incorrect.
-    ///     This Status Code comes with the following Response Body:
-    ///     <code>
-    ///         {
-    ///             loginFailedCount: number,
-    ///             lockOutCount: number,
-    ///         }
-    ///     </code>
+    /// Conflict - The Password is incorrect.
+    /// This Status Code comes with the following Response Body:
+    /// <code>
+    /// {
+    ///     loginFailedCount: number,
+    ///     lockOutCount: number,
+    /// }
+    /// </code>
     /// </response>
     /// <response code="423">
-    ///     Locked - The Account has been locked out or suspended due to many attempts of failed logins.
-    ///     This Status Code comes with the following Response Body:
-    ///     <code>
-    ///         {
-    ///             isSuspended: boolean,
-    ///             timestamp: number,
-    ///             loginFailedCount: number,
-    ///             lockOutCount: number,
-    ///         }
-    ///     </code>
+    /// Locked - The Account has been locked out or suspended due to many attempts of failed logins.
+    /// This Status Code comes with the following Response Body:
+    /// <code>
+    /// {
+    ///     isSuspended: boolean,
+    ///     timestamp: number,
+    ///     loginFailedCount: number,
+    ///     lockOutCount: number,
+    /// }
+    /// </code>
     /// </response>
     /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [ServiceFilter(typeof(AuthenticatedAuthorize))]
@@ -1296,17 +1293,16 @@ public sealed class AuthenticationController: AppController {
     /// -->
     /// </remarks>
     /// <param name="accountId">The ID of Account to have Two-Factor Authentication feature enabled or renewed.</param>
-    /// <returns>
-    /// Successful request receives data in the following format:
+    /// <response code="200">
+    /// Successful request with data as follows:
     /// <code>
-    ///     {
-    ///         qrCodeImageUrl: string,
-    ///         manualEntryKey: string,
-    ///         verifyingTokens: Array<string>,
-    ///     }
+    /// {
+    ///     qrCodeImageUrl: string,
+    ///     manualEntryKey: string,
+    ///     verifyingTokens: Array:string,
+    /// }
     /// </code>
-    /// </returns>
-    /// <response code="200">Successful request.</response>
+    /// </response>
     /// <response code="422">Unprocessable Entity - The AccountId not referenced any records in database.</response>
     /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [ServiceFilter(typeof(AuthenticatedAuthorize))]

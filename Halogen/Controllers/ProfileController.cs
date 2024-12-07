@@ -45,7 +45,7 @@ public sealed class ProfileController: AppController {
     /// </code>
     /// -->
     /// </remarks>
-    /// <param name="phoneNumber"></param>
+    /// <param name="phoneNumber">The Phone Number to be checked.</param>
     /// <response code="200" data="isPhoneNumberAvailable:boolean">Successful request.</response>
     /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [ServiceFilter(typeof(RecaptchaAuthorize))]
