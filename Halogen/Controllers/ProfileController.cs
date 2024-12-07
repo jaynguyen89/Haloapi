@@ -32,6 +32,22 @@ public sealed class ProfileController: AppController {
         _profileService = haloServiceFactory.GetService<ProfileService>(Enums.ServiceType.DbService) ?? throw new HaloArgumentNullException<ProfileController>(nameof(ProfileService));
     }
 
+    /// <summary>
+    /// For guest. To check if the Phone Number is unique in Halogen database.
+    /// </summary>
+    /// <remarks>
+    /// Request signature:
+    /// <!--
+    /// <code>
+    ///     GET /check-phone-number-availability/{phoneNumber}
+    ///     Headers
+    ///         RecaptchaToken: string
+    /// </code>
+    /// -->
+    /// </remarks>
+    /// <param name="phoneNumber"></param>
+    /// <response code="200" data="isPhoneNumberAvailable:boolean">Successful request.</response>
+    /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [ServiceFilter(typeof(RecaptchaAuthorize))]
     [HttpGet("check-phone-number-availability/{phoneNumber}")]
     public async Task<IActionResult> IsPhoneNumberAvailable([FromRoute] string phoneNumber) {
@@ -44,4 +60,14 @@ public sealed class ProfileController: AppController {
             ? new ErrorResponse()
             : new SuccessResponse(new { isPhoneNumberAvailable = isPhoneNumberAvailable.Value });
     }
+
+    // [HttpGet("details")]
+    // public async Task<IActionResult> GetProfileDetails([FromHeader] string accountId) {
+    //     
+    // }
+    //
+    // [HttpPut("update")]
+    // public async Task<IActionResult> UpdateProfile() {
+    //     
+    // }
 }

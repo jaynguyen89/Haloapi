@@ -27,6 +27,81 @@ public sealed class PublicDataController: AppController {
         _localityService = haloServiceFactory.GetService<LocalityService>(Enums.ServiceType.DbService) ?? throw new HaloArgumentNullException<PublicDataController>(nameof(LocalityService));
     }
 
+    /// <summary>
+    /// For guest. To get the configuration settings from server side, which will be used to render UI content formats.
+    /// </summary>
+    /// <remarks>
+    /// Request signature:
+    /// <!--
+    /// <code>
+    ///     GET /enums
+    /// </code>
+    /// -->
+    /// </remarks>
+    /// <response code="200">
+    /// Successful request with data as follows:
+    /// {
+    ///     environment: string,
+    ///     secretCodeEnabled: boolean,
+    ///     secretCodeLength: number,
+    ///     dateFormats: Array<{
+    ///         index: number,
+    ///         display: string,
+    ///     }>,
+    ///     timeFormats: Array<{
+    ///         index: number,
+    ///         display: string,
+    ///     }>,
+    ///     numberFormats: Array<{
+    ///         index: number,
+    ///         display: string,
+    ///     }>,
+    ///     genders: Array<{
+    ///         index: number,
+    ///         display: string,
+    ///     }>,
+    ///     languages: Array<{
+    ///         code: string,
+    ///         display: string,
+    ///     }>,
+    ///     themes: Array<{
+    ///         index: number,
+    ///         display: string,
+    ///     }>,
+    ///     nameFormats: Array<{
+    ///         index: number,
+    ///         display: string,
+    ///     }>,
+    ///     birthFormats: Array<{
+    ///         index: number,
+    ///         display: string,
+    ///     }>,
+    ///     phoneNumberFormats: Array<{
+    ///         index: number,
+    ///         display: string,
+    ///     }>,
+    ///     unitSystems: Array<{
+    ///         index: number,
+    ///         display: string,
+    ///     }>,
+    ///     careerFormats: Array<{
+    ///         index: number,
+    ///         display: string,
+    ///     }>,
+    ///     visibilityFormats: Array<{
+    ///         index: number,
+    ///         display: string,
+    ///     }>,
+    ///     countries: Array<{
+    ///         name: string,
+    ///         isoCode2Char: string,
+    ///         isoCode3Char: string,
+    ///         telephoneCode: string,
+    ///     }>,
+    ///     supportedSocialAccounts: Array<string>,
+    /// }
+    /// </response>
+    /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [HttpGet("enums")]
     public async Task<IActionResult> GetPublicData() {
         _logger.Log(new LoggerBinding<PublicDataController> { Location = nameof(GetPublicData) });

@@ -31,7 +31,7 @@ public class CacheServiceFactory: AppServiceBase, ICacheServiceFactory {
         _ecosystem = ecosystem;
         _redisCache = redisCache;
         
-        _isMemoryCacheEnabled = bool.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{ecosystem.GetEnvironment()}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.MemoryCacheSettings.IsEnabled)}")!);
+        _isMemoryCacheEnabled = bool.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{ecosystem.GetEnvironment()}{Constants.Colon}{nameof(HalogenOptions.Local.MemoryCacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.MemoryCacheSettings.IsEnabled)}")!);
         _activeServiceName = _isMemoryCacheEnabled
             ? typeof(MemoryCache).AssemblyQualifiedName!
             : typeof(RedisCache).AssemblyQualifiedName!;

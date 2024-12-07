@@ -78,6 +78,41 @@ public sealed class AuthenticationController: AppController {
         _phoneNumberHandler = phoneNumberHandler;
     }
 
+    /// <summary>
+    /// For guest. To register new Account using Email Address or Phone Number. The Email Address or Phone Number must be unique.
+    /// The <c>role</c> will be <c>Enums.Role.Customer</c> by default. The Profile and Preference will be created with default database values.
+    /// </summary>
+    /// <remarks>
+    /// Request signature:
+    /// <!--
+    /// <code>
+    ///     POST /authentication/register-account
+    ///     Body
+    ///         {
+    ///             emailAddress?: string,
+    ///             phoneNumber?: {
+    ///                 regionCode: string,
+    ///                 phoneNumber: string,
+    ///             },
+    ///             password: string,
+    ///             passwordConfirm: string,
+    ///             username: string,
+    ///             profileData?: {
+    ///                 gender?: number, // expects an enum value, see Enums.Genders
+    ///                 givenName?: string,
+    ///                 middleName?: string,
+    ///                 familyName?: string,
+    ///                 fullName?: string,
+    ///             },
+    ///         }
+    /// </code>
+    /// -->
+    /// </remarks>
+    /// <param name="registrationData">The data required for creating new Account. See `RegistrationData`.</param>
+    /// <response code="201">Successful request.</response>
+    /// <response code="400">Bad request - Errors in `RegistrationData`.</response>
+    /// <response code="409">Conflict - The Email Address or Phone Number is not unique.</response>
+    /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [ServiceFilter(typeof(RecaptchaAuthorize))]
     [HttpPost("register-account")]
     public async Task<IActionResult> RegisterAccount([FromBody] RegistrationData registrationData) {
@@ -191,8 +226,32 @@ public sealed class AuthenticationController: AppController {
         return new SuccessResponse(HttpStatusCode.Created);
     }
 
+    /// <summary>
+    /// For guest. To send a Secret Code to Email Address or Phone Number, whichever is the main credential set by user if they have both.
+    /// The Secret Code will be sent <b>only</b> if the Account or Profile has an <u>active<u> Token for Account validation.
+    /// This endpoint is configurable on or off and protected by Google Recaptcha.
+    /// </summary>
+    /// <remarks>
+    /// Request signature:
+    /// <!--
+    /// <code>
+    ///     GET /send-secret-code?destination={number}
+    ///     Headers
+    ///         AccountId: string
+    ///         RecaptchaToken: string
+    /// </code>
+    /// -->
+    /// </remarks>
+    /// <param name="accountId">ID of the Account to receive the Secret Code.</param>
+    /// <param name="destination">An enum value indicating whether the Secret Code should be sent to Email Address or Phone Number.</param>
+    /// <response code="200">Successful request.</response>
+    /// <response code="100">Continue - This endpoint is disabled. Not necessary to send and verify the Secret Code. Client may continue its next frontend process.</response>
+    /// <response code="410">Gone - The Token for Account validation is existed but has expired.</response>
+    /// <response code="404">Not Found - The Token for Account validation is not existed.</response>
+    /// <response code="422">Unprocessable Entity - The Account has no information for the destination.</response>
+    /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [ServiceFilter(typeof(RecaptchaAuthorize))]
-    [HttpGet("send-secret-code")]
+    [HttpGet("send-secret-code/{destination}")]
     public async Task<IActionResult> SendSecretCode([FromHeader] string accountId, [FromQuery] Enums.TokenDestination destination) {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(SendSecretCode) });
 
@@ -268,7 +327,37 @@ public sealed class AuthenticationController: AppController {
         return new SuccessResponse();
     }
 
-
+    /// <summary>
+    /// For guest. To forward the Token for Account validation to the other credential, which is Phone Number or Email Address if they don't have access to the current credential.
+    /// Only the Tokens for Account Recovery and One-Time Password can be forwarded. The other Tokens should be renewed, meaning it is bounded to the credential.
+    /// The Token can <b>only</b> be forwarded if it is existed <b>and</b> <u>not<u/> expired.
+    /// This endpoint is protected by Google Recaptcha and Secret Code.
+    /// </summary>
+    /// <remarks>
+    /// Request signature:
+    /// <!--
+    /// <code>
+    ///     GET /forward-token
+    ///     Headers
+    ///         AccountId: string
+    ///         RecaptchaToken: string
+    ///     Body
+    ///         {
+    ///             destination: number, // expects an enum value, see Enums.TokenDestination
+    ///             isOtp: boolean,
+    ///             secretCode?: string,
+    ///         }
+    /// </code>
+    /// -->
+    /// </remarks>
+    /// <param name="accountId">ID of the Account to forward the Token.</param>
+    /// <param name="tokenData">The data required to determine the API behaviour.</param>
+    /// <response code="200">Successful request.</response>
+    /// <response code="400">Bad Request - The Secret Code is missing in Request Body.</response>
+    /// <response code="403">Forbidden - The Secret Code from client does not pass API validation.</response>
+    /// <response code="410">Gone - The Secret Code has expired.</response>
+    /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
+    /// <response code="501">Not Implemented - The SMS or Email services was unable to send message to `destination`.</response>
     [ServiceFilter(typeof(RecaptchaAuthorize))]
     [HttpGet("forward-token")]
     public async Task<IActionResult> ForwardToken([FromHeader] string accountId, [FromBody] TokenData tokenData) {
@@ -359,6 +448,38 @@ public sealed class AuthenticationController: AppController {
         return !result.Value ? new ErrorResponse(HttpStatusCode.NotImplemented) : new SuccessResponse();
     }
 
+    /// <summary>
+    /// For guest. To request (renew) their Account Activation Token when it was expired.
+    /// The Token can <b>only</b> be renewed if it has been expired, otherwise, an error will respond.
+    /// This endpoint is protected by Google Recaptcha and Secret Code.
+    /// </summary>
+    /// <remarks>
+    /// Request signature:
+    /// <!--
+    /// <code>
+    ///     PUT /renew-token
+    ///     Headers
+    ///         AccountId: string
+    ///         RecaptchaToken: string
+    ///     Body
+    ///         {
+    ///             destination: number, // expects an enum value, see Enums.TokenDestination
+    ///             secretCode?: string,
+    ///             currentToken: string,
+    ///         }
+    /// </code>
+    /// -->
+    /// </remarks>
+    /// <param name="accountId">ID of the Account to renew the Token.</param>
+    /// <param name="tokenData">The data required to determine the API behaviour.</param>
+    /// <response code="200">Successful request.</response>
+    /// <response code="400">Bad Request - The Secret Code is missing in Request Body.</response>
+    /// <response code="403">Forbidden - The Secret Code from client does not pass API validation.</response>
+    /// <response code="410">Gone - The Secret Code has expired.</response>
+    /// <response code="409">Conflict - The current Token sent by client does not match the Account's Token.</response>
+    /// <response code="416">Requested Range Not Satisfiable - The Token has not expired, so not renewable.</response>
+    /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
+    /// <response code="501">Not Implemented - The SMS or Email services was unable to send message to `destination`.</response>
     [ServiceFilter(typeof(RecaptchaAuthorize))]
     [HttpPut("renew-token")]
     public async Task<IActionResult> RenewRegistrationToken([FromHeader] string accountId, [FromBody] TokenData tokenData) {
@@ -461,6 +582,35 @@ public sealed class AuthenticationController: AppController {
         return new SuccessResponse();
     }
 
+    /// <summary>
+    /// For guest. To activate their newly created account. This endpoint is protected by Google Recaptcha and Secret Code.
+    /// </summary>
+    /// <remarks>
+    /// Request signature:
+    /// <!--
+    /// <code>
+    ///     PUT /activate-account
+    ///     Headers
+    ///         AccountId: string
+    ///         RecaptchaToken: string
+    ///     Body
+    ///         {
+    ///             destination: number, // expects an enum value, see Enums.TokenDestination
+    ///             secretCode?: string,
+    ///             currentToken: string,
+    ///         }
+    /// </code>
+    /// -->
+    /// </remarks>
+    /// <param name="accountId">ID of the Account to be activated.</param>
+    /// <param name="tokenData">The data required for Account Activation.</param>
+    /// <response code="200">Successful request.</response>
+    /// <response code="400">Bad Request - The Secret Code is missing in Request Body.</response>
+    /// <response code="403">Forbidden - The Secret Code from client does not pass API validation.</response>
+    /// <response code="410" data="secret-code">Gone - The Secret Code has expired.</response>
+    /// <response code="409">Conflict - The Activation Token sent by client does not match the Account's Token.</response>
+    /// <response code="410" data="activation-token">The Activation Token has expired.</response>
+    /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [ServiceFilter(typeof(RecaptchaAuthorize))]
     [HttpPut("activate-account")]
     public async Task<ActionResult> ActivateAccount([FromHeader] string accountId, [FromBody] TokenData tokenData) {
@@ -533,6 +683,80 @@ public sealed class AuthenticationController: AppController {
         return new SuccessResponse();
     }
 
+    /// <summary>
+    /// For Customer. To perform login using Email Address or Phone Number, and Password.
+    /// </summary>
+    /// <remarks>
+    /// Request signature:
+    /// <!--
+    /// <code>
+    ///     POST /authenticate-by-credentials
+    ///     Body
+    ///         {
+    ///             emailAddress?: string,
+    ///             phoneNumber?: {
+    ///                 regionCode: string,
+    ///                 phoneNumber: string,
+    ///             },
+    ///             password: string,
+    ///             isTrusted: boolean,
+    ///             deviceInformation?: {
+    ///                 name?: string,
+    ///                 deviceType?: string,
+    ///                 uniqueIdentifier?: string,
+    ///                 uniqueIdentifierType?: string,
+    ///                 location?: string,
+    ///                 ipAddress?: string,
+    ///                 operatingSystem?: string,
+    ///                 browserType?: string,
+    ///             },
+    ///         }
+    /// </code>
+    /// -->
+    /// </remarks>
+    /// <param name="authenticationData">The data required for login.</param>
+    /// <returns>
+    /// Successful login receives data in the following format:
+    /// <code>
+    ///     {
+    ///         accountId: string,
+    ///         roles: Array<number>, // expects an array of enums
+    ///         bearerToken: string,
+    ///         authorizationToken: string,
+    ///         refreshToken: string,
+    ///         authorizedTimestamp: number,
+    ///         validityDuration: number,
+    ///         twoFactorConfirmed?: boolean,
+    ///         isPreAuthorization: false,
+    ///     }
+    /// </code>
+    /// </returns>
+    /// <response code="200">Successful request.</response>
+    /// <response code="400">Bad Request - The validation for login data was failed.</response>
+    /// <response code="422">Unprocessable Content - The Account has not been activated.</response>
+    /// <response code="409">
+    ///     Conflict - The Password is incorrect.
+    ///     This Status Code comes with the following Response Body:
+    ///     <code>
+    ///         {
+    ///             loginFailedCount: number,
+    ///             lockOutCount: number,
+    ///         }
+    ///     </code>
+    /// </response>
+    /// <response code="423">
+    ///     Locked - The Account has been locked out or suspended due to many attempts of failed logins.
+    ///     This Status Code comes with the following Response Body:
+    ///     <code>
+    ///         {
+    ///             isSuspended: boolean,
+    ///             timestamp: number,
+    ///             loginFailedCount: number,
+    ///             lockOutCount: number,
+    ///         }
+    ///     </code>
+    /// </response>
+    /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [ServiceFilter(typeof(RecaptchaAuthorize))]
     [HttpPost("authenticate-by-credentials")]
     public async Task<IActionResult> AuthenticateByCredentials([FromBody] AuthenticationData authenticationData) {
@@ -598,6 +822,53 @@ public sealed class AuthenticationController: AppController {
         return new SuccessResponse(authenticatedUser);
     }
 
+    /// <summary>
+    /// For Customer. To perform login using a One-Time Password.
+    /// </summary>
+    /// <remarks>
+    /// Request signature:
+    /// <!--
+    /// <code>
+    ///     POST /authenticate-by-credentials
+    ///     Body
+    ///         {
+    ///             emailAddress?: string,
+    ///             phoneNumber?: {
+    ///                 regionCode: string,
+    ///                 phoneNumber: string,
+    ///             },
+    ///         }
+    /// </code>
+    /// -->
+    /// </remarks>
+    /// <param name="loginInformation">The data required for login.</param>
+    /// <returns>
+    /// Successful login receives data in the following format:
+    /// <code>
+    ///     {
+    ///         accountId: string,
+    ///         authorizationToken: string,
+    ///         authorizedTimestamp: number,
+    ///         isPreAuthorization: true,
+    ///     }
+    /// </code>
+    /// </returns>
+    /// <response code="200">Successful request.</response>
+    /// <response code="400">Bad Request - The validation for login data was failed.</response>
+    /// <response code="422">Unprocessable Content - The Account has not been activated.</response>
+    /// <response code="423">
+    ///     Locked - The Account has been locked out or suspended due to many attempts of failed logins.
+    ///     This Status Code comes with the following Response Body:
+    ///     <code>
+    ///         {
+    ///             isSuspended: boolean,
+    ///             timestamp: number,
+    ///             loginFailedCount: number,
+    ///             lockOutCount: number,
+    ///         }
+    ///     </code>
+    /// </response>
+    /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [ServiceFilter(typeof(RecaptchaAuthorize))]
     [HttpPost("authenticate-by-otp")]
     public async Task<IActionResult> AuthenticateByOneTimePassword([FromBody] LoginInformation loginInformation) {
@@ -612,6 +883,8 @@ public sealed class AuthenticationController: AppController {
         var authenticateByEmailAddress = loginInformation.EmailAddress.IsString();
         var dataError = VerifyAccountAndProfileData(account, profile, authenticateByEmailAddress);
         if (dataError is not null) return dataError;
+
+        // Todo: implement trusted device authorization, check if it should be done here or the method below
         
         if (
             (
@@ -689,6 +962,80 @@ public sealed class AuthenticationController: AppController {
         return new SuccessResponse(preAuthenticatedUser);
     }
 
+    /// <summary>
+    /// For Customer. To perform login using a One-Time Password.
+    /// </summary>
+    /// <remarks>
+    /// Request signature:
+    /// <!--
+    /// <code>
+    ///     POST /authenticate-by-credentials
+    ///     Body
+    ///         {
+    ///             emailAddress?: string,
+    ///             phoneNumber?: {
+    ///                 regionCode: string,
+    ///                 phoneNumber: string,
+    ///             },
+    ///             password: string,
+    ///             isTrusted: boolean,
+    ///             deviceInformation?: {
+    ///                 name?: string,
+    ///                 deviceType?: string,
+    ///                 uniqueIdentifier?: string,
+    ///                 uniqueIdentifierType?: string,
+    ///                 location?: string,
+    ///                 ipAddress?: string,
+    ///                 operatingSystem?: string,
+    ///                 browserType?: string,
+    ///             },
+    ///         }
+    /// </code>
+    /// -->
+    /// </remarks>
+    /// <param name="accountId">The Account ID of the Pre-Authenticated User.</param>
+    /// <param name="oneTimePassword">The One-Time Password.</param>
+    /// <returns>
+    /// Successful login receives data in the following format:
+    /// <code>
+    ///     {
+    ///         accountId: string,
+    ///         roles: Array<number>, // expects an array of enums
+    ///         bearerToken: string,
+    ///         authorizationToken: string,
+    ///         refreshToken: string,
+    ///         authorizedTimestamp: number,
+    ///         validityDuration: number,
+    ///         twoFactorConfirmed?: boolean,
+    ///         isPreAuthorization: false,
+    ///     }
+    /// </code>
+    /// </returns>
+    /// <response code="200">Successful request.</response>
+    /// <response code="410">Gone - The Pre-Authenticated data has expired.</response>
+    /// <response code="409">
+    ///     Conflict - The Password is incorrect.
+    ///     This Status Code comes with the following Response Body:
+    ///     <code>
+    ///         {
+    ///             loginFailedCount: number,
+    ///             lockOutCount: number,
+    ///         }
+    ///     </code>
+    /// </response>
+    /// <response code="423">
+    ///     Locked - The Account has been locked out or suspended due to many attempts of failed logins.
+    ///     This Status Code comes with the following Response Body:
+    ///     <code>
+    ///         {
+    ///             isSuspended: boolean,
+    ///             timestamp: number,
+    ///             loginFailedCount: number,
+    ///             lockOutCount: number,
+    ///         }
+    ///     </code>
+    /// </response>
+    /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [ServiceFilter(typeof(AuthenticatedAuthorize))]
     //[ServiceFilter(typeof(RecaptchaAuthorize))]
     [HttpPost("verify-otp")]
@@ -760,6 +1107,10 @@ public sealed class AuthenticationController: AppController {
         return new SuccessResponse(authenticatedUser);
     }
 
+    /// <summary>
+    /// Enpoint not implemented yet. Intended to automatically create user authentication data and session using cookies.
+    /// </summary>
+    /// <exception cref="NotImplementedException"></exception>
     [ServiceFilter(typeof(RecaptchaAuthorize))]
     [HttpPost("authenticate-by-cookies")]
     public async Task<IActionResult> AuthenticateByCookies() {
@@ -769,6 +1120,33 @@ public sealed class AuthenticationController: AppController {
         throw new NotImplementedException();
     }
 
+    /// <summary>
+    /// For guest. To request a Token to recover their Account due to forgotten password.
+    /// The Account must have been activated, and is not locked out or suspended from using login feature.
+    /// </summary>
+    /// <remarks>
+    /// Request signature:
+    /// <!--
+    /// <code>
+    ///     POST /forgot-password
+    ///     Headers
+    ///         RecaptchaToken: string
+    ///     Body
+    ///         {
+    ///             emailAddress?: string,
+    ///             phoneNumber?: {
+    ///                 regionCode: string,
+    ///                 phoneNumber: string,
+    ///             },
+    ///         }
+    /// </code>
+    /// -->
+    /// </remarks>
+    /// <param name="loginInformation">The data required to recover password.</param>
+    /// <response code="200">Successful request.</response>
+    /// <response code="400">Bad Request - The validation for credential data was failed.</response>
+    /// <response code="423">Locked - The Account is not yet activated, or is locked out or suspended.</response>
+    /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [ServiceFilter(typeof(RecaptchaAuthorize))]
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword([FromBody] LoginInformation loginInformation) {
@@ -838,6 +1216,36 @@ public sealed class AuthenticationController: AppController {
         return new SuccessResponse();
     }
 
+    /// <summary>
+    /// For guest. To set new password after requesting to recover their account due to forgotten password.
+    /// The Account must have been activated, and is not locked out or suspended from using login feature.
+    /// </summary>
+    /// <remarks>
+    /// Request signature:
+    /// <!--
+    /// <code>
+    ///     PATCH /recover-account/recoveryToken={string}
+    ///     Headers
+    ///         RecaptchaToken: string
+    ///     Body
+    ///         {
+    ///             emailAddress?: string,
+    ///             phoneNumber?: {
+    ///                 regionCode: string,
+    ///                 phoneNumber: string,
+    ///             },
+    ///             password: string,
+    ///         }
+    /// </code>
+    /// -->
+    /// </remarks>
+    /// <param name="registrationData">The data required to reset password.</param>
+    /// <param name="recoveryToken">The Token required to reactivate account.</param>
+    /// <response code="200">Successful request.</response>
+    /// <response code="400">Bad Request - The validation for registration data was failed.</response>
+    /// <response code="409">Conflict - The recovery Token is mismatched or expired.</response>
+    /// <response code="423">Locked - The Account is not yet activated, or is locked out or suspended.</response>
+    /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [ServiceFilter(typeof(RecaptchaAuthorize))]
     [HttpPatch("recover-account/{recoveryToken}")]
     public async Task<IActionResult> RecoverAccount([FromBody] RegistrationData registrationData, [FromRoute] string recoveryToken) {
@@ -872,9 +1280,38 @@ public sealed class AuthenticationController: AppController {
         return !result.HasValue || !result.Value ? new ErrorResponse() : new SuccessResponse();
     }
 
+    /// <summary>
+    /// For all roles. To enable or renew the Two-Factor Authentication on their Account. The user must have been logged in.
+    /// </summary>
+    /// <remarks>
+    /// Request signature:
+    /// <!--
+    /// <code>
+    ///     PATCH /enable-or-renew-two-factor-authentication
+    ///     Headers
+    ///         AccountId: string
+    ///         Authorization: "Bearer {string}"
+    ///         AccessToken: string
+    /// </code>
+    /// -->
+    /// </remarks>
+    /// <param name="accountId">The ID of Account to have Two-Factor Authentication feature enabled or renewed.</param>
+    /// <returns>
+    /// Successful request receives data in the following format:
+    /// <code>
+    ///     {
+    ///         qrCodeImageUrl: string,
+    ///         manualEntryKey: string,
+    ///         verifyingTokens: Array<string>,
+    ///     }
+    /// </code>
+    /// </returns>
+    /// <response code="200">Successful request.</response>
+    /// <response code="422">Unprocessable Entity - The AccountId not referenced any records in database.</response>
+    /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [ServiceFilter(typeof(AuthenticatedAuthorize))]
     [ServiceFilter(typeof(RecaptchaAuthorize))]
-    [ServiceFilter(typeof(TwoFactorAuthorize))]
+    // [ServiceFilter(typeof(TwoFactorAuthorize))]
     [HttpPatch("enable-or-renew-two-factor-authentication")]
     public async Task<IActionResult> EnableOrRenewTwoFactorAuthentication([FromHeader] string accountId) {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(EnableOrRenewTwoFactorAuthentication) });
@@ -911,10 +1348,32 @@ public sealed class AuthenticationController: AppController {
             : new SuccessResponse(new {
                 qrCodeImageUrl = twoFactorData.QrCodeImageUrl,
                 manualEntryKey = twoFactorData.ManualEntryKey,
-                verifyingTokens = twoFactorVerifyingTokens
+                verifyingTokens = twoFactorVerifyingTokens,
             });
     }
     
+    /// <summary>
+    /// For all roles. To disable the Two-Factor Authentication on their Account. The user must have been logged in.
+    /// </summary>
+    /// <remarks>
+    /// Request signature:
+    /// <!--
+    /// <code>
+    ///     PATCH /disable-two-factor-authentication/twoFactorVerifyingToken={string}
+    ///     Headers
+    ///         AccountId: string
+    ///         Authorization: "Bearer {string}"
+    ///         AccessToken: string
+    ///         RecaptchaToken: string
+    /// </code>
+    /// -->
+    /// </remarks>
+    /// <param name="twoFactorVerifyingToken">The Token that was issued when enabling the feature.</param>
+    /// <param name="accountId">The ID of Account to have Two-Factor Authentication disabled.</param>
+    /// <response code="200">Successful request.</response>
+    /// <response code="400">Bad Request - The feature is not yet enabled.</response>
+    /// <response code="403">Forbidden - The verifying Token is mismatched.</response>
+    /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [ServiceFilter(typeof(AuthenticatedAuthorize))]
     [ServiceFilter(typeof(RecaptchaAuthorize))]
     [ServiceFilter(typeof(TwoFactorAuthorize))]
@@ -938,6 +1397,31 @@ public sealed class AuthenticationController: AppController {
         return !result.HasValue || !result.Value ? new ErrorResponse() : new SuccessResponse();
     }
 
+    /// <summary>
+    /// For all roles. To verify the Two-Factor Token. The user must have been logged in.
+    /// </summary>
+    /// <remarks>
+    /// Request signature:
+    /// <!--
+    /// <code>
+    ///     POST /verify-tfa
+    ///     Headers
+    ///         AccountId: string
+    ///         Authorization: "Bearer {string}"
+    ///         AccessToken: string
+    ///         RecaptchaToken: string
+    ///         TwoFactorToken: string
+    /// </code>
+    /// -->
+    /// </remarks>
+    /// <param name="twoFactorToken">The Two-Factor Token sent from client to be verified.</param>
+    /// <param name="accountId">The ID of Account to have Two-Factor Token verified.</param>
+    /// <response code="200">Successful request.</response>
+    /// <response code="100">Continue - The Two-Factor Authentication service or the Account's Two-Factor setting is not enabled.</response>
+    /// <response code="400">Bad Request - The Two-Factor Token is missing in the request.</response>
+    /// <response code="401">Unauthorized - The Two-Factor Token validation is failed.</response>
+    /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
+    /// <response code="501">Not Implemented - The Two-Factor secret key can't be found from database.</response>
     [ServiceFilter(typeof(AuthenticatedAuthorize))]
     [ServiceFilter(typeof(RecaptchaAuthorize))]
     [HttpPost("verify-tfa")]

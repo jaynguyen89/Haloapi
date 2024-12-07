@@ -6,7 +6,7 @@ public sealed class DeviceInformation {
     
     public string? DeviceType { get; set; } // PC, Mac, iPhone, iPad, Android tablet
     
-    public string? UniqueIdentifier { get; set; }
+    public string? UniqueIdentifier { get; set; } // May be any unique device ID (ie. Serial No., Product Code, PIN...)
     
     public string? UniqueIdentifierType { get; set; }
     
