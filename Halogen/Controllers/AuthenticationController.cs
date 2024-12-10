@@ -79,6 +79,64 @@ public sealed class AuthenticationController: AppController {
     }
 
     /// <summary>
+    /// For guest. To check if the Email Address is unique in Halogen database.
+    /// </summary>
+    /// <remarks>
+    /// Request signature:
+    /// <!--
+    /// <code>
+    ///     GET /check-email-availability/{emailAddress}
+    ///     Headers
+    ///         RecaptchaToken: string
+    /// </code>
+    /// -->
+    /// </remarks>
+    /// <param name="emailAddress">The Email Address to be checked.</param>
+    /// <response code="200" data="isEmailAvailable:boolean">Successful request.</response>
+    /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
+    [ServiceFilter(typeof(RecaptchaAuthorize))]
+    [HttpGet("check-email-availability/{emailAddress}")]
+    public async Task<IActionResult> IsEmailAddressAvailable([FromRoute] string emailAddress) {
+        _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(IsEmailAddressAvailable) });
+
+        if (!emailAddress.IsString()) return new ErrorResponse(HttpStatusCode.BadRequest);
+
+        var isEmailAvailable = await _accountService.IsEmailAddressAvailableForNewAccount(emailAddress);
+        return !isEmailAvailable.HasValue
+            ? new ErrorResponse()
+            : new SuccessResponse(new { isEmailAvailable = isEmailAvailable.Value });
+    }
+
+    /// <summary>
+    /// For guest. To check if the Phone Number is unique in Halogen database.
+    /// </summary>
+    /// <remarks>
+    /// Request signature:
+    /// <!--
+    /// <code>
+    ///     GET /check-phone-number-availability/{phoneNumber}
+    ///     Headers
+    ///         RecaptchaToken: string
+    /// </code>
+    /// -->
+    /// </remarks>
+    /// <param name="phoneNumber">The Phone Number to be checked.</param>
+    /// <response code="200" data="isPhoneNumberAvailable:boolean">Successful request.</response>
+    /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
+    [ServiceFilter(typeof(RecaptchaAuthorize))]
+    [HttpGet("check-phone-number-availability/{phoneNumber}")]
+    public async Task<IActionResult> IsPhoneNumberAvailable([FromRoute] string phoneNumber) {
+        _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(IsPhoneNumberAvailable) });
+        
+        if (!phoneNumber.IsString()) return new ErrorResponse(HttpStatusCode.BadRequest);
+
+        var isPhoneNumberAvailable = await _profileService.IsPhoneNumberAvailableForNewAccount(phoneNumber);
+        return !isPhoneNumberAvailable.HasValue
+            ? new ErrorResponse()
+            : new SuccessResponse(new { isPhoneNumberAvailable = isPhoneNumberAvailable.Value });
+    }
+
+    /// <summary>
     /// For guest. To register new Account using Email Address or Phone Number. The Email Address or Phone Number must be unique.
     /// The <c>role</c> will be <c>Enums.Role.Customer</c> by default. The Profile and Preference will be created with default database values.
     /// </summary>
