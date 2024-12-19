@@ -10,7 +10,7 @@ public class LoginInformation {
 
     public RegionalizedPhoneNumber? PhoneNumber { get; set; }
 
-    public async Task<Dictionary<string, List<string>>> VerifyLoginInformation(RegionalizedPhoneNumberHandler phoneNumberHandler) {
+    public async Task<Dictionary<string, List<string>>> VerifyLoginInformation(RegionalizedPhoneNumberHandler? phoneNumberHandler = null) {
         var emailAddressErrors = new List<string>();
 
         EmailAddress = Regex.Replace(EmailAddress?.Trim().ToLower() ?? string.Empty, Constants.MultiSpace, string.Empty);
@@ -21,7 +21,8 @@ public class LoginInformation {
         if (EmailAddress.IsString()) emailAddressErrors = emailAddressErrors.Concat(EmailAddress.VerifyEmailAddress()).ToList();
         
         var phoneNumberErrors = new List<string>();
-        if (PhoneNumber is not null) phoneNumberErrors = phoneNumberErrors.Concat(await phoneNumberHandler.VerifyPhoneNumberData(PhoneNumber)).ToList();
+        if (PhoneNumber is not null && phoneNumberHandler is not null)
+            phoneNumberErrors = phoneNumberErrors.Concat(await phoneNumberHandler.VerifyPhoneNumberData(PhoneNumber)).ToList();
 
         return ListHelpers.MergeDataValidationErrors(
             new KeyValuePair<string, List<string>>(nameof(EmailAddress), emailAddressErrors),

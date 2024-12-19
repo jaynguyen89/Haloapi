@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using Halogen.Bindings.ServiceBindings;
 using Halogen.Bindings.ViewModels;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Helpers;
@@ -28,14 +29,14 @@ public sealed class RoleAuthorize: AuthorizeAttribute, IAuthorizationFilter {
         var session = context.HttpContext.Session;
         Authorization? authenticatedUser;
         try {
-            authenticatedUser = JsonConvert.DeserializeObject<Authorization>(session.GetString(nameof(Authorization)) ?? string.Empty);
+            authenticatedUser = JsonConvert.DeserializeObject<Authorization>(session.GetString(Enums.SessionKey.Authorization.GetValue()!) ?? string.Empty);
             if (authenticatedUser is null) {
-                context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(RoleAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InvalidUser.GetValue()}");
+                context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(RoleAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InternalServerError.GetValue()}");
                 return;
             }
         }
         catch (NullReferenceException) {
-            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(RoleAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InvalidUser.GetValue()}");
+            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(RoleAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InternalServerError.GetValue()}");
             return;
         }
 

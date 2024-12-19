@@ -3,8 +3,8 @@ using Halogen.Bindings.ApiBindings;
 using Halogen.DbContexts;
 using Halogen.Auxiliaries;
 using Halogen.Auxiliaries.Interfaces;
-using Halogen.Services.AppServices.Interfaces;
 using Halogen.Services.AppServices.Services;
+using Halogen.Services.DbServices.Interfaces;
 using HelperLibrary.Shared.Logger;
 
 namespace Halogen.Services;
@@ -18,6 +18,9 @@ public static class ServiceCollection {
         
         builder.RegisterType<HaloServiceFactory>().As<IHaloServiceFactory>().SingleInstance();
         builder.RegisterType<HaloConfigProvider>().As<IHaloConfigProvider>().SingleInstance();
+        
         builder.RegisterType<RegionalizedPhoneNumberHandler>().SingleInstance();
+        builder.RegisterType<ProfileUpdateDataHandler>().SingleInstance();
+        builder.RegisterType<PreferenceUpdateDataHandler>().SingleInstance();
     }
 }

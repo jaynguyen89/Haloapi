@@ -65,24 +65,24 @@ public sealed class RegistrationProfileData {
 
     public Dictionary<string, List<string>> VerifyRegistrationProfileData() {
         var allErrors = new Dictionary<string, List<string>>();
-        if (Gender is > (byte) Enums.Gender.NotSpecified) allErrors.Add(nameof(Gender), [$"{nameof(Gender)} is not recognized."]);
+        if (Gender < 0 || Gender > EnumHelpers.Length<Enums.Gender>()) allErrors.Add(nameof(Gender), [$"{nameof(Gender)} is not recognized."]);
 
         var givenNameErrors = new List<string>();
         if (GivenName.IsString()) {
             GivenName = Regex.Replace(GivenName!.Trim(), Constants.MultiSpace, Constants.MonoSpace);
-            givenNameErrors = GivenName.VerifyName(nameof(GivenName));
+            givenNameErrors = GivenName.VerifyFormalName(nameof(GivenName));
         }
         
         var middleNameErrors = new List<string>();
         if (MiddleName.IsString()) {
             MiddleName = Regex.Replace(MiddleName!.Trim(), Constants.MultiSpace, Constants.MonoSpace);
-            middleNameErrors = MiddleName.VerifyName(nameof(MiddleName));
+            middleNameErrors = MiddleName.VerifyFormalName(nameof(MiddleName));
         }
         
         var familyNameErrors = new List<string>();
         if (FamilyName.IsString()) {
             FamilyName = Regex.Replace(FamilyName!.Trim(), Constants.MultiSpace, Constants.MonoSpace);
-            familyNameErrors = FamilyName.VerifyName(nameof(FamilyName));
+            familyNameErrors = FamilyName.VerifyFormalName(nameof(FamilyName));
         }
 
         FullName = FullName.IsString()

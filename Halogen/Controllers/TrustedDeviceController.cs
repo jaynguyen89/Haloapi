@@ -33,15 +33,18 @@ public sealed class TrustedDeviceController: AppController {
     public async Task<IActionResult> GetAll([FromHeader] string accountId) {
         _logger.Log(new LoggerBinding<TrustedDeviceController> { Location = nameof(GetAll) });
         // including devices that have been trusted and other devices that were used to login but not trusted
+        throw new NotImplementedException();
     }
 
     [HttpPost("add")]
     public async Task<IActionResult> AddDevice([FromHeader] string accountId, [FromBody] DeviceInformation deviceInfo) {
         _logger.Log(new LoggerBinding<TrustedDeviceController> { Location = nameof(AddDevice) });
+        throw new NotImplementedException();
     }
 
     [HttpDelete("remove/{deviceId}")]
     public async Task<IActionResult> RemoveDevice([FromHeader] string accountId, [FromRoute] string deviceId) {
         _logger.Log(new LoggerBinding<TrustedDeviceController> { Location = nameof(RemoveDevice) });
+        throw new NotImplementedException();
     }
 }

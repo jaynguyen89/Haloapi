@@ -162,20 +162,20 @@ public sealed class DataValidatorsTest {
     [Test]
     public void Test_VerifyName() {
         // Test for short and long names
-        var result = "".VerifyName("FirstName");
+        var result = "".VerifyFormalName("FirstName");
         Assert.That(result[0], Is.EquivalentTo("First Name is too short. Min 1, max 65 characters."));
 
-        result = "long-name-long-name-long-name-long-name-long-name-long-name-long-name".VerifyName("LastName");
+        result = "long-name-long-name-long-name-long-name-long-name-long-name-long-name".VerifyFormalName("LastName");
         Assert.That(result[0], Is.EquivalentTo("Last Name is too long. Min 1, max 65 characters."));
         
         // Test for invalid names
         var invalids = new[] {"`", "$", "%", "^", "&", "(", ")", "[", "]", "{", "}", ";", "\"", ",", "/", "?", "\\", "|", "@", "#", "!", "*", "+", "=", ":", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
-        var results = invalids.SelectMany(invalid => $"Username{invalid}".VerifyName("Name")).ToList();
+        var results = invalids.SelectMany(invalid => $"Username{invalid}".VerifyFormalName("Name")).ToList();
         
         results.ForEach(res => Assert.That(res, Is.EquivalentTo("Name should only contain alphabetical letters, dots, hyphens and single quotes.")));
         
         // Test for valid name
-        result = "User.name's User_name User-name".VerifyName("Name").ToList();
+        result = "User.name's User_name User-name".VerifyFormalName("Name").ToList();
         Assert.That(result, Is.Empty);
     }
 }

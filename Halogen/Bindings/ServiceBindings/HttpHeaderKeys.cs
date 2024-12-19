@@ -9,6 +9,8 @@ public sealed class HttpHeaderKeys {
 
     public string AccountId;
 
+    public string ProfileId;
+
     public string AccessToken;
 
     public string Authorization;

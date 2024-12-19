@@ -111,7 +111,7 @@ public sealed class PublicDataController: AppController {
         var localities = await _localityService.GetLocalitiesForPublicData();
         if (localities is null) return new ErrorResponse();
 
-        var publicData = new PublicData {
+        var publicData = new PublicDataVM {
             Environment = _environment,
             SecretCodeEnabled = _haloConfigs.EnableSecretCode,
             SecretCodeLength = Constants.SecretCodeLength,
@@ -127,7 +127,7 @@ public sealed class PublicDataController: AppController {
             UnitSystems = EnumHelpers.ToArrayWithValueAttribute<Enums.UnitSystem>(),
             CareerFormats = EnumHelpers.ToArrayWithValueAttribute<Enums.CareerFormat>(),
             VisibilityFormats = EnumHelpers.ToArrayWithValueAttribute<Enums.Visibility>(),
-            Countries = localities.Select(locality => (PublicData.CountryData)locality).ToArray(),
+            Countries = localities.Select(locality => (PublicDataVM.CountryDataVM)locality).ToArray(),
             SupportedSocialAccounts = _haloConfigs.SupportedSocialAccountForRegistration
                 .Select(x => x.GetValue() ?? string.Empty)
                 .Where(x => x.IsString())

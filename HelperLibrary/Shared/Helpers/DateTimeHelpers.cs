@@ -1,7 +1,14 @@
 ﻿namespace HelperLibrary.Shared.Helpers; 
 
 public static class DateTimeHelpers {
-    
+
+    public static DateTime? ToDateTime(this string any, bool exact = true) {
+        if (exact) return DateTime.ParseExact(any, "dd/MM/yyyy, HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
+        
+        var success = DateTime.TryParse(any, out var result);
+        return success ? result : null;
+    }
+
     public static double? GetAge(this DateTime? dateTime, int minAge = 15) {
         if (dateTime is null || dateTime > DateTime.UtcNow) return null;
         var totalDays = (DateTime.UtcNow - dateTime).Value.TotalDays;

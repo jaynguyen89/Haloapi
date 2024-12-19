@@ -91,11 +91,15 @@ public sealed class HaloConfigProvider: IHaloConfigProvider {
             _configuration.GetValue<string>($"{baseSecuritySettingsOptionKey}{nameof(HalogenOptions.Local.SecuritySettings.SecretCodeValidityDurationUnit)}")!.ToEnum<Enums.TimeUnit>()
         );
 
-        var (tfaEnabled, secretCodeSmsContent, enableSecretCode, supportedSocialAccounts) = (
+        var (tfaEnabled, secretCodeSmsContent, enableSecretCode, supportedSocialAccounts,
+            phoneNumberConfirmationSmsContent, securityQuestionsChangedSms
+        ) = (
             bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings.TwoFactorEnabled)}")!),
             _configuration.GetValue<string>($"{smsContentsOptionKey}{nameof(HalogenOptions.Local.SmsContents.SecretCodeSms)}"),
             bool.Parse(_configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.ServerSettings)}{Constants.Colon}{nameof(HalogenOptions.ServerSettings.EnableSecretCode)}")!),
-            _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings.SupportedSocialAccountForRegistration)}")!
+            _configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings.SupportedSocialAccountForRegistration)}")!,
+            _configuration.GetValue<string>($"{smsContentsOptionKey}{nameof(HalogenOptions.Local.SmsContents.PhoneNumberConfirmationSms)}")!,
+            _configuration.GetValue<string>($"{smsContentsOptionKey}{nameof(HalogenOptions.Local.SmsContents.SecurityQuestionsChangedSms)}")!
         );
 
         return new HalogenConfigs {
@@ -135,7 +139,9 @@ public sealed class HaloConfigProvider: IHaloConfigProvider {
             SecretCodeValidityDurationUnit = secretCodeValidityDurationUnit ?? Enums.TimeUnit.Minute,
             SecretCodeSmsContent = secretCodeSmsContent!,
             EnableSecretCode = enableSecretCode,
-            SupportedSocialAccountForRegistration = supportedSocialAccounts.Split(Constants.Comma).Select(x => x.ToEnum<Enums.SocialAccountForRegistration>() ?? Enums.SocialAccountForRegistration.Facebook).ToArray(),
+            SupportedSocialAccountForRegistration = supportedSocialAccounts.Split(Constants.Comma).Select(x => x.ToEnum<Enums.SocialMedia>() ?? Enums.SocialMedia.Facebook).ToArray(),
+            PhoneNumberConfirmationSmsContent = phoneNumberConfirmationSmsContent,
+            SecurityQuestionsChangedSms = securityQuestionsChangedSms,
         };
     }
 }

@@ -99,8 +99,10 @@ public sealed class MailService: ServiceBase, IMailService {
 
         var emailsFailedToSend = new List<string>();
         foreach (var mail in mails) {
+            if (mail.Id is null) throw new PropertyNullException("Mail ID Null: the mail ID is required in bulk mailing.");
+            
             var isSent = await SendSingleEmail(mail);
-            if (!isSent) emailsFailedToSend.Add(mail.Id!);
+            if (!isSent) emailsFailedToSend.Add(mail.Id);
         }
 
         return emailsFailedToSend.ToArray();

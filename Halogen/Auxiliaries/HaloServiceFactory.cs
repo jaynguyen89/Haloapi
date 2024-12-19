@@ -28,8 +28,8 @@ public sealed class HaloServiceFactory: IHaloServiceFactory {
         ILoggerService logger,
         IConfiguration configuration,
         IDistributedCache redisCache,
-        IHttpContextAccessor httpContextAccessor,
-        IEcosystem ecosystem
+        IEcosystem ecosystem,
+        IHttpContextAccessor httpContextAccessor
     ) {
         _dbContext = dbContext;
         _logger = logger;

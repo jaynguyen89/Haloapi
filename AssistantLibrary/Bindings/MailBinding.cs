@@ -4,7 +4,7 @@ using HelperLibrary.Shared;
 namespace AssistantLibrary.Bindings; 
 
 public sealed class MailBinding {
-    
+
     /// <summary>
     /// Id is required when sending bulk emails, when an email in the bulk is failed to send, its Id will be returned
     /// </summary>

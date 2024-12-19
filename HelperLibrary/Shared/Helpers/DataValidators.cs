@@ -3,6 +3,11 @@
 namespace HelperLibrary.Shared.Helpers; 
 
 public static partial class DataValidators {
+
+    public static List<string> VerifyLength(this string any, string varName, int minLength = 1, int maxLength = 50) =>
+        any.Length < minLength || any.Length > maxLength
+            ? [$"{varName} is too {any.ShortOrLong(minLength, maxLength)}. Min {minLength}, max {maxLength} characters."]
+            : [];
     
     public static List<string> VerifyEmailAddress(this string emailAddress) {
         var errors = new List<string>();
@@ -57,7 +62,7 @@ public static partial class DataValidators {
         return errors;
     }
 
-    public static List<string> VerifyName(this string name, string variableName) {
+    public static List<string> VerifyFormalName(this string name, string variableName) {
         var errors = new List<string>();
 
         var lengthTest = new Regex(@"^.{1,65}$");
@@ -66,6 +71,30 @@ public static partial class DataValidators {
         var characterTest = new Regex(@"^[a-zA-Z _\'\.\-]+$");
         if (!characterTest.IsMatch(name)) errors.Add($"{variableName.Lucidify()} should only contain alphabetical letters, dots, hyphens and single quotes.");
 
+        return errors;
+    }
+    
+    public static List<string> VerifyInformalName(this string name, string variableName) {
+        var errors = new List<string>();
+    
+        var lengthTest = new Regex(@"^.{1,50}$");
+        if (!lengthTest.IsMatch(name)) errors.Add($"{variableName.Lucidify()} is too {name.ShortOrLong(1, 65)}. Min 1, max 65 characters.");
+    
+        var characterTest = new Regex(@"^[a-zA-Z0-9 _\'\.\-(),:&]+$");
+        if (!characterTest.IsMatch(name)) errors.Add($"{variableName.Lucidify()} should only contain alphabetical letters, numbers and the following special characters: _'.-(),:&");
+    
+        return errors;
+    }
+
+    public static List<string> VerifyNumeralString(this string any, string variableName, int minLength, int maxLength) {
+        var errors = new List<string>();
+        
+        if (any.Length < minLength || any.Length > maxLength)
+            errors.Add($"{variableName.Lucidify()} is too {any.ShortOrLong(minLength, maxLength)}. Min {minLength}, max {maxLength} characters.)");
+        
+        var characterTest = new Regex(@"^[\d]+$");
+        if (!characterTest.IsMatch(any)) errors.Add($"{variableName.Lucidify()} should only contain numbers.");
+        
         return errors;
     }
 }

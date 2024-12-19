@@ -5,6 +5,7 @@ using AssistantLibrary.Interfaces;
 using AssistantLibrary.Services;
 using Halogen.Auxiliaries.Interfaces;
 using Halogen.Bindings;
+using Halogen.Bindings.ServiceBindings;
 using Halogen.Bindings.ViewModels;
 using Halogen.Services.AppServices.Interfaces;
 using Halogen.Services.AppServices.Services;
@@ -46,9 +47,9 @@ public sealed class TwoFactorAuthorize: AuthorizeAttribute, IAuthorizationFilter
         _logger.Log(new LoggerBinding<TwoFactorAuthorize> { Location = nameof(OnAuthorization) });
         if (!_twoFactorEnabled) return;
         
-        var authenticatedUser = _sessionService.Get<Authorization>(nameof(Authorization));
+        var authenticatedUser = _sessionService.Get<Authorization>(Enums.SessionKey.Authorization.GetValue()!);
         if (authenticatedUser is null) {
-            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(TwoFactorAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InvalidUser.GetValue()}");
+            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(TwoFactorAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InternalServerError.GetValue()}");
             return;
         }
         

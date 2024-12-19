@@ -44,16 +44,13 @@ public sealed class AuthenticationController: AppController {
     private readonly IJwtService _jwtService;
     
     private readonly ISmsService _clickatellSmsHttpService;
-    private readonly IAssistantService _assistantService;
     private readonly ITwoFactorService _twoFactorService;
-    private readonly HttpContext? _httpContext;
     private readonly RegionalizedPhoneNumberHandler _phoneNumberHandler;
 
     public AuthenticationController(
         IEcosystem ecosystem,
         ILoggerService logger,
         IConfiguration configuration,
-        IHttpContextAccessor httpContextAccessor,
         IHaloServiceFactory haloServiceFactory,
         IAssistantServiceFactory assistantServiceFactory,
         IHaloConfigProvider haloConfigProvider,
@@ -70,10 +67,8 @@ public sealed class AuthenticationController: AppController {
         _trustedDeviceService = haloServiceFactory.GetService<TrustedDeviceService>(Enums.ServiceType.DbService) ?? throw new HaloArgumentNullException<AuthenticationController>(nameof(TrustedDeviceService));
         _jwtService = haloServiceFactory.GetService<JwtService>(Enums.ServiceType.AppService) ?? throw new HaloArgumentNullException<AuthenticationController>(nameof(JwtService));
         
-        _assistantService = assistantServiceFactory.GetService<AssistantService>() ?? throw new HaloArgumentNullException<AuthenticationController>(nameof(AssistantService));
         _clickatellSmsHttpService = assistantServiceFactory.GetService<SmsServiceFactory>()?.GetActiveSmsService() ?? throw new HaloArgumentNullException<AuthenticationController>(nameof(SmsServiceFactory));
         _twoFactorService = assistantServiceFactory.GetService<TwoFactorService>() ?? throw new HaloArgumentNullException<AuthenticationController>(nameof(TwoFactorService));
-        _httpContext = httpContextAccessor.HttpContext;
 
         _phoneNumberHandler = phoneNumberHandler;
     }
@@ -114,9 +109,14 @@ public sealed class AuthenticationController: AppController {
     /// Request signature:
     /// <!--
     /// <code>
-    ///     GET /check-phone-number-availability/{phoneNumber}
+    ///     GET /check-phone-number-availability
     ///     Headers
     ///         RecaptchaToken: string
+    ///     Body
+    ///         {
+    ///             regionCode: string,
+    ///             phoneNumber: string,
+    ///         }
     /// </code>
     /// -->
     /// </remarks>
@@ -124,13 +124,14 @@ public sealed class AuthenticationController: AppController {
     /// <response code="200" data="isPhoneNumberAvailable:boolean">Successful request.</response>
     /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [ServiceFilter(typeof(RecaptchaAuthorize))]
-    [HttpGet("check-phone-number-availability/{phoneNumber}")]
-    public async Task<IActionResult> IsPhoneNumberAvailable([FromRoute] string phoneNumber) {
+    [HttpGet("check-phone-number-availability")]
+    public async Task<IActionResult> IsPhoneNumberAvailable([FromRoute] RegionalizedPhoneNumber phoneNumber) {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(IsPhoneNumberAvailable) });
-        
-        if (!phoneNumber.IsString()) return new ErrorResponse(HttpStatusCode.BadRequest);
 
-        var isPhoneNumberAvailable = await _profileService.IsPhoneNumberAvailableForNewAccount(phoneNumber);
+        var errors = await _phoneNumberHandler.VerifyPhoneNumberData(phoneNumber);
+        if (errors.Length != 0) return new ErrorResponse(HttpStatusCode.BadRequest, errors);
+
+        var isPhoneNumberAvailable = await _profileService.IsPhoneNumberAvailableForNewAccount(phoneNumber.Simplify());
         return !isPhoneNumberAvailable.HasValue
             ? new ErrorResponse()
             : new SuccessResponse(new { isPhoneNumberAvailable = isPhoneNumberAvailable.Value });
@@ -177,7 +178,7 @@ public sealed class AuthenticationController: AppController {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(RegisterAccount) });
         
         var errors = await registrationData.VerifyRegistrationData(_phoneNumberHandler);
-        if (errors.Any()) return new ErrorResponse(HttpStatusCode.BadRequest, errors);
+        if (errors.Count != 0) return new ErrorResponse(HttpStatusCode.BadRequest, errors);
 
         var registerByEmailAddress = registrationData.EmailAddress.IsString();
         if (registerByEmailAddress) {
@@ -241,7 +242,7 @@ public sealed class AuthenticationController: AppController {
                                                          .Format(Enums.DateFormat.DDMMYYYYS, Enums.TimeFormat.HHMMTTC);
             
             var mailBinding = new MailBinding {
-                ToReceivers = new List<Recipient> { new() { EmailAddress = newAccount.EmailAddress! } },
+                ToReceivers = [new Recipient { EmailAddress = newAccount.EmailAddress! }],
                 Title = $"{Constants.ProjectName}: Activate your account",
                 Priority = MailPriority.High,
                 TemplateName = Enums.EmailTemplate.AccountActivationEmail,
@@ -270,11 +271,11 @@ public sealed class AuthenticationController: AppController {
                              .Replace("VALIDITY_DURATION", $"{_haloConfigs.PhoneTokenValidityDuration} {_haloConfigs.PhoneTokenValidityDurationUnit}s");
             var smsBinding = new SingleSmsBinding {
                 SmsContent = smsContent,
-                Receivers = new List<string> { registrationData.PhoneNumber!.ToString() },
+                Receivers = [registrationData.PhoneNumber!.ToString()],
             };
 
             var smsResult = await _clickatellSmsHttpService.SendSingleSms(smsBinding);
-            if (smsResult is null || smsResult.Any()) {
+            if (smsResult is null || smsResult.Length != 0) {
                 await _contextService.RevertTransaction();
                 return new ErrorResponse();
             }
@@ -352,18 +353,18 @@ public sealed class AuthenticationController: AppController {
             
             var smsBinding = new SingleSmsBinding {
                 SmsContent = smsContent,
-                Receivers = new List<string> { regionalizedPhoneNumber.ToPhoneNumber() },
+                Receivers = [regionalizedPhoneNumber.ToPhoneNumber()],
             };
             
             var smsResult = await _clickatellSmsHttpService.SendSingleSms(smsBinding);
-            if (smsResult is null || smsResult.Any()) {
+            if (smsResult is null || smsResult.Length != 0) {
                 await _contextService.RevertTransaction();
                 return new ErrorResponse();
             }
         }
         else {
             var mailBinding = new MailBinding {
-                ToReceivers = new List<Recipient> { new() { EmailAddress = account.EmailAddress!} },
+                ToReceivers = [new Recipient { EmailAddress = account.EmailAddress! }],
                 Title = $"{Constants.ProjectName}: Secret Code",
                 Priority = MailPriority.High,
                 TemplateName = Enums.EmailTemplate.SecretCodeEmail,
@@ -453,7 +454,7 @@ public sealed class AuthenticationController: AppController {
 
                 var mailBinding = tokenData.IsOtp
                     ? new MailBinding {
-                        ToReceivers = new List<Recipient> { new() { EmailAddress = account.EmailAddress! } },
+                        ToReceivers = [new Recipient { EmailAddress = account.EmailAddress! }],
                         Title = $"{Constants.ProjectName}: Your OTP",
                         Priority = MailPriority.High,
                         TemplateName = Enums.EmailTemplate.OneTimePasswordEmail,
@@ -465,7 +466,7 @@ public sealed class AuthenticationController: AppController {
                         },
                     }
                     : new MailBinding {
-                        ToReceivers = new List<Recipient> { new() { EmailAddress = account.EmailAddress! } },
+                        ToReceivers = [new Recipient { EmailAddress = account.EmailAddress! }],
                         Title = $"{Constants.ProjectName}: Recover your account",
                         Priority = MailPriority.High,
                         TemplateName = Enums.EmailTemplate.AccountRecoveryEmail,
@@ -491,11 +492,11 @@ public sealed class AuthenticationController: AppController {
                 
                 var smsBinding = new SingleSmsBinding {
                     SmsContent = smsContent,
-                    Receivers = new List<string> { profile.PhoneNumber! },
+                    Receivers = [profile.PhoneNumber!],
                 };
                 
                 var smsResult = await _clickatellSmsHttpService.SendSingleSms(smsBinding);
-                if (smsResult is null || smsResult.Any()) return null;
+                if (smsResult is null || smsResult.Length != 0) return null;
                 return true;
             }
         };
@@ -600,7 +601,7 @@ public sealed class AuthenticationController: AppController {
                     .Format(Enums.DateFormat.DDMMYYYYS, Enums.TimeFormat.HHMMTTC);
 
                 var mailBinding = new MailBinding {
-                    ToReceivers = new List<Recipient> { new() { EmailAddress = account.EmailAddress! } },
+                    ToReceivers = [new Recipient { EmailAddress = account.EmailAddress! }],
                     Title = $"{Constants.ProjectName}: Activate your account",
                     Priority = MailPriority.High,
                     TemplateName = Enums.EmailTemplate.AccountActivationEmail,
@@ -625,7 +626,7 @@ public sealed class AuthenticationController: AppController {
                 var phoneNumber = JsonConvert.DeserializeObject<RegionalizedPhoneNumber>(profile.PhoneNumber!);
                 var smsBinding = new SingleSmsBinding {
                     SmsContent = smsContent,
-                    Receivers = new List<string> { phoneNumber!.ToString() },
+                    Receivers = [phoneNumber!.ToString()],
                 };
 
                 var smsResult = await _clickatellSmsHttpService.SendSingleSms(smsBinding);
@@ -818,10 +819,9 @@ public sealed class AuthenticationController: AppController {
     [HttpPost("authenticate-by-credentials")]
     public async Task<IActionResult> AuthenticateByCredentials([FromBody] AuthenticationData authenticationData) {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(AuthenticateByCredentials) });
-        if (_httpContext is null) return new ErrorResponse();
 
         var errors = await authenticationData.VerifyAuthenticationData(_phoneNumberHandler);
-        if (errors.Any()) return new ErrorResponse(HttpStatusCode.BadRequest, errors);
+        if (errors.Count != 0) return new ErrorResponse(HttpStatusCode.BadRequest, errors);
         
         var (account, profile) = await GetAccountAndProfileByLoginInformation(new LoginInformation { EmailAddress = authenticationData.EmailAddress, PhoneNumber = authenticationData.PhoneNumber });
         
@@ -869,14 +869,14 @@ public sealed class AuthenticationController: AppController {
             return new ErrorResponse();
         }
 
-        var authenticatedUser = await CreateAuthenticatedUser(account, profile!);
-        if (authenticatedUser is null) {
+        var authorization = await CreateAuthorization(account, profile!);
+        if (authorization is null) {
             await _contextService.RevertTransaction();
             return new ErrorResponse();
         }
 
         await _contextService.ConfirmTransaction();
-        return new SuccessResponse(authenticatedUser);
+        return new SuccessResponse(authorization);
     }
 
     /// <summary>
@@ -929,10 +929,9 @@ public sealed class AuthenticationController: AppController {
     [HttpPost("authenticate-by-otp")]
     public async Task<IActionResult> AuthenticateByOneTimePassword([FromBody] LoginInformation loginInformation) {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(AuthenticateByOneTimePassword) });
-        if (_httpContext is null) return new ErrorResponse();
 
         var errors = await loginInformation.VerifyLoginInformation(_phoneNumberHandler);
-        if (errors.Any()) return new ErrorResponse(HttpStatusCode.BadRequest, errors);
+        if (errors.Count != 0) return new ErrorResponse(HttpStatusCode.BadRequest, errors);
 
         var (account, profile) = await GetAccountAndProfileByLoginInformation(new LoginInformation { EmailAddress = loginInformation.EmailAddress, PhoneNumber = loginInformation.PhoneNumber });
         
@@ -970,7 +969,7 @@ public sealed class AuthenticationController: AppController {
 
         if (shouldSendOneTimePasswordToEmail) {
             var mailBinding = new MailBinding {
-                ToReceivers = new List<Recipient> { new() { EmailAddress = account.EmailAddress! } },
+                ToReceivers = [new Recipient { EmailAddress = account.EmailAddress! }],
                 Title = $"{Constants.ProjectName}: Your OTP",
                 Priority = MailPriority.High,
                 TemplateName = Enums.EmailTemplate.OneTimePasswordEmail,
@@ -996,26 +995,26 @@ public sealed class AuthenticationController: AppController {
             var phoneNumber = JsonConvert.DeserializeObject<RegionalizedPhoneNumber>(profile!.PhoneNumber!);
             var smsBinding = new SingleSmsBinding {
                 SmsContent = smsContent,
-                Receivers = new List<string> { phoneNumber!.ToString() }
+                Receivers = [phoneNumber!.ToString()]
             };
 
             var smsResult = await _clickatellSmsHttpService.SendSingleSms(smsBinding);
-            if (smsResult is null || smsResult.Any()) {
+            if (smsResult is null || smsResult.Length != 0) {
                 await _contextService.RevertTransaction();
                 return new ErrorResponse();
             }
         }
 
-        var preAuthenticatedUser = new Authorization {
+        var preAuthorization = new Authorization {
             AccountId = account.Id,
             AuthorizationToken = await _cryptoService.CreateSha512Hash(StringHelpers.GenerateRandomString(Constants.RandomStringDefaultLength, true)),
             AuthorizedTimestamp = account.OneTimePasswordTimestamp.Value.ToTimestamp(),
             IsPreAuthorization = true,
         };
-        HttpContext.Session.SetString($"{nameof(preAuthenticatedUser)}{Constants.Underscore}{account.Id}", JsonConvert.SerializeObject(preAuthenticatedUser));
+        HttpContext.Session.SetString(Enums.SessionKey.PreAuthorization.GetValue()!, JsonConvert.SerializeObject(preAuthorization));
 
         await _contextService.ConfirmTransaction();
-        return new SuccessResponse(preAuthenticatedUser);
+        return new SuccessResponse(preAuthorization);
     }
 
     /// <summary>
@@ -1096,18 +1095,17 @@ public sealed class AuthenticationController: AppController {
     [HttpPost("verify-otp")]
     public async Task<IActionResult> VerifyOneTimePassword([FromHeader] string accountId, [FromHeader] string oneTimePassword) {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(VerifyOneTimePassword) });
-        if (_httpContext is null) return new ErrorResponse();
 
-        var sessionPreAuthenticatedUser = _httpContext.Session.GetString($"preAuthenticatedUser{Constants.Underscore}{accountId}");
-        if (!sessionPreAuthenticatedUser.IsString()) return new ErrorResponse(HttpStatusCode.Gone);
+        var sessionPreAuthorization = HttpContext.Session.GetString(Enums.SessionKey.PreAuthorization.GetValue()!);
+        if (!sessionPreAuthorization.IsString()) return new ErrorResponse(HttpStatusCode.Gone);
         
-        var preAuthenticatedUser = JsonConvert.DeserializeObject<Authorization>(sessionPreAuthenticatedUser!);
-        if (preAuthenticatedUser is null) return new ErrorResponse();
+        var preAuthorization = JsonConvert.DeserializeObject<Authorization>(sessionPreAuthorization!);
+        if (preAuthorization is null) return new ErrorResponse();
         
         var account = await _accountService.GetAccountById(accountId);
         if (account is null) return new ErrorResponse();
 
-        _httpContext.Session.Remove($"{nameof(preAuthenticatedUser)}{Constants.Underscore}{account.Id}");
+        HttpContext.Session.Remove(Enums.SessionKey.PreAuthorization.GetValue()!);
         
         if (
             (
@@ -1123,7 +1121,7 @@ public sealed class AuthenticationController: AppController {
 
         var isOneTimePasswordMatchedAndValid =
             Equals(account.OneTimePassword, oneTimePassword) &&
-            preAuthenticatedUser.AuthorizedTimestamp + _haloConfigs.OtpValidityDuration.ToMilliseconds(_haloConfigs.OtpValidityDurationUnit) < DateTime.UtcNow.ToTimestamp();
+            preAuthorization.AuthorizedTimestamp + _haloConfigs.OtpValidityDuration.ToMilliseconds(_haloConfigs.OtpValidityDurationUnit) < DateTime.UtcNow.ToTimestamp();
 
         if (!isOneTimePasswordMatchedAndValid) {
             var result = await UpdateLockoutAndSuspendOnFailedLogin(account);
@@ -1152,26 +1150,24 @@ public sealed class AuthenticationController: AppController {
             return new ErrorResponse();
         }
         
-        var authenticatedUser = await CreateAuthenticatedUser(account, profile);
-        if (authenticatedUser is null) {
+        var authorization = await CreateAuthorization(account, profile);
+        if (authorization is null) {
             await _contextService.RevertTransaction();
             return new ErrorResponse();
         }
 
         await _contextService.ConfirmTransaction();
-        return new SuccessResponse(authenticatedUser);
+        return new SuccessResponse(authorization);
     }
 
     /// <summary>
-    /// Enpoint not implemented yet. Intended to automatically create user authentication data and session using cookies.
+    /// Endpoint not implemented yet. Intended to automatically create user authentication data and session using cookies.
     /// </summary>
     /// <exception cref="NotImplementedException"></exception>
     [ServiceFilter(typeof(RecaptchaAuthorize))]
     [HttpPost("authenticate-by-cookies")]
     public async Task<IActionResult> AuthenticateByCookies() {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(AuthenticateByCookies) });
-        if (_httpContext is null) return new JsonResult(new StatusCodeResult((int)HttpStatusCode.InternalServerError));
-
         throw new NotImplementedException();
     }
 
@@ -1208,7 +1204,7 @@ public sealed class AuthenticationController: AppController {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(ForgotPassword) });
         
         var errors = await loginInformation.VerifyLoginInformation(_phoneNumberHandler);
-        if (errors.Any()) return new ErrorResponse(HttpStatusCode.BadRequest, errors);
+        if (errors.Count != 0) return new ErrorResponse(HttpStatusCode.BadRequest, errors);
 
         var relyOnAccount = loginInformation.EmailAddress.IsString();
         var (account, profile) = await GetAccountAndProfileByLoginInformation(loginInformation, !relyOnAccount);
@@ -1235,7 +1231,7 @@ public sealed class AuthenticationController: AppController {
                                        .Format(Enums.DateFormat.DDMMYYYYS, Enums.TimeFormat.HHMMTTC);
             
             var emailBinding = new MailBinding {
-                ToReceivers = new List<Recipient> { new() { EmailAddress = account.EmailAddress! } },
+                ToReceivers = [new Recipient { EmailAddress = account.EmailAddress! }],
                 Title = $"{Constants.ProjectName}: Recover your account",
                 Priority = MailPriority.High,
                 TemplateName = Enums.EmailTemplate.AccountRecoveryEmail,
@@ -1255,11 +1251,11 @@ public sealed class AuthenticationController: AppController {
             
             var smsBinding = new SingleSmsBinding {
                 SmsContent = smsContent,
-                Receivers = new List<string> { profile!.PhoneNumber! }
+                Receivers = [profile!.PhoneNumber!]
             };
 
             var smsSendingResult = await _clickatellSmsHttpService.SendSingleSms(smsBinding);
-            tokenSendingResult = smsSendingResult is not null && !smsSendingResult.Any();
+            tokenSendingResult = smsSendingResult is not null && smsSendingResult.Length == 0;
         }
 
         if (!tokenSendingResult) {
@@ -1307,7 +1303,7 @@ public sealed class AuthenticationController: AppController {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(RecoverAccount) });
         
         var errors = await registrationData.VerifyRegistrationData(_phoneNumberHandler);
-        if (errors.Any()) return new ErrorResponse(HttpStatusCode.BadRequest, errors);
+        if (errors.Count != 0) return new ErrorResponse(HttpStatusCode.BadRequest, errors);
         
         var relyOnAccount = registrationData.EmailAddress.IsString();
         var (account, profile) = await GetAccountAndProfileByLoginInformation(registrationData, !relyOnAccount);
@@ -1546,7 +1542,7 @@ public sealed class AuthenticationController: AppController {
                 account.LoginFailedCount = 0;
             else account.IsSuspended = true;
         }
-        if (account.LockOutEnabled || account.IsSuspended) _httpContext!.Session.Clear();
+        if (account.LockOutEnabled || account.IsSuspended) HttpContext.Session.Clear();
         // Todo: Send email to notify Suspend status
 
         return await _accountService.UpdateAccount(account);
@@ -1562,9 +1558,15 @@ public sealed class AuthenticationController: AppController {
         return await _accountService.UpdateAccount(account);
     }
 
-    private async Task<Authorization?> CreateAuthenticatedUser(Account account, Profile profile) {
+    private async Task<Authorization?> CreateAuthorization(Account account, Profile profile) {
         var roles = await _roleService.GetAllAccountRoles(account.Id);
         if (roles is null) return null;
+        
+        var authenticatedUser = await _accountService.GetInformationForAuthenticatedUser(account.Id);
+        if (authenticatedUser is null) return null;
+        
+        var preference = await _preferenceService.GetPreference(account.Id);
+        if (preference is null) return null;
         
         var jwtToken = _jwtService.GenerateRequestAuthenticationToken(new Dictionary<string, string> {
             { ClaimTypes.Actor, account.Id },
@@ -1579,7 +1581,7 @@ public sealed class AuthenticationController: AppController {
         });
 
         var authenticatedTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        var authenticatedUser = new Authorization {
+        var authorization = new Authorization {
             AccountId = account.Id,
             Roles = roles,
             AuthorizationToken = await _cryptoService.CreateSha512Hash(StringHelpers.GenerateRandomString(Constants.RandomStringDefaultLength, true)),
@@ -1594,10 +1596,15 @@ public sealed class AuthenticationController: AppController {
         };
         
         Response.Cookies.Append(nameof(Authorization.AuthorizedTimestamp), authenticatedTimestamp.ToString(), _cookieOptions);
-        Response.Cookies.Append(nameof(Authorization.RefreshToken), authenticatedUser.RefreshToken, _cookieOptions);
-        _httpContext!.Session.SetString($"{nameof(Authorization)}{Constants.Underscore}{account.Id}", JsonConvert.SerializeObject(authenticatedUser));
+        Response.Cookies.Append(nameof(Authorization.RefreshToken), authorization.RefreshToken, _cookieOptions);
+        HttpContext.Session.SetString(Enums.SessionKey.Authorization.GetValue()!, JsonConvert.SerializeObject(authorization));
+        
+        HttpContext.Session.SetString(Enums.SessionKey.AuthenticatedUser.GetValue()!, JsonConvert.SerializeObject(authenticatedUser));
+        
+        var preferenceSettings = (Bindings.ServiceBindings.Preference)preference;
+        HttpContext.Session.SetString(Enums.SessionKey.Preference.GetValue()!, JsonConvert.SerializeObject(preferenceSettings));
 
-        return authenticatedUser;
+        return authorization;
     }
 
     private Tuple<int, int> GetTokenLengthsForNewAccount(bool forSaltOnly = false) {

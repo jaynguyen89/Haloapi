@@ -12,10 +12,24 @@ public partial class Preference {
         AccountId = accountId,
         ApplicationTheme = (byte)Enums.ApplicationTheme.Day,
         ApplicationLanguage = (byte)Enums.Language.English,
-        DateFormat = (byte)Enums.DateFormat.DDMMYYYYS,
-        TimeFormat = (byte)Enums.TimeFormat.HHMMTTC,
-        NumberFormat = (byte)Enums.NumberFormat.CommaForThousands,
-        UnitSystem = (byte)Enums.UnitSystem.InternationalUnitSystem,
+        DataFormat = JsonConvert.SerializeObject(new[] {
+            new DataFormat {
+                DtType = Bindings.ApiBindings.DataFormat.DataType.Date,
+                Format = (byte)Enums.DateFormat.DDMMYYYYS,
+            },
+            new DataFormat {
+                DtType = Bindings.ApiBindings.DataFormat.DataType.Time,
+                Format = (byte)Enums.TimeFormat.HHMMTTC,
+            },
+            new DataFormat {
+                DtType = Bindings.ApiBindings.DataFormat.DataType.Number,
+                Format = (byte)Enums.NumberFormat.CommaForThousands,
+            },
+            new DataFormat {
+                DtType = Bindings.ApiBindings.DataFormat.DataType.UnitSystem,
+                Format = (byte)Enums.UnitSystem.InternationalUnitSystem,
+            },
+        }),
         Privacy = JsonConvert.SerializeObject(new PrivacyPreference {
             ProfilePreference = new ProfilePolicy(),
             NamePreference = new PrivacyPolicy {

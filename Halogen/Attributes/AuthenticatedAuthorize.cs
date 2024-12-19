@@ -33,39 +33,38 @@ public sealed class AuthenticatedAuthorize: AuthorizeAttribute, IAuthorizationFi
         var requestHeaders = context.HttpContext.Request.Headers;
         var destination = context.HttpContext.Request.Path.Value!;
         
-        var (_, accountIdFromRequest) = requestHeaders.Single(x => x.Key.ToLower().Equals(nameof(HttpHeaderKeys.AccountId).ToLower()));
-        
-        var authenticatedUser = _sessionService.Get<Authorization>(
+        var authorization = _sessionService.Get<Authorization>(
             Equals(destination, "/authentication/verify-otp")
-                ? $"preAuthenticatedUser{Constants.Underscore}{accountIdFromRequest}"
-                : nameof(Authorization)
+                ? Enums.SessionKey.PreAuthorization.GetValue()!
+                : Enums.SessionKey.Authorization.GetValue()!
         );
 
-        if (!Equals(authenticatedUser!.AccountId, accountIdFromRequest.ToString())) {
+        var (_, accountIdFromRequest) = requestHeaders.Single(x => x.Key.ToLower().Equals(nameof(HttpHeaderKeys.AccountId).ToLower()));
+        if (!Equals(authorization!.AccountId, accountIdFromRequest.ToString())) {
             context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InvalidUser.GetValue()}");
             return;
         }
 
-        if (!authenticatedUser.IsPreAuthorization) {
+        if (!authorization.IsPreAuthorization) {
             var (_, bearerTokenHeader) = requestHeaders.Single(x => x.Key.ToLower().Equals(nameof(HttpHeaderKeys.Authorization).ToLower()));
             var clientBearerToken = bearerTokenHeader.ToString().Split(Constants.MonoSpace).Last();
             
-            if (!Equals(authenticatedUser.BearerToken, clientBearerToken)) {
+            if (!Equals(authorization.BearerToken, clientBearerToken)) {
                 context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.MismatchedBearerToken.GetValue()}");
                 return;
             }
         }
         
         var (_, clientAuthorizationToken) = requestHeaders.Single(x => x.Key.ToLower().Equals(nameof(HttpHeaderKeys.AccessToken).ToLower()));
-        if (!Equals(authenticatedUser.AuthorizationToken, clientAuthorizationToken.ToString())) {
+        if (!Equals(authorization.AuthorizationToken, clientAuthorizationToken.ToString())) {
             context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.MismatchedAccessToken.GetValue()}");
             return;
         }
             
-        // if (authenticatedUser.AuthorizedTimestamp + authenticatedUser.ValidityDuration < DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())
+        // if (authorization.AuthorizedTimestamp + authorization.ValidityDuration < DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())
         //     context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.AuthorizationExpired.GetValue()}");
 
-        if (!authenticatedUser.IsPreAuthorization) return;
+        if (!authorization.IsPreAuthorization) return;
         
         if (!context.HttpContext.Request.Path.HasValue) {
             context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.PreAuthorizeNoPath.GetValue()}");

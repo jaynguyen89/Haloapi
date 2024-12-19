@@ -144,4 +144,7 @@ public sealed class SmsContents {
     public string SecretCodeSms { get; set; }
     public string TwoFactorPinSms { get; set; }
     public string OneTimePasswordSms { get; set; }
+    
+    public string PhoneNumberConfirmationSms { get; set; }
+    public string SecurityQuestionsChangedSms { get; set; }
 }

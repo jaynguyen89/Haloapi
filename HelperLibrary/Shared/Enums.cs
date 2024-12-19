@@ -31,7 +31,7 @@ public static class Enums {
         Base64,
     }
 
-    public enum SocialAccountForRegistration {
+    public enum SocialMedia {
         [Value("Facebook")]
         Facebook,
         [Value("Google")]
@@ -44,9 +44,17 @@ public static class Enums {
         Microsoft,
         [Value("LinkedIn")]
         LinkedIn,
+        [Value("Youtube")]
+        Youtube,
+        [Value("Personal")]
+        Personal,
+        [Value("Business")]
+        Business,
     }
 
     public enum Gender {
+        [Value("Not Specified")]
+        NotSpecified,
         [Value("Male")]
         Male,
         [Value("Female")]
@@ -55,8 +63,6 @@ public static class Enums {
         MaleOther,
         [Value("Female (Other)")]
         FemaleOther,
-        [Value("Not Specified")]
-        NotSpecified,
     }
 
     public enum TokenDestination {
@@ -94,6 +100,8 @@ public static class Enums {
     }
 
     public enum AuthorizationFailure {
+        [Value("Internal Server Error")]
+        InternalServerError,
         [Value("Invalid User")]
         InvalidUser,
         [Value("Mismatched Bearer Token")]
@@ -114,6 +122,8 @@ public static class Enums {
         PreAuthorizeNoPath,
         [Value("Pre-Authorize: Wrong Destination")]
         PreAuthorizeWrongPath,
+        [Value("Account-Profile Unassociated")]
+        AccountProfileUnassociated,
     }
 
     public enum Role {
@@ -296,6 +306,47 @@ public static class Enums {
         ShowAgeOnly,
     }
 
+    public enum Ethnicity {
+        [Value("Prefer not to tell")]
+        NotSpecified,
+        [Value("East Asian")]
+        EastAsian,
+        [Value("North Asian")]
+        NorthAsian,
+        [Value("South Asian")]
+        SouthAsian,
+        [Value("South-East Asian")]
+        SouthEastAsian,
+        [Value("West Asian")]
+        WestAsian,
+        [Value("Central Asian")]
+        CentralAsian,
+        [Value("Afro-Asiatic")]
+        AfroAsiatic,
+        [Value("Niger-Congo")]
+        NigerCongo,
+        [Value("Nilo-Saharan")]
+        NiloSaharan,
+        [Value("Khoisan")]
+        Khoisan,
+        [Value("Austronesian")]
+        Austronesian,
+        [Value("Indo-European")]
+        IndoEuropean,
+        [Value("European")]
+        European,
+        [Value("North American")]
+        NorthAmerican,
+        [Value("Central American")]
+        CentralAmerican,
+        [Value("South American")]
+        SouthAmerican,
+        [Value("Caribbean")]
+        Caribbean,
+        [Value("Oceanian")]
+        Oceanian,
+    }
+
     public enum CareerFormat {
         [Value("Show all information")]
         ShowAllInformation,
@@ -332,7 +383,7 @@ public static class Enums {
         [Value("Visible to some connections")]
         VisibleToSomeConnections,
         [Value("Visible to some groups of connections")]
-        VisibleToGroups,
+        VisibleToGroupsOfConnection,
         [Value("Visible to self")]
         VisibleToSelf,
     }
@@ -366,5 +417,20 @@ public static class Enums {
         SecretCodeEmail,
         [Value("OneTimePasswordEmail")]
         OneTimePasswordEmail,
+        [Value("EmailAddressConfirmationEmail")]
+        EmailAddressConfirmationEmail,
+        [Value("SecurityQuestionsChangedNotification")]
+        SecurityQuestionsChangedNotification,
+    }
+
+    public enum SessionKey {
+        [Value(nameof(Authorization))]
+        Authorization,
+        [Value(nameof(PreAuthorization))]
+        PreAuthorization,
+        [Value(nameof(AuthenticatedUser))]
+        AuthenticatedUser,
+        [Value(nameof(Preference))]
+        Preference,
     }
 }
