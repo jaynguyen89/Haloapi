@@ -229,7 +229,7 @@ public sealed class AuthenticationController: AppController {
             return new ErrorResponse();
         }
 
-        var defaultPreference = Preference.CreatePreferenceForNewAccount(_useLongerId, accountId);
+        var defaultPreference = Preference.CreatePreferenceForNewAccount(_useLongerId, accountId, registerByEmailAddress);
         var preferenceId = await _preferenceService.InsertNewPreference(defaultPreference);
         if (preferenceId is null) {
             await _contextService.RevertTransaction();

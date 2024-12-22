@@ -1,5 +1,6 @@
 ﻿using Halogen.Bindings.ApiBindings;
 
+// ReSharper disable once CheckNamespace
 namespace Halogen.DbModels;
 
 public partial class Address {

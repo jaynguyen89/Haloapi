@@ -1,10 +1,13 @@
 ﻿using System.Net;
+using AssistantLibrary;
 using Halogen.Attributes;
 using Halogen.Auxiliaries.Interfaces;
 using Halogen.Bindings;
 using Halogen.Bindings.ApiBindings;
+using Halogen.Bindings.ServiceBindings;
 using Halogen.Bindings.ViewModels;
-using Halogen.DbModels;
+using Halogen.Services.AppServices.Interfaces;
+using Halogen.Services.AppServices.Services;
 using Halogen.Services.DbServices.Interfaces;
 using Halogen.Services.DbServices.Services;
 using HelperLibrary.Shared;
@@ -12,6 +15,7 @@ using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Logger;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Preference = Halogen.DbModels.Preference;
 
 namespace Halogen.Controllers;
 
@@ -22,7 +26,7 @@ namespace Halogen.Controllers;
 [ServiceFilter(typeof(TwoFactorAuthorize))]
 public sealed class PreferenceController: AppController {
     
-    private readonly IContextService _contextService;
+    private readonly ICacheService _cacheService;
     private readonly IPreferenceService _preferenceService;
     private readonly PreferenceUpdateDataHandler _privacyPolicyHandler;
 
@@ -32,9 +36,10 @@ public sealed class PreferenceController: AppController {
         IConfiguration configuration,
         IHaloConfigProvider haloConfigProvider,
         IHaloServiceFactory haloServiceFactory,
+        IAssistantServiceFactory assistantServiceFactory,
         PreferenceUpdateDataHandler privacyPolicyHandler
     ): base(ecosystem, logger, configuration, haloConfigProvider.GetHalogenConfigs()) {
-        _contextService = haloServiceFactory.GetService<ContextService>(Enums.ServiceType.DbService) ?? throw new HaloArgumentNullException<AccountController>(nameof(ContextService));
+        _cacheService = assistantServiceFactory.GetService<CacheServiceFactory>()?.GetActiveCacheService() ?? throw new HaloArgumentNullException<AccountController>(nameof(CacheServiceFactory));
         _preferenceService = haloServiceFactory.GetService<PreferenceService>(Enums.ServiceType.DbService) ?? throw new HaloArgumentNullException<AccountController>(nameof(PreferenceService));
         _privacyPolicyHandler = privacyPolicyHandler;
     }
@@ -50,9 +55,19 @@ public sealed class PreferenceController: AppController {
     [HttpGet("get-privacy-settings")]
     public async Task<IActionResult> GetPrivacySettings([FromHeader] string accountId) {
         _logger.Log(new LoggerBinding<PreferenceController> { Location = nameof(GetPrivacySettings) });
+
+        var privacySettings = await _cacheService.GetCacheEntry<PrivacyVM>($"{nameof(PrivacyVM)}{Constants.Hyphen}{accountId}")
+                              ?? await _preferenceService.GetPrivacySettings(accountId);
+
+        if (privacySettings is null) return new ErrorResponse();
         
-        var privacySettings = await _preferenceService.GetPrivacySettings(accountId);
-        return privacySettings is null ? new ErrorResponse() : new SuccessResponse(privacySettings);
+        await _cacheService.InsertCacheEntry(new MemoryCacheEntry {
+            Key = $"{nameof(PrivacyVM)}{Constants.Hyphen}{accountId}",
+            Value = privacySettings,
+        });
+
+        return new SuccessResponse(privacySettings);
+
     }
 
     [HttpPatch("update-preference")]
@@ -66,148 +81,165 @@ public sealed class PreferenceController: AppController {
         var preference = await _preferenceService.GetPreference(accountId);
         if (preference is null) return new ErrorResponse();
 
-        switch (preferenceData.FieldName) {
-            case nameof(Preference.ApplicationTheme):
-                preference.ApplicationTheme = preferenceData.ByteValue;
-                break;
-            case nameof(Preference.ApplicationLanguage):
-                preference.ApplicationLanguage = preferenceData.ByteValue;
-                break;
-            case nameof(Preference.DataFormat):
-                var dataFormat = JsonConvert.DeserializeObject<List<DataFormat>>(preference.DataFormat!);
-                
-                switch (preferenceData.PropertyName) {
-                    case nameof(DataFormat.DataType.Date):
-                        dataFormat!.RemoveAt(dataFormat.FindIndex(x => x.DtType == DataFormat.DataType.Date));
-                        dataFormat.Add(new DataFormat {
-                            DtType = DataFormat.DataType.Date,
-                            Format = preferenceData.ByteValue,
-                        });
-                        break;
-                    case nameof(DataFormat.DataType.Time):
-                        dataFormat!.RemoveAt(dataFormat.FindIndex(x => x.DtType == DataFormat.DataType.Time));
-                        dataFormat.Add(new DataFormat {
-                            DtType = DataFormat.DataType.Time,
-                            Format = preferenceData.ByteValue,
-                        });
-                        break;
-                    case nameof(DataFormat.DataType.Number):
-                        dataFormat!.RemoveAt(dataFormat.FindIndex(x => x.DtType == DataFormat.DataType.Number));
-                        dataFormat.Add(new DataFormat {
-                            DtType = DataFormat.DataType.Number,
-                            Format = preferenceData.ByteValue,
-                        });
-                        break;
-                    case nameof(DataFormat.DataType.UnitSystem):
-                        dataFormat!.RemoveAt(dataFormat.FindIndex(x => x.DtType == DataFormat.DataType.UnitSystem));
-                        dataFormat.Add(new DataFormat {
-                            DtType = DataFormat.DataType.UnitSystem,
-                            Format = preferenceData.ByteValue,
-                        });
-                        break;
-                }
+        try {
+            switch (preferenceData.FieldName) {
+                case nameof(Preference.ApplicationTheme):
+                    preference.ApplicationTheme = preferenceData.ByteValue;
+                    break;
+                case nameof(Preference.ApplicationLanguage):
+                    preference.ApplicationLanguage = preferenceData.ByteValue;
+                    break;
+                case nameof(Preference.DataFormat):
+                    var dataFormat = JsonConvert.DeserializeObject<List<DataFormat>>(preference.DataFormat!);
 
-                preference.DataFormat = JsonConvert.SerializeObject(dataFormat);
-                break;
-            case nameof(PrivacyPreference.ProfilePreference):
-                var settings = JsonConvert.DeserializeObject<PrivacyPreference>(preference.Privacy);
-                
-                switch (preferenceData.PropertyName) {
-                    case nameof(ProfilePolicy.HiddenToSearchEngines):
-                        settings!.ProfilePreference.HiddenToSearchEngines = preferenceData.BoolValue;
-                        break;
-                    case nameof(ProfilePolicy.ViewableByStrangers):
-                        settings!.ProfilePreference.ViewableByStrangers = preferenceData.BoolValue;
-                        break;
-                }
+                    switch (preferenceData.PropertyName) {
+                        case nameof(DataFormat.DataType.Date):
+                            dataFormat!.RemoveAt(dataFormat.FindIndex(x => x.DtType == DataFormat.DataType.Date));
+                            dataFormat.Add(new DataFormat {
+                                DtType = DataFormat.DataType.Date,
+                                Format = preferenceData.ByteValue,
+                            });
+                            break;
+                        case nameof(DataFormat.DataType.Time):
+                            dataFormat!.RemoveAt(dataFormat.FindIndex(x => x.DtType == DataFormat.DataType.Time));
+                            dataFormat.Add(new DataFormat {
+                                DtType = DataFormat.DataType.Time,
+                                Format = preferenceData.ByteValue,
+                            });
+                            break;
+                        case nameof(DataFormat.DataType.Number):
+                            dataFormat!.RemoveAt(dataFormat.FindIndex(x => x.DtType == DataFormat.DataType.Number));
+                            dataFormat.Add(new DataFormat {
+                                DtType = DataFormat.DataType.Number,
+                                Format = preferenceData.ByteValue,
+                            });
+                            break;
+                        case nameof(DataFormat.DataType.UnitSystem):
+                            dataFormat!.RemoveAt(dataFormat.FindIndex(x => x.DtType == DataFormat.DataType.UnitSystem));
+                            dataFormat.Add(new DataFormat {
+                                DtType = DataFormat.DataType.UnitSystem,
+                                Format = preferenceData.ByteValue,
+                            });
+                            break;
+                    }
 
-                preference.Privacy = JsonConvert.SerializeObject(settings);
-                break;
-            case nameof(PrivacyPreference.NamePreference):
-                settings = JsonConvert.DeserializeObject<PrivacyPreference>(preference.Privacy);
-                
-                switch (preferenceData.PropertyName) {
-                    case nameof(PrivacyPolicy.DataFormat):
-                        settings!.NamePreference.DataFormat = preferenceData.ByteValue;
-                        break;
-                    case nameof(PrivacyPolicy.Visibility):
-                        settings!.NamePreference.Visibility = (Enums.Visibility)preferenceData.ByteValue;
-                        break;
-                    case nameof(PrivacyPolicy.VisibleToIds):
-                        settings!.NamePreference.VisibleToIds = preferenceData.StrValues;
-                        break;
-                }
+                    preference.DataFormat = JsonConvert.SerializeObject(dataFormat);
+                    break;
+                case nameof(PrivacyPreference.ProfilePreference):
+                    var settings = JsonConvert.DeserializeObject<PrivacyPreference>(preference.Privacy);
 
-                preference.Privacy = JsonConvert.SerializeObject(settings);
-                break;
-            case nameof(PrivacyPreference.BirthPreference):
-                settings = JsonConvert.DeserializeObject<PrivacyPreference>(preference.Privacy);
-                
-                switch (preferenceData.PropertyName) {
-                    case nameof(PrivacyPolicy.DataFormat):
-                        settings!.BirthPreference.DataFormat = preferenceData.ByteValue;
-                        break;
-                    case nameof(PrivacyPolicy.Visibility):
-                        settings!.BirthPreference.Visibility = (Enums.Visibility)preferenceData.ByteValue;
-                        break;
-                    case nameof(PrivacyPolicy.VisibleToIds):
-                        settings!.BirthPreference.VisibleToIds = preferenceData.StrValues;
-                        break;
-                }
-                
-                preference.Privacy = JsonConvert.SerializeObject(settings);
-                break;
-            case nameof(PrivacyPreference.CareerPreference):
-                settings = JsonConvert.DeserializeObject<PrivacyPreference>(preference.Privacy);
-                
-                switch (preferenceData.PropertyName) {
-                    case nameof(PrivacyPolicy.DataFormat):
-                        settings!.CareerPreference.DataFormat = preferenceData.ByteValue;
-                        break;
-                    case nameof(PrivacyPolicy.Visibility):
-                        settings!.CareerPreference.Visibility = (Enums.Visibility)preferenceData.ByteValue;
-                        break;
-                    case nameof(PrivacyPolicy.VisibleToIds):
-                        settings!.CareerPreference.VisibleToIds = preferenceData.StrValues;
-                        break;
-                }
-                
-                preference.Privacy = JsonConvert.SerializeObject(settings);
-                break;
-            case nameof(PrivacyPreference.PhoneNumberPreference):
-                settings = JsonConvert.DeserializeObject<PrivacyPreference>(preference.Privacy);
-                
-                switch (preferenceData.PropertyName) {
-                    case nameof(PrivacyPolicy.DataFormat):
-                        settings!.PhoneNumberPreference.DataFormat = preferenceData.ByteValue;
-                        break;
-                    case nameof(PrivacyPolicy.Visibility):
-                        settings!.PhoneNumberPreference.Visibility = (Enums.Visibility)preferenceData.ByteValue;
-                        break;
-                    case nameof(PrivacyPolicy.VisibleToIds):
-                        settings!.PhoneNumberPreference.VisibleToIds = preferenceData.StrValues;
-                        break;
-                }
-                
-                preference.Privacy = JsonConvert.SerializeObject(settings);
-                break;
-            case nameof(PrivacyPreference.SecurityPreference):
-                settings = JsonConvert.DeserializeObject<PrivacyPreference>(preference.Privacy);
-                
-                switch (preferenceData.PropertyName) {
-                    case nameof(SecurityPolicy.NotifyLoginIncidentsOnUntrustedDevices):
-                        settings!.SecurityPreference.NotifyLoginIncidentsOnUntrustedDevices = preferenceData.BoolValue;
-                        break;
-                    case nameof(SecurityPolicy.PrioritizeLoginNotificationsOverEmail):
-                        settings!.SecurityPreference.PrioritizeLoginNotificationsOverEmail = preferenceData.BoolValue;
-                        break;
-                    case nameof(SecurityPolicy.BlockLoginOnUntrustedDevices):
-                        settings!.SecurityPreference.BlockLoginOnUntrustedDevices = preferenceData.BoolValue;
-                        break;
-                }
+                    switch (preferenceData.PropertyName) {
+                        case nameof(ProfilePolicy.HiddenToSearchEngines):
+                            settings!.ProfilePreference.HiddenToSearchEngines = preferenceData.BoolValue;
+                            break;
+                        case nameof(ProfilePolicy.ViewableByStrangers):
+                            settings!.ProfilePreference.ViewableByStrangers = preferenceData.BoolValue;
+                            break;
+                    }
 
-                preference.Privacy = JsonConvert.SerializeObject(settings);
-                break;
+                    preference.Privacy = JsonConvert.SerializeObject(settings);
+                    break;
+                case nameof(PrivacyPreference.NamePreference):
+                    settings = JsonConvert.DeserializeObject<PrivacyPreference>(preference.Privacy);
+
+                    switch (preferenceData.PropertyName) {
+                        case nameof(PrivacyPolicy.DataFormat):
+                            settings!.NamePreference.DataFormat = preferenceData.ByteValue;
+                            break;
+                        case nameof(PrivacyPolicy.Visibility):
+                            settings!.NamePreference.Visibility = (Enums.Visibility)preferenceData.ByteValue;
+                            break;
+                        case nameof(PrivacyPolicy.VisibleToIds):
+                            settings!.NamePreference.VisibleToIds = preferenceData.StrValues;
+                            break;
+                    }
+
+                    preference.Privacy = JsonConvert.SerializeObject(settings);
+                    break;
+                case nameof(PrivacyPreference.BirthPreference):
+                    settings = JsonConvert.DeserializeObject<PrivacyPreference>(preference.Privacy);
+
+                    switch (preferenceData.PropertyName) {
+                        case nameof(PrivacyPolicy.DataFormat):
+                            settings!.BirthPreference.DataFormat = preferenceData.ByteValue;
+                            break;
+                        case nameof(PrivacyPolicy.Visibility):
+                            settings!.BirthPreference.Visibility = (Enums.Visibility)preferenceData.ByteValue;
+                            break;
+                        case nameof(PrivacyPolicy.VisibleToIds):
+                            settings!.BirthPreference.VisibleToIds = preferenceData.StrValues;
+                            break;
+                    }
+
+                    preference.Privacy = JsonConvert.SerializeObject(settings);
+                    break;
+                case nameof(PrivacyPreference.CareerPreference):
+                    settings = JsonConvert.DeserializeObject<PrivacyPreference>(preference.Privacy);
+
+                    switch (preferenceData.PropertyName) {
+                        case nameof(PrivacyPolicy.DataFormat):
+                            settings!.CareerPreference.DataFormat = preferenceData.ByteValue;
+                            break;
+                        case nameof(PrivacyPolicy.Visibility):
+                            settings!.CareerPreference.Visibility = (Enums.Visibility)preferenceData.ByteValue;
+                            break;
+                        case nameof(PrivacyPolicy.VisibleToIds):
+                            settings!.CareerPreference.VisibleToIds = preferenceData.StrValues;
+                            break;
+                    }
+
+                    preference.Privacy = JsonConvert.SerializeObject(settings);
+                    break;
+                case nameof(PrivacyPreference.PhoneNumberPreference):
+                    settings = JsonConvert.DeserializeObject<PrivacyPreference>(preference.Privacy);
+
+                    switch (preferenceData.PropertyName) {
+                        case nameof(PrivacyPolicy.DataFormat):
+                            settings!.PhoneNumberPreference.DataFormat = preferenceData.ByteValue;
+                            break;
+                        case nameof(PrivacyPolicy.Visibility):
+                            settings!.PhoneNumberPreference.Visibility = (Enums.Visibility)preferenceData.ByteValue;
+                            break;
+                        case nameof(PrivacyPolicy.VisibleToIds):
+                            settings!.PhoneNumberPreference.VisibleToIds = preferenceData.StrValues;
+                            break;
+                    }
+
+                    preference.Privacy = JsonConvert.SerializeObject(settings);
+                    break;
+                case nameof(PrivacyPreference.SecurityPreference):
+                    settings = JsonConvert.DeserializeObject<PrivacyPreference>(preference.Privacy);
+                    
+                    var privacySettings = await _cacheService.GetCacheEntry<PrivacyVM>($"{nameof(PrivacyVM)}{Constants.Hyphen}{accountId}")
+                                          ?? await _preferenceService.GetPrivacySettings(accountId);
+                    if (privacySettings is null) throw new NullReferenceException();
+
+                    switch (preferenceData.PropertyName) {
+                        case nameof(SecurityPolicy.NotifyLoginIncidentsOnUntrustedDevices):
+                            settings!.SecurityPreference.NotifyLoginIncidentsOnUntrustedDevices = preferenceData.BoolValue;
+                            break;
+                        case nameof(SecurityPolicy.PrioritizeLoginNotificationsOverEmail):
+                            settings!.SecurityPreference.PrioritizeLoginNotificationsOverEmail = privacySettings.SecurityPreference.CanChangeNotifyLoginIncidentsOverEmail
+                                ? preferenceData.BoolValue
+                                : settings!.SecurityPreference.PrioritizeLoginNotificationsOverEmail;
+                            break;
+                        case nameof(SecurityPolicy.BlockLoginOnUntrustedDevices):
+                            settings!.SecurityPreference.BlockLoginOnUntrustedDevices = privacySettings.SecurityPreference.CanChangeBlockLoginOnUntrustedDevices
+                                ? preferenceData.BoolValue
+                                : settings!.SecurityPreference.BlockLoginOnUntrustedDevices;
+                            break;
+                    }
+
+                    preference.Privacy = JsonConvert.SerializeObject(settings);
+                    break;
+            }
+        }
+        catch (NullReferenceException e) {
+            _logger.Log(new LoggerBinding<PreferenceController> {
+                Location = $"{nameof(UpdatePreferenceAndPrivacy)}.{nameof(NullReferenceException)}",
+                Severity = Enums.LogSeverity.Error, E = e,
+            });
+            return new ErrorResponse();
         }
 
         var preferenceUpdated = await _preferenceService.UpdatePreference(preference);

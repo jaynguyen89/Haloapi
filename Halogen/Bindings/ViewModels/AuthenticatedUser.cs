@@ -10,8 +10,8 @@ public sealed class AuthenticatedUser {
     public string ProfileId { get; set; } = null!;
 
     public string Username { get; set; } = null!;
-    
-    public Enums.Role Role { get; set; }
+
+    public Enums.Role[] Roles { get; set; } = null!;
     
     public string? FullName { get; set; }
     

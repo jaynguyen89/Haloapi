@@ -1,3 +1,4 @@
+// ReSharper disable once CheckNamespace
 namespace Halogen.DbModels;
 
 public partial class Currency {

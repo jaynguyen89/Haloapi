@@ -3,6 +3,7 @@ using HelperLibrary.Shared;
 using HelperLibrary.Shared.Helpers;
 using Newtonsoft.Json;
 
+// ReSharper disable once CheckNamespace
 namespace Halogen.DbModels; 
 
 public partial class Profile {
@@ -29,4 +30,6 @@ public partial class Profile {
         LastName = profileData?.FamilyName,
         FullName = profileData?.FullName,
     };
+
+    public string GetName() => NickName ?? FullName ?? $"{GivenName ?? string.Empty} {MiddleName ?? string.Empty} {LastName ?? string.Empty}".Trim();
 }

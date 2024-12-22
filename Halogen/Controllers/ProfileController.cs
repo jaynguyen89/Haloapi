@@ -150,7 +150,7 @@ public sealed class ProfileController: AppController {
                 profile.NickName = profileData.StrValue;
                 break;
             case nameof(Profile.DateOfBirth):
-                profile.DateOfBirth = profileData.StrValue!.ToDateTime();
+                profile.DateOfBirth = profileData.StrValue?.ToDateTime();
                 break;
             case nameof(Profile.Gender):
                 profile.Gender = (byte)profileData.IntValue!.Value;
@@ -169,10 +169,10 @@ public sealed class ProfileController: AppController {
                     LinkType = (Enums.SocialMedia)entry.Key,
                     LinkHref = entry.Value,
                 }).ToArray();
-                profile.Websites = JsonConvert.SerializeObject(websites);
+                profile.Websites = websites is null ? null : JsonConvert.SerializeObject(websites);
                 break;
             case nameof(Profile.Interests):
-                profile.Interests = JsonConvert.SerializeObject(profileData.StrValues);
+                profile.Interests = profileData.StrValues is null ? null : JsonConvert.SerializeObject(profileData.StrValues);
                 break;
         }
         

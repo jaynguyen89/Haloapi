@@ -3,11 +3,12 @@ using HelperLibrary.Shared;
 using HelperLibrary.Shared.Helpers;
 using Newtonsoft.Json;
 
+// ReSharper disable once CheckNamespace
 namespace Halogen.DbModels; 
 
 public partial class Preference {
 
-    public static Preference CreatePreferenceForNewAccount(bool useLongerId, string accountId) => new() {
+    public static Preference CreatePreferenceForNewAccount(bool useLongerId, string accountId, bool registerByEmailAddress) => new() {
         Id = StringHelpers.NewGuid(useLongerId),
         AccountId = accountId,
         ApplicationTheme = (byte)Enums.ApplicationTheme.Day,
@@ -48,7 +49,11 @@ public partial class Preference {
                 DataFormat = (byte)Enums.PhoneNumberFormat.WithRegionCode_SpaceDelimited,
                 Visibility = Enums.Visibility.VisibleToSelf,
             },
-            SecurityPreference = new SecurityPolicy()
+            SecurityPreference = new SecurityPolicy {
+                NotifyLoginIncidentsOnUntrustedDevices = true,
+                PrioritizeLoginNotificationsOverEmail = registerByEmailAddress,
+                BlockLoginOnUntrustedDevices = false,
+            },
         })
     };
 }

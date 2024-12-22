@@ -2,6 +2,7 @@
 using Halogen.Bindings;
 using Halogen.Bindings.ApiBindings;
 using Halogen.Bindings.ServiceBindings;
+using Halogen.Bindings.ViewModels;
 using Halogen.Controllers;
 using Halogen.DbContexts;
 using Halogen.DbModels;
@@ -158,5 +159,82 @@ public sealed class ProfileService: DbServiceBase, IProfileService {
             });
             return default;
         }
+    }
+
+    public async Task<PhoneNumberCredentialVM?> GetPhoneNumberCredential(string accountId) {
+        _logger.Log(new LoggerBinding<ProfileService> { Location = nameof(GetPhoneNumberCredential) });
+
+        try {
+            var profile = await GetProfileByAccountId(accountId);
+            return (PhoneNumberCredentialVM)profile!;
+        }
+        catch (NullReferenceException e) {
+            _logger.Log(new LoggerBinding<ProfileService> {
+                Location = $"{nameof(GetPhoneNumberCredential)}.{nameof(NullReferenceException)}",
+                Severity = Enums.LogSeverity.Error, E = e,
+            });
+            return default;
+        }
+    }
+
+    public async Task<ProfileDetailsVM?> GetProfileDetails(string profileId) {
+        _logger.Log(new LoggerBinding<ProfileService> { Location = nameof(GetProfileDetails) });
+
+        try {
+            var profile = await GetProfileByAccountId(profileId);
+            var profileDetails = (ProfileDetailsVM)profile!;
+            
+            if (profile!.Interests is null) return profileDetails;
+
+            var interestIds = JsonConvert.DeserializeObject<string[]>(profile.Interests) ?? [];
+            var interests = await _dbContext.Interests
+                .Where(interest => interestIds.Contains(interest.Id))
+                .Select(interest => (InterestVM)interest)
+                .ToArrayAsync();
+
+            profileDetails.WorkAndInterest.Interests = interests;
+            return profileDetails;
+        }
+        catch (NullReferenceException e) {
+            _logger.Log(new LoggerBinding<ProfileService> {
+                Location = $"{nameof(GetProfileDetails)}.{nameof(NullReferenceException)}",
+                Severity = Enums.LogSeverity.Error, E = e,
+            });
+            return default;
+        }
+        catch (OperationCanceledException e) {
+            _logger.Log(new LoggerBinding<ProfileService> {
+                Location = $"{nameof(GetProfileDetails)}.{nameof(OperationCanceledException)}",
+                Severity = Enums.LogSeverity.Error, E = e,
+            });
+            return default;
+        }
+    }
+
+    public async Task<bool?> IsProfileIdBelongedToAccount(string profileId, string accountId) {
+        _logger.Log(new LoggerBinding<ProfileService> { Location = nameof(IsProfileIdBelongedToAccount) });
+
+        try {
+            return await _dbContext.Profiles.AnyAsync(profile => profile.Id == profileId && profile.AccountId == accountId);
+        }
+        catch (ArgumentNullException e) {
+            _logger.Log(new LoggerBinding<ProfileService> {
+                Location = $"{nameof(IsProfileIdBelongedToAccount)}.{nameof(ArgumentNullException)}",
+                Severity = Enums.LogSeverity.Error, E = e,
+            });
+            return default;
+        }
+        catch (OperationCanceledException e) {
+            _logger.Log(new LoggerBinding<ProfileService> {
+                Location = $"{nameof(IsProfileIdBelongedToAccount)}.{nameof(OperationCanceledException)}",
+                Severity = Enums.LogSeverity.Error, E = e,
+            });
+            return default;
+        }
+    }
+
+    public async Task<Profile?> GetProfile(string profileId) {
+        _logger.Log(new LoggerBinding<ProfileService> { Location = nameof(GetProfile) });
+        return await _dbContext.Profiles.FindAsync(profileId);
     }
 }
