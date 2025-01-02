@@ -11,7 +11,7 @@ public partial class ProfileAddress
 
     public string AddressId { get; set; } = null!;
 
-    public bool? IsForPostage { get; set; }
+    public bool IsForPostage { get; set; }
 
     public bool IsForDelivery { get; set; }
 

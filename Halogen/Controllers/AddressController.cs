@@ -63,28 +63,29 @@ public sealed class AddressController: AppController {
         var address = Address.CreateNewAddress(addressData);
 
         await _contextService.StartTransaction();
-        var addressId = await _addressService.InsertNewAddress(address);
-        if (addressId is null) {
+        var addressInsertionResult = await _addressService.InsertNewAddress(address);
+        if (!addressInsertionResult.HasValue || !addressInsertionResult.Value) {
             await _contextService.RevertTransaction();
             return new ErrorResponse();
         }
 
         var profileAddress = new ProfileAddress {
+            Id = StringHelpers.NewGuid(),
             ProfileId = profileId,
-            AddressId = addressId,
+            AddressId = address.Id,
             IsForPostage = addressData.IsForPostage,
             IsForDelivery = addressData.IsForDelivery,
             IsForReturn = addressData.IsForReturn,
         };
         
-        var profileAddressId = await _addressService.InsertNewProfileAddress(profileAddress);
-        if (profileAddressId is null) {
+        var profileAddressInsertionRersult = await _addressService.InsertNewProfileAddress(profileAddress);
+        if (!profileAddressInsertionRersult.HasValue || !profileAddressInsertionRersult.Value) {
             await _contextService.RevertTransaction();
             return new ErrorResponse();
         }
 
         await _contextService.ConfirmTransaction();
-        return new SuccessResponse(addressId);
+        return new SuccessResponse(address.Id);
     }
 
     [ServiceFilter(typeof(AccountAndProfileAssociatedAuthorize))]

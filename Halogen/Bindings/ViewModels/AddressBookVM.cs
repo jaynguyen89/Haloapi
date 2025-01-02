@@ -1,4 +1,7 @@
 ﻿using Halogen.Bindings.ApiBindings.AddressStrategy;
+using Halogen.DbModels;
+using HelperLibrary.Shared;
+using Address = Halogen.DbModels.Address;
 
 namespace Halogen.Bindings.ViewModels;
 
@@ -20,4 +23,18 @@ public sealed class AddressVM {
     public bool IsForReturn  { get; set; }
     
     public IAddress Address { get; set; } = null!;
+
+    public static AddressVM CreateAddressVm(ProfileAddress dbProfileAddress, Address dbAddress) {
+        IAddress address = dbAddress.Variant == (byte)Enums.AddressVariant.Eastern
+            ? (WesternAddress)dbAddress
+            : (EasternAddress)dbAddress;
+
+        return new AddressVM {
+            Id = dbAddress.Id,
+            IsForPostage = dbProfileAddress.IsForPostage,
+            IsForDelivery = dbProfileAddress.IsForDelivery,
+            IsForReturn = dbProfileAddress.IsForReturn,
+            Address = address,
+        };
+    }
 }

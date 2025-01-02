@@ -416,9 +416,6 @@ public partial class HalogenDbContext : DbContext
                 .HasDefaultValueSql("(newid())");
             entity.Property(e => e.AddressId).HasMaxLength(65);
             entity.Property(e => e.CreatedOn).HasDefaultValueSql("(getdate())");
-            entity.Property(e => e.IsForPostage)
-                .IsRequired()
-                .HasDefaultValueSql("(NULL)");
             entity.Property(e => e.ProfileId).HasMaxLength(65);
 
             entity.HasOne(d => d.Address).WithMany(p => p.ProfileAddresses)

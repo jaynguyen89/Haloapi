@@ -141,7 +141,7 @@ public static class Enums {
 
     public enum DateFormat {
         [Value("dd MMM yyyy")]
-        DDMMMYYYY,
+        DDMMMYYYY, // default if no preference set
         [Value("ddd, dd MMM yyyy")]
         WDDMMMYYYY,
         [Value("dd/MM/yyyy")]
@@ -166,7 +166,7 @@ public static class Enums {
         [Value("hh:mm:ss tt")]
         HHMMSSTTC,
         [Value("hh:mm tt")]
-        HHMMTTC,
+        HHMMTTC, // default if no preference set
         [Value("HH:mm:ss")]
         HHMMSSC,
         [Value("HH:mm")]

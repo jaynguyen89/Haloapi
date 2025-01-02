@@ -11,7 +11,7 @@ public partial class Address
 
     public string? PoBoxNumber { get; set; }
 
-    public string? StreetAddress { get; set; }
+    public string StreetAddress { get; set; } = null!;
 
     public string? Group { get; set; }
 
@@ -35,9 +35,9 @@ public partial class Address
 
     public string? City { get; set; }
 
-    public string? DivisionId { get; set; }
+    public string DivisionId { get; set; } = null!;
 
-    public string? CountryId { get; set; }
+    public string CountryId { get; set; } = null!;
 
     public byte Variant { get; set; }
 

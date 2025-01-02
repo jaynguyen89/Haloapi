@@ -2,7 +2,6 @@ using Halogen.Bindings;
 using Halogen.Bindings.ApiBindings;
 using Halogen.Services.AppServices.Interfaces;
 using Halogen.Services.DbServices.Interfaces;
-using HaloUnitTest.Mocks;
 using HaloUnitTest.Mocks.HaloApi.Auxiliaries;
 using HaloUnitTest.Mocks.HaloApi.Services;
 using HelperLibrary.Shared;

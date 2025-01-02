@@ -1,10 +1,12 @@
 ﻿using Halogen.Bindings.ApiBindings;
+using HelperLibrary.Shared.Helpers;
 
 // ReSharper disable once CheckNamespace
 namespace Halogen.DbModels;
 
 public partial class Address {
     public static Address CreateNewAddress(AddressData addressData) => new() {
+        Id = StringHelpers.NewGuid(),
         BuildingName = addressData.Address.BuildingName,
         PoBoxNumber = addressData.Address.PoBoxNumber,
         StreetAddress = addressData.Address.StreetAddress,

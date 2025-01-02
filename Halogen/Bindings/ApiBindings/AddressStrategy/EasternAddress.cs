@@ -102,4 +102,25 @@ public sealed class EasternAddress: Address, IAddressStrategy {
 
         return $"{poBox}{building}{lane}{StreetAddress}, {group}{quarter}{hamlet}{commute}{ward}{district}{town}{city}{Division.Name}, {Country.Name}";
     }
+
+    public static implicit operator EasternAddress(DbModels.Address address) => new() {
+        Id = address.Id,
+        Variant = (Enums.AddressVariant)address.Variant,
+        BuildingName = address.BuildingName,
+        PoBoxNumber = address.PoBoxNumber,
+        StreetAddress = address.StreetAddress,
+        Lane = address.Lane,
+        Group = address.Group,
+        Quarter = address.Quarter,
+        Hamlet = address.Hamlet,
+        Commute = address.Commute,
+        Ward = address.Ward,
+        District = address.District,
+        Town = address.Town,
+        City = address.City,
+        Division = new Division {
+            Id = address.DivisionId,
+            CountryId = address.CountryId,
+        },
+    };
 }

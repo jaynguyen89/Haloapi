@@ -1,4 +1,6 @@
-﻿namespace Halogen.Bindings.ViewModels;
+﻿using Halogen.DbModels;
+
+namespace Halogen.Bindings.ViewModels;
 
 public sealed class ChallengeResponseVM {
 

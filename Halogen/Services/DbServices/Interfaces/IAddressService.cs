@@ -7,9 +7,9 @@ public interface IAddressService {
     
     Task<AddressBookVM?> GetAddressBookByProfileId(string profileId);
     
-    Task<string?> InsertNewAddress(Address address);
+    Task<bool?> InsertNewAddress(Address address);
     
-    Task<string?> InsertNewProfileAddress(ProfileAddress profileAddress);
+    Task<bool?> InsertNewProfileAddress(ProfileAddress profileAddress);
     
     Task<Address?> GetAddress(string addressId);
     

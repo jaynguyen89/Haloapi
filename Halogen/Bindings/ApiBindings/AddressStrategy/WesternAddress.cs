@@ -32,4 +32,18 @@ public sealed class WesternAddress: Address, IAddressStrategy {
         var building = BuildingName.IsString() ? $"{BuildingName}, " : string.Empty;
         return $"{poBox}{building}{StreetAddress}, {Suburb}, {Division.Name} {Postcode}, {Country.Name}";
     }
+
+    public static implicit operator WesternAddress(DbModels.Address address) => new() {
+        Id = address.Id,
+        Variant = (Enums.AddressVariant)address.Variant,
+        BuildingName = address.BuildingName,
+        PoBoxNumber = address.PoBoxNumber,
+        StreetAddress = address.StreetAddress,
+        Suburb = address.Suburb ?? string.Empty,
+        Postcode = address.Postcode ?? string.Empty,
+        Division = new Division {
+            Id = address.DivisionId,
+            CountryId = address.CountryId,
+        },
+    };
 }

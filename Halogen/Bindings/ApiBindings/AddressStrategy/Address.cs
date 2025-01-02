@@ -1,10 +1,19 @@
 ﻿using System.Text.RegularExpressions;
+using Halogen.DbModels;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Helpers;
 
 namespace Halogen.Bindings.ApiBindings.AddressStrategy;
 
-public interface IAddress;
+public interface IAddress {
+    string Id { get; set; }
+    Enums.AddressVariant Variant { get; set; }
+    string? BuildingName { get; set; }
+    string? PoBoxNumber { get; set; }
+    string StreetAddress { get; set; }
+    Division Division { get; set; }
+    Country Country { get; set; }
+}
 
 public class Address: IAddress {
     
@@ -88,6 +97,12 @@ public sealed class Country {
     public string Name { get; set; } = null!;
     
     public Enums.LocalityRegion Region { get; set; }
+
+    public static implicit operator Country(Locality locality) => new() {
+        Id = locality.Id,
+        Name = locality.Name,
+        Region = (Enums.LocalityRegion)locality.Region,
+    };
 }
 
 public sealed class Division {
@@ -101,4 +116,12 @@ public sealed class Division {
     public string Name { get; set; } = null!;
     
     public string? Abbreviation { get; set; }
+
+    public static implicit operator Division(LocalityDivision division) => new() {
+        Id = division.Id,
+        CountryId = division.LocalityId,
+        Type = (Enums.DivisionType)division.DivisionType,
+        Name = division.Name,
+        Abbreviation = division.Abbreviation,
+    };
 }
