@@ -1,18 +1,21 @@
 ﻿using HelperLibrary.Shared.Logger;
-using Microsoft.Extensions.Configuration;
+using MediaLibrary.DbContexts;
 
-namespace MediaLibrary.Services.DbServices; 
+namespace MediaLibrary.Services.DbServices;
 
-internal class ServiceBase {
+public class ServiceBase {
 
     protected readonly ILoggerService _logger;
-    protected readonly IConfiguration _configuration;
+    protected readonly MediaLibraryDbContext _dbContext;
+    protected readonly MediaRoutePath _routePath;
 
     internal ServiceBase(
         ILoggerService logger,
-        IConfiguration configuration
+        MediaLibraryDbContext dbContext,
+        MediaRoutePath routePath
     ) {
         _logger = logger;
-        _configuration = configuration;
+        _dbContext = dbContext;
+        _routePath = routePath;
     }
 }

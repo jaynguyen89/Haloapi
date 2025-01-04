@@ -33,7 +33,7 @@ public sealed class AssistantServiceFactory: IAssistantServiceFactory {
             
             var service = (T)Activator.CreateInstance(typeof(T), _ecosystem, _logger, _configuration)!;
             
-            _services.Value!.Add(serviceKey, service);
+            _services.Value.Add(serviceKey, service);
             return service;
         }
         catch (ArgumentException e) {
