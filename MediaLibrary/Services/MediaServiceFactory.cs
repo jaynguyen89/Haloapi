@@ -11,8 +11,9 @@ namespace MediaLibrary.Services;
 public class MediaServiceFactory: IMediaServiceFactory {
     
     private readonly ILoggerService _logger;
+    private readonly IConfiguration _configuration;
     private readonly MediaLibraryDbContext _dbContext;
-    private readonly MediaRoutePath _routePath;
+    private readonly string _environment;
     
     private readonly Lazy<Dictionary<string, object>> _services = new(() => new Dictionary<string, object>());
 
@@ -23,8 +24,9 @@ public class MediaServiceFactory: IMediaServiceFactory {
         IEcosystem ecosystem
     ) {
         _logger = logger;
+        _configuration = configuration;
         _dbContext = dbContext;
-        ParseRoutePath(configuration, ecosystem.GetEnvironment(), out _routePath);
+        _environment = ecosystem.GetEnvironment();
     }
 
     public T? GetService<T>() {
@@ -34,7 +36,7 @@ public class MediaServiceFactory: IMediaServiceFactory {
             var serviceKey = typeof(T).FullName!;
             if (_services.Value.ContainsKey(serviceKey)) return (T)_services.Value!.GetDictionaryValue(serviceKey)!;
             
-            var service = (T)Activator.CreateInstance(typeof(T), _logger, _dbContext, _routePath)!;
+            var service = (T)Activator.CreateInstance(typeof(T), _logger, _configuration, _dbContext, _environment)!;
             
             _services.Value.Add(serviceKey, service);
             return service;
@@ -74,19 +76,5 @@ public class MediaServiceFactory: IMediaServiceFactory {
             });
             return default;
         }
-    }
-    
-    private static void ParseRoutePath(IConfiguration configuration, string environment, out MediaRoutePath routePath) {
-        var (avatar, cover, attachment) = (
-            configuration.AsEnumerable().Single(x => x.Key.Equals($"{nameof(MediaLibraryOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(MediaLibraryOptions.Local.MediaRoutePath)}{Constants.Colon}{nameof(MediaLibraryOptions.Local.MediaRoutePath.Avatar)}")).Value,
-            configuration.AsEnumerable().Single(x => x.Key.Equals($"{nameof(MediaLibraryOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(MediaLibraryOptions.Local.MediaRoutePath)}{Constants.Colon}{nameof(MediaLibraryOptions.Local.MediaRoutePath.Cover)}")).Value,
-            configuration.AsEnumerable().Single(x => x.Key.Equals($"{nameof(MediaLibraryOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(MediaLibraryOptions.Local.MediaRoutePath)}{Constants.Colon}{nameof(MediaLibraryOptions.Local.MediaRoutePath.Attachment)}")).Value
-        );
-
-        routePath = new MediaRoutePath {
-            Avatar = avatar!,
-            Cover = cover!,
-            Attachment = attachment!,
-        };
     }
 }

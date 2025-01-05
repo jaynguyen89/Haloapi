@@ -4,6 +4,7 @@ namespace MediaLibrary;
 public sealed class MediaLibraryOptions {
     
     public class Local {
+        public string HttpClientBaseUri { get; set; }
         public MediaRoutePath MediaRoutePath { get; set; }
         public DbSettings DbSettings { get; set; }
     }

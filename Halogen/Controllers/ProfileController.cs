@@ -15,6 +15,9 @@ using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Helpers;
 using HelperLibrary.Shared.Logger;
+using MediaLibrary.Services;
+using MediaLibrary.Services.DbServices;
+using MediaLibrary.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
@@ -32,6 +35,7 @@ public sealed class ProfileController: AppController {
     private readonly ISmsService _smsService;
     private readonly RegionalizedPhoneNumberHandler _phoneNumberHandler;
     private readonly ProfileUpdateDataHandler _profileUpdateDataHandler;
+    private readonly IProfilePhotoService _profilePhotoService;
 
     public ProfileController(
         IEcosystem ecosystem,
@@ -41,13 +45,15 @@ public sealed class ProfileController: AppController {
         IHaloConfigProvider haloConfigProvider,
         IAssistantServiceFactory assistantServiceFactory,
         RegionalizedPhoneNumberHandler phoneNumberHandler,
-        ProfileUpdateDataHandler profileUpdateDataHandler
+        ProfileUpdateDataHandler profileUpdateDataHandler,
+        IMediaServiceFactory mediaServiceFactory
     ) : base(ecosystem, logger, configuration, haloConfigProvider.GetHalogenConfigs()) {
         _contextService = haloServiceFactory.GetService<ContextService>(Enums.ServiceType.DbService) ?? throw new HaloArgumentNullException<ProfileController>(nameof(ContextService));
         _profileService = haloServiceFactory.GetService<ProfileService>(Enums.ServiceType.DbService) ?? throw new HaloArgumentNullException<ProfileController>(nameof(ProfileService));
         _smsService = assistantServiceFactory.GetService<SmsServiceFactory>()?.GetActiveSmsService() ?? throw new HaloArgumentNullException<ProfileController>(nameof(SmsServiceFactory));
         _phoneNumberHandler = phoneNumberHandler;
         _profileUpdateDataHandler = profileUpdateDataHandler;
+        _profilePhotoService = mediaServiceFactory.GetService<ProfilePhotoService>() ?? throw new HaloArgumentNullException<ProfileController>(nameof(MediaServiceFactory));
     }
 
     [HttpGet("get-phone-number-credential")]
@@ -181,31 +187,60 @@ public sealed class ProfileController: AppController {
     }
 
     [ServiceFilter(typeof(AccountAndProfileAssociatedAuthorize))]
-    [HttpPatch("save-avatar")]
-    public async Task<IActionResult> SetOrChangeAvatarPhoto([FromHeader] string profileId, [FromForm] IFormFile photo) {
+    [HttpPatch("save-profile-photo/{isAvatar:int}")]
+    public async Task<IActionResult> SetOrChangeAvatarPhoto([FromHeader] string profileId, [FromRoute] int isAvatar, [FromForm] IFormFile photo) {
         _logger.Log(new LoggerBinding<ProfileController> { Location = nameof(SetOrChangeAvatarPhoto) });
-        throw new NotImplementedException();
+        
+        var profile = await _profileService.GetProfile(profileId);
+        if (profile is null) return new ErrorResponse();
+
+        var uploadResult = isAvatar != 1
+            ? await _profilePhotoService.UploadCover(profileId, photo, profile.CoverName)
+            : await _profilePhotoService.UploadAvatar(profileId, photo, profile.AvatarName);
+        
+        if (uploadResult is null) return new ErrorResponse();
+        if (!uploadResult.IsSuccess) return new ErrorResponse(HttpStatusCode.Gone, new { message = uploadResult.Message });
+        
+        if (isAvatar != 1) profile.CoverName = uploadResult.FileName;
+        else profile.AvatarName = uploadResult.FileName;
+        
+        var profileUpdateResult = await _profileService.UpdateProfile(profile);
+        if (profileUpdateResult.HasValue && profileUpdateResult.Value) return new SuccessResponse(new { fileName = uploadResult.FileName });
+        
+        _ = await _profilePhotoService.DeletePhoto(profileId, uploadResult.FileName!, isAvatar == 1);
+        return new ErrorResponse(HttpStatusCode.Conflict);
     }
 
     [ServiceFilter(typeof(AccountAndProfileAssociatedAuthorize))]
-    [HttpPatch("delete-avatar")]
-    public async Task<IActionResult> RemoveAvatarPhoto([FromHeader] string profileId) {
+    [HttpPatch("delete-profile-photo/{isAvatar:int}")]
+    public async Task<IActionResult> RemoveAvatarPhoto([FromHeader] string profileId, [FromRoute] int isAvatar) {
         _logger.Log(new LoggerBinding<ProfileController> { Location = nameof(RemoveAvatarPhoto) });
-        throw new NotImplementedException();
-    }
+        
+        var profile = await _profileService.GetProfile(profileId);
+        if (profile is null) return new ErrorResponse();
+        
+        var fileName = isAvatar != 1 ? profile.CoverName : profile.AvatarName;
+        if (!fileName.IsString()) return new ErrorResponse(HttpStatusCode.NotFound);
+        
+        if (isAvatar != 1) profile.CoverName = null;
+        else profile.AvatarName = null;
 
-    [ServiceFilter(typeof(AccountAndProfileAssociatedAuthorize))]
-    [HttpPatch("save-cover")]
-    public async Task<IActionResult> SetOrChangeCoverPhoto([FromHeader] string profileId, [FromForm] IFormFile photo) {
-        _logger.Log(new LoggerBinding<ProfileController> { Location = nameof(SetOrChangeCoverPhoto) });
-        throw new NotImplementedException();
-    }
-
-    [ServiceFilter(typeof(AccountAndProfileAssociatedAuthorize))]
-    [HttpPatch("delete-cover")]
-    public async Task<IActionResult> RemoveCoverPhoto([FromHeader] string profileId) {
-        _logger.Log(new LoggerBinding<ProfileController> { Location = nameof(RemoveCoverPhoto) });
-        throw new NotImplementedException();
+        await _contextService.StartTransaction();
+        
+        var profileUpdateResult = await _profileService.UpdateProfile(profile);
+        if (!profileUpdateResult.HasValue || !profileUpdateResult.Value) {
+            await _contextService.RevertTransaction();
+            return new ErrorResponse();
+        }
+        
+        var deleteFileResult = await _profilePhotoService.DeletePhoto(profileId, fileName!, isAvatar == 1);
+        if (deleteFileResult.HasValue && deleteFileResult.Value) {
+            await _contextService.ConfirmTransaction();
+            return new SuccessResponse();
+        }
+        
+        await _contextService.RevertTransaction();
+        return new ErrorResponse();
     }
 
     private async Task<IActionResult> UpdatePhoneNumberConfirmation(Profile profile, RegionalizedPhoneNumber? phoneNumber = null) {
