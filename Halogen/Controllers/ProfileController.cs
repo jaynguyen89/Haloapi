@@ -98,8 +98,8 @@ public sealed class ProfileController: AppController {
         return await UpdatePhoneNumberConfirmation(profile, phoneNumber);
     }
 
-    [HttpPatch("confirm-phone-number")]
-    public async Task<IActionResult> ConfirmPhoneNumber([FromHeader] string accountId, [FromHeader] string confirmationToken) {
+    [HttpPatch("confirm-phone-number/{confirmationToken}")]
+    public async Task<IActionResult> ConfirmPhoneNumber([FromHeader] string accountId, [FromRoute] string confirmationToken) {
         _logger.Log(new LoggerBinding<ProfileController> { Location = nameof(ConfirmPhoneNumber) });
         
         var profile = await _profileService.GetProfileByAccountId(accountId);
@@ -118,7 +118,8 @@ public sealed class ProfileController: AppController {
         return !profileUpdated.HasValue || !profileUpdated.Value ? new ErrorResponse() : new SuccessResponse();
     }
 
-    [HttpGet("get-details")]
+    [HttpGet("details")]
+    [ServiceFilter(typeof(AccountAndProfileAssociatedAuthorize))]
     public async Task<IActionResult> GetProfileDetails([FromHeader] string profileId) {
         _logger.Log(new LoggerBinding<ProfileController> { Location = nameof(GetProfileDetails) });
         
@@ -187,34 +188,37 @@ public sealed class ProfileController: AppController {
     }
 
     [ServiceFilter(typeof(AccountAndProfileAssociatedAuthorize))]
-    [HttpPatch("save-profile-photo/{isAvatar:int}")]
-    public async Task<IActionResult> SetOrChangeAvatarPhoto([FromHeader] string profileId, [FromRoute] int isAvatar, [FromForm] IFormFile photo) {
-        _logger.Log(new LoggerBinding<ProfileController> { Location = nameof(SetOrChangeAvatarPhoto) });
+    [HttpPost("save-profile-photo")]
+    public async Task<IActionResult> SetOrChangeProfilePhoto([FromHeader] string profileId, [FromForm] ProfilePhotoUpload photoUpload) {
+        _logger.Log(new LoggerBinding<ProfileController> { Location = nameof(SetOrChangeProfilePhoto) });
+
+        var errors = photoUpload.VerifyData();
+        if (errors.Count != 0) return new ErrorResponse(HttpStatusCode.BadRequest, errors);
         
         var profile = await _profileService.GetProfile(profileId);
         if (profile is null) return new ErrorResponse();
 
-        var uploadResult = isAvatar != 1
-            ? await _profilePhotoService.UploadCover(profileId, photo, profile.CoverName)
-            : await _profilePhotoService.UploadAvatar(profileId, photo, profile.AvatarName);
+        var uploadResult = photoUpload.IsAvatar
+            ? await _profilePhotoService.UploadAvatar(profileId, photoUpload.Photo, profile.AvatarName)
+            : await _profilePhotoService.UploadCover(profileId, photoUpload.Photo, profile.CoverName);
         
         if (uploadResult is null) return new ErrorResponse();
         if (!uploadResult.IsSuccess) return new ErrorResponse(HttpStatusCode.Gone, new { message = uploadResult.Message });
-        
-        if (isAvatar != 1) profile.CoverName = uploadResult.FileName;
-        else profile.AvatarName = uploadResult.FileName;
+
+        if (photoUpload.IsAvatar) profile.AvatarName = uploadResult.FileName;
+        else profile.CoverName = uploadResult.FileName;
         
         var profileUpdateResult = await _profileService.UpdateProfile(profile);
         if (profileUpdateResult.HasValue && profileUpdateResult.Value) return new SuccessResponse(new { fileName = uploadResult.FileName });
         
-        _ = await _profilePhotoService.DeletePhoto(profileId, uploadResult.FileName!, isAvatar == 1);
+        _ = await _profilePhotoService.DeletePhoto(profileId, uploadResult.FileName!, photoUpload.IsAvatar);
         return new ErrorResponse(HttpStatusCode.Conflict);
     }
 
     [ServiceFilter(typeof(AccountAndProfileAssociatedAuthorize))]
     [HttpPatch("delete-profile-photo/{isAvatar:int}")]
-    public async Task<IActionResult> RemoveAvatarPhoto([FromHeader] string profileId, [FromRoute] int isAvatar) {
-        _logger.Log(new LoggerBinding<ProfileController> { Location = nameof(RemoveAvatarPhoto) });
+    public async Task<IActionResult> RemoveProfilePhoto([FromHeader] string profileId, [FromRoute] int isAvatar) {
+        _logger.Log(new LoggerBinding<ProfileController> { Location = nameof(RemoveProfilePhoto) });
         
         var profile = await _profileService.GetProfile(profileId);
         if (profile is null) return new ErrorResponse();

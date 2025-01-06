@@ -127,9 +127,9 @@ public sealed class AddressController: AppController {
     }
 
     [ServiceFilter(typeof(AccountAndProfileAssociatedAuthorize))]
-    [HttpPatch("toggle-purpose/{addressId}/{purpose}")]
-    public async Task<IActionResult> SetAsDeliveryAddress([FromHeader] string profileId, [FromRoute] string addressId, [FromRoute] byte purpose) {
-        _logger.Log(new LoggerBinding<AddressController> { Location = nameof(SetAsDeliveryAddress) });
+    [HttpPatch("set-purpose/{addressId}/{purpose}")]
+    public async Task<IActionResult> SetAddressPurpose([FromHeader] string profileId, [FromRoute] string addressId, [FromRoute] byte purpose) {
+        _logger.Log(new LoggerBinding<AddressController> { Location = nameof(SetAddressPurpose) });
         
         if (purpose >= EnumHelpers.Length<AddressPurpose>()) return new ErrorResponse(HttpStatusCode.BadRequest);
         

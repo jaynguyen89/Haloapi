@@ -25,7 +25,7 @@ using Preference = Halogen.Bindings.ServiceBindings.Preference;
 namespace Halogen.Controllers;
 
 [ApiController]
-[Route("challenges")]
+[Route("challenge")]
 [AutoValidateAntiforgeryToken]
 [ServiceFilter(typeof(AuthenticatedAuthorize))]
 [ServiceFilter(typeof(TwoFactorAuthorize))]

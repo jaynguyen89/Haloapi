@@ -43,7 +43,7 @@ public static class Constants {
 
     public static readonly string[] TelephoneCodes = { "61", "84" };
     
-    public static readonly string AssetsDirectoryPath = Path.GetDirectoryName(Directory.GetCurrentDirectory()) + @"/AssistantLibrary/Assets/";
+    public static readonly string AssetsDirectoryPath = Path.GetDirectoryName(Directory.GetCurrentDirectory()) + "/AssistantLibrary/Assets/";
     
     public static readonly Dictionary<string, string> ContentTypes = new() {
         { "json", "application/json" },
@@ -53,7 +53,8 @@ public static class Constants {
         { "alt", "multipart/alternative" },
         { "base64", "application/base64" }
     };
-    
+
+    public const int ImageSize = 3000000;
     public static readonly List<string> ImageTypes = new() {
         "image/gif", "image/png", "image/jpg", "image/jpeg"
     };

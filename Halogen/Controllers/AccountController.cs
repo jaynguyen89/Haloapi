@@ -117,8 +117,8 @@ public sealed class AccountController: AppController {
         return await UpdateEmailAddressConfirmation(account, emailAddress);
     }
 
-    [HttpPatch("confirm-email-address")]
-    public async Task<IActionResult> ConfirmEmailAddress([FromHeader] string accountId, [FromHeader] string confirmationToken) {
+    [HttpPatch("confirm-email-address/{confirmationToken}")]
+    public async Task<IActionResult> ConfirmEmailAddress([FromHeader] string accountId, [FromRoute] string confirmationToken) {
         _logger.Log(new LoggerBinding<AccountController> { Location = nameof(ConfirmEmailAddress) });
         
         var account = await _accountService.GetAccountById(accountId);

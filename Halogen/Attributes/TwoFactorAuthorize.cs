@@ -1,11 +1,6 @@
 ﻿using System.Net;
-using AssistantLibrary;
-using AssistantLibrary.Bindings;
-using AssistantLibrary.Interfaces;
-using AssistantLibrary.Services;
 using Halogen.Auxiliaries.Interfaces;
 using Halogen.Bindings;
-using Halogen.Bindings.ServiceBindings;
 using Halogen.Bindings.ViewModels;
 using Halogen.Services.AppServices.Interfaces;
 using Halogen.Services.AppServices.Services;
@@ -25,19 +20,15 @@ public sealed class TwoFactorAuthorize: AuthorizeAttribute, IAuthorizationFilter
     private readonly bool _twoFactorEnabled;
     private readonly ILoggerService _logger;
     private readonly ISessionService _sessionService;
-    private readonly ITwoFactorService _twoFactorService;
     
     public TwoFactorAuthorize(
         IEcosystem ecosystem,
         ILoggerService logger,
         IConfiguration configuration,
-        IHaloServiceFactory haloServiceFactory,
-        IAssistantServiceFactory assistantServiceFactory
+        IHaloServiceFactory haloServiceFactory
     ) {
         _logger = logger;
-        
         _sessionService = haloServiceFactory.GetService<SessionService>(Enums.ServiceType.AppService) ?? throw new HaloArgumentNullException<TwoFactorAuthorize>(nameof(SessionService));
-        _twoFactorService = assistantServiceFactory.GetService<TwoFactorService>() ?? throw new HaloArgumentNullException<TwoFactorAuthorize>(nameof(TwoFactorService));
 
         var environment = ecosystem.GetEnvironment();
         _twoFactorEnabled = bool.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.ServiceSettings.TwoFactorEnabled)}")!);
