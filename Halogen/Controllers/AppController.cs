@@ -57,6 +57,12 @@ public class AppController: ControllerBase {
         };
     }
 
+    /// <summary>
+    /// To check if the client Secret Code is valid.
+    /// </summary>
+    /// <param name="secretCode">The secret code received from client.</param>
+    /// <param name="account">The Account that requests the service.</param>
+    /// <returns>boolean</returns>
     protected bool? IsSecretCodeValid(string secretCode, Account account) {
         _logger.Log(new LoggerBinding<AppController> { Location = nameof(IsSecretCodeValid) });
         if (!Equals(account.SecretCode, secretCode)) return default;
@@ -70,6 +76,13 @@ public class AppController: ControllerBase {
         return true;
     }
 
+    /// <summary>
+    /// To send an Email or SMS to the Authenticated User depending on their preference to prioritize which medium to get the notifications.
+    /// </summary>
+    /// <param name="content">The content of Email or SMS.</param>
+    /// <param name="mailService">The service to send email.</param>
+    /// <param name="smsService">The service to send SMS.</param>
+    /// <returns>Nullable:boolean</returns>
     protected async Task<bool?> SendNotification(NotificationContent content, IMailService mailService, ISmsService smsService) {
         _logger.Log(new LoggerBinding<AppController> { Location = nameof(SendNotification) });
 
@@ -92,19 +105,18 @@ public class AppController: ControllerBase {
             
             return await mailService.SendSingleEmail(mailBinding);
         }
-        else {
-            var smsContent = content.SmsContent!;
-            foreach (var (placeholder, value) in content.Placeholders)
-                smsContent = smsContent.Replace(placeholder, value);
 
-            var smsBinding = new SingleSmsBinding {
-                SmsContent = smsContent,
-                Receivers = [authenticatedUser.PhoneNumber!.ToPhoneNumber()],
-            };
+        var smsContent = content.SmsContent!;
+        foreach (var (placeholder, value) in content.Placeholders)
+            smsContent = smsContent.Replace(placeholder, value);
+
+        var smsBinding = new SingleSmsBinding {
+            SmsContent = smsContent,
+            Receivers = [authenticatedUser.PhoneNumber!.ToPhoneNumber()],
+        };
             
-            var result = await smsService.SendSingleSms(smsBinding);
-            if (result is null) return default;
-            return result.Length == 0;
-        }
+        var result = await smsService.SendSingleSms(smsBinding);
+        if (result is null) return default;
+        return result.Length == 0;
     }
 }

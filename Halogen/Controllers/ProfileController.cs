@@ -56,6 +56,34 @@ public sealed class ProfileController: AppController {
         _profilePhotoService = mediaServiceFactory.GetService<ProfilePhotoService>() ?? throw new HaloArgumentNullException<ProfileController>(nameof(MediaServiceFactory));
     }
 
+    /// <summary>
+    /// To get the Phone Number credential information for Authenticated User.
+    /// </summary>
+    /// <remarks>
+    /// Request signature:
+    /// <!--
+    /// <code>
+    ///     GET /profile/get-phone-number-credential
+    ///     Headers
+    ///         AccountId: string
+    ///         AccessToken: string
+    /// </code>
+    /// -->
+    /// </remarks>
+    /// <param name="accountId">Mapped from header.</param>
+    /// <response code="200">
+    /// Successful request with data as follows:
+    /// <code>
+    /// PhoneNumberCredentialVM {
+    ///     isVerified?: boolean,
+    ///     phoneNumber: RegionalizedPhoneNumber {
+    ///         regionCode: string,
+    ///         phoneNumber: string,
+    ///     },
+    /// }
+    /// </code>
+    /// </response>
+    /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [HttpGet("get-phone-number-credential")]
     public async Task<IActionResult> GetPhoneNumberCredential([FromHeader] string accountId) {
         _logger.Log(new LoggerBinding<ProfileController> { Location = nameof(GetPhoneNumberCredential) });
@@ -66,6 +94,26 @@ public sealed class ProfileController: AppController {
             : new SuccessResponse(phoneNumberCredential);
     }
 
+    /// <summary>
+    /// To request a confirmation SMS to verify the Phone Number.
+    /// </summary>
+    /// <remarks>
+    /// Request signature:
+    /// <!--
+    /// <code>
+    ///     PATCH /profile/request-phone-number-confirmation
+    ///     Headers
+    ///         AccountId: string
+    ///         AccessToken: string
+    /// </code>
+    /// -->
+    /// </remarks>
+    /// <param name="accountId">Mapped from header.</param>
+    /// <response code="100">Continue - Phone Number already confirmed.</response>
+    /// <response code="200">Successful request.</response>
+    /// <response code="406">NotAcceptable - Phone Number token already existed and not expired.</response>
+    /// <response code="410">Gone - Phone Number token already existed and expired.</response>
+    /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [HttpPatch("request-phone-number-confirmation")]
     public async Task<IActionResult> RequestPhoneNumberConfirmation([FromHeader] string accountId) {
         _logger.Log(new LoggerBinding<ProfileController> { Location = nameof(RequestPhoneNumberConfirmation) });
@@ -81,6 +129,31 @@ public sealed class ProfileController: AppController {
         return await UpdatePhoneNumberConfirmation(profile);
     }
 
+    /// <summary>
+    /// Replace the current Phone Number with a new one. An SMS will be sent to the new Phone Number to verify it.
+    /// </summary>
+    /// <remarks>
+    /// Request signature:
+    /// <!--
+    /// <code>
+    ///     PATCH /profile/replace-phone-number
+    ///     Headers
+    ///         AccountId: string
+    ///         AccessToken: string
+    ///     Body
+    ///         {
+    ///             regionCode: string,
+    ///             phoneNumber: string,
+    ///         }
+    /// </code>
+    /// -->
+    /// </remarks>
+    /// <param name="accountId">Mapped from header.</param>
+    /// <param name="phoneNumber">RegionalizedPhoneNumber - Mapped from body.</param>
+    /// <response code="200">Successful request.</response>
+    /// <response code="400">BadRequest - The new Phone Number is invalid.</response>
+    /// <response code="409">Conflict - The new Phone Number is not unique.</response>
+    /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [HttpPatch("replace-phone-number")]
     public async Task<IActionResult> ReplacePhoneNumber([FromHeader] string accountId, [FromBody] RegionalizedPhoneNumber phoneNumber) {
         _logger.Log(new LoggerBinding<ProfileController> { Location = nameof(ReplacePhoneNumber) });
@@ -98,6 +171,27 @@ public sealed class ProfileController: AppController {
         return await UpdatePhoneNumberConfirmation(profile, phoneNumber);
     }
 
+    /// <summary>
+    /// To confirm the Phone Number.
+    /// </summary>
+    /// <remarks>
+    /// Request signature:
+    /// <!--
+    /// <code>
+    ///     PATCH /profile/confirm-phone-number/{confirmationToken}
+    ///     Headers
+    ///         AccountId: string
+    ///         AccessToken: string
+    /// </code>
+    /// -->
+    /// </remarks>
+    /// <param name="accountId">Mapped from header.</param>
+    /// <param name="confirmationToken">Mapped from route param.</param>
+    /// <response code="200">Successful request.</response>
+    /// <response code="100">Continue - Phone Number already confirmed.</response>
+    /// <response code="403">Forbidden - The confirmation token is invalid.</response>
+    /// <response code="410">Gone - The confirmation token is expired.</response>
+    /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [HttpPatch("confirm-phone-number/{confirmationToken}")]
     public async Task<IActionResult> ConfirmPhoneNumber([FromHeader] string accountId, [FromRoute] string confirmationToken) {
         _logger.Log(new LoggerBinding<ProfileController> { Location = nameof(ConfirmPhoneNumber) });
@@ -118,6 +212,58 @@ public sealed class ProfileController: AppController {
         return !profileUpdated.HasValue || !profileUpdated.Value ? new ErrorResponse() : new SuccessResponse();
     }
 
+    /// <summary>
+    /// To get the basic profile information.
+    /// </summary>
+    /// <remarks>
+    /// Request signature:
+    /// <!--
+    /// <code>
+    ///     GET /profile/details
+    ///     Headers
+    ///         AccountId: string
+    ///         AccessToken: string
+    /// </code>
+    /// -->
+    /// </remarks>
+    /// <param name="profileId">Mapped from header.</param>
+    /// <response code="200">
+    /// Successful request with data as follows:
+    /// <code>
+    /// ProfileDetailsVM {
+    ///     givenName?: string,
+    ///     middleName?: string,
+    ///     lastName?: string,
+    ///     fullName?: string,
+    ///     nickName?: string,
+    ///     gender: number,
+    ///     dateOfBirth?: string,
+    ///     ethnicity: number,
+    ///     workAndInterest: WorkAndInterestVM,
+    /// }
+    ///
+    /// WorkAndInterestVM
+    /// {
+    ///     company?: string,
+    ///     jobTitle?: string,
+    ///     interests?: Array:InterestVM,
+    ///     profileLinks?: Array:ProfileLinkVM
+    /// }
+    ///
+    /// InterestVM
+    /// {
+    ///     id: string,
+    ///     name: string,
+    /// }
+    ///
+    /// ProfileLinkVM
+    /// {
+    ///     linkType: number,
+    ///     linkHref: string,
+    /// }
+    /// </code>
+    /// </response>
+    /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [HttpGet("details")]
     [ServiceFilter(typeof(AccountAndProfileAssociatedAuthorize))]
     public async Task<IActionResult> GetProfileDetails([FromHeader] string profileId) {
@@ -127,6 +273,33 @@ public sealed class ProfileController: AppController {
         return profileDetails is null ? new ErrorResponse() : new SuccessResponse(profileDetails);
     }
     
+    /// <summary>
+    /// To update the basic profile information.
+    /// </summary>
+    /// <remarks>
+    /// Request signature:
+    /// <!--
+    /// <code>
+    ///     GET /profile/update
+    ///     Headers
+    ///         AccountId: string
+    ///         AccessToken: string
+    ///     Body
+    ///         {
+    ///             fieldName: string,
+    ///             strValue: string,
+    ///             intValue: number,
+    ///             strValues: Array:string,
+    ///             intValueMaps: Array:{int, string}
+    ///         }
+    /// </code>
+    /// -->
+    /// </remarks>
+    /// <param name="profileId">Mapped from header.</param>
+    /// <param name="profileData">ProfileUpdateData - Mapped from body.</param>
+    /// <response code="200">Successful request.</response>
+    /// <response code="400">BadRequest - The profile data is invalid.</response>
+    /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [ServiceFilter(typeof(RecaptchaAuthorize))]
     [ServiceFilter(typeof(AccountAndProfileAssociatedAuthorize))]
     [HttpPut("update")]
@@ -187,6 +360,33 @@ public sealed class ProfileController: AppController {
         return !profileUpdated.HasValue || !profileUpdated.Value ? new ErrorResponse() : new SuccessResponse();
     }
 
+    /// <summary>
+    /// To set the avatar or cover photo.
+    /// </summary>
+    /// <remarks>
+    /// Request signature:
+    /// <!--
+    /// <code>
+    ///     POST /profile/save-profile-photo
+    ///     Headers
+    ///         AccountId: string
+    ///         AccessToken: string
+    ///         Content-Type: multipart/form-data
+    ///     Body
+    ///         Form {
+    ///             isAvatar: boolean,
+    ///             photo: FormFile,
+    ///         }
+    /// </code>
+    /// -->
+    /// </remarks>
+    /// <param name="profileId">Mapped from header.</param>
+    /// <param name="photoUpload">ProfilePhotoUpload - Mapped from body.</param>
+    /// <response code="200">Successful request with file name response.</response>
+    /// <response code="400">BadRequest - The photo metadata is invalid.</response>
+    /// <response code="409">Conflict - Photo name failed to save into Halogen database.</response>
+    /// <response code="410">Gone - Photo failed to be uploaded to HaloMedia.</response>
+    /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [ServiceFilter(typeof(AccountAndProfileAssociatedAuthorize))]
     [HttpPost("save-profile-photo")]
     public async Task<IActionResult> SetOrChangeProfilePhoto([FromHeader] string profileId, [FromForm] ProfilePhotoUpload photoUpload) {
@@ -215,6 +415,25 @@ public sealed class ProfileController: AppController {
         return new ErrorResponse(HttpStatusCode.Conflict);
     }
 
+    /// <summary>
+    /// To delete the avatar or cover photo.
+    /// </summary>
+    /// <remarks>
+    /// Request signature:
+    /// <!--
+    /// <code>
+    ///     PATCH /profile/delete-profile-photo/{isAvatar}
+    ///     Headers
+    ///         AccountId: string
+    ///         AccessToken: string
+    /// </code>
+    /// -->
+    /// </remarks>
+    /// <param name="profileId">Mapped from header.</param>
+    /// <param name="isAvatar">Mapped from route param.</param>
+    /// <response code="200">Successful request.</response>
+    /// <response code="404">NotFound - No photo has been set.</response>
+    /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [ServiceFilter(typeof(AccountAndProfileAssociatedAuthorize))]
     [HttpPatch("delete-profile-photo/{isAvatar:int}")]
     public async Task<IActionResult> RemoveProfilePhoto([FromHeader] string profileId, [FromRoute] int isAvatar) {

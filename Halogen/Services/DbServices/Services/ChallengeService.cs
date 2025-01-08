@@ -94,8 +94,8 @@ public sealed class ChallengeService: DbServiceBase, IChallengeService {
         }
     }
 
-    public async Task<ChallengeResponse?> GetChalengeResponse(string accountId, string responseId) {
-        _logger.Log(new LoggerBinding<ChallengeService> { Location = nameof(GetChalengeResponse) });
+    public async Task<ChallengeResponse?> GetChallengeResponse(string accountId, string responseId) {
+        _logger.Log(new LoggerBinding<ChallengeService> { Location = nameof(GetChallengeResponse) });
 
         var challengeResponse = await _dbContext.ChallengeResponses.FindAsync(responseId);
         if (challengeResponse is null) return default;
@@ -119,8 +119,8 @@ public sealed class ChallengeService: DbServiceBase, IChallengeService {
         }
     }
 
-    public async Task<bool?> AddChallengeReponsesMulti(ChallengeResponse[] challengeResponses) {
-        _logger.Log(new LoggerBinding<ChallengeService> { Location = nameof(AddChallengeReponsesMulti) });
+    public async Task<bool?> AddChallengeResponsesMulti(ChallengeResponse[] challengeResponses) {
+        _logger.Log(new LoggerBinding<ChallengeService> { Location = nameof(AddChallengeResponsesMulti) });
 
         try {
             await _dbContext.ChallengeResponses.AddRangeAsync(challengeResponses);
@@ -129,7 +129,7 @@ public sealed class ChallengeService: DbServiceBase, IChallengeService {
         }
         catch (DbUpdateException e) {
             _logger.Log(new LoggerBinding<ChallengeService> {
-                Location = $"{nameof(AddChallengeReponsesMulti)}.{nameof(DbUpdateException)}",
+                Location = $"{nameof(AddChallengeResponsesMulti)}.{nameof(DbUpdateException)}",
                 Severity = Enums.LogSeverity.Error, E = e,
             });
             return default;

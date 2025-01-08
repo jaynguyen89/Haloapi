@@ -30,7 +30,7 @@ public sealed class AddressVM {
             : (EasternAddress)dbAddress;
 
         return new AddressVM {
-            Id = dbAddress.Id,
+            Id = dbProfileAddress.Id,
             IsForPostage = dbProfileAddress.IsForPostage,
             IsForDelivery = dbProfileAddress.IsForDelivery,
             IsForReturn = dbProfileAddress.IsForReturn,

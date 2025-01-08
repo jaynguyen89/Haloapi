@@ -44,14 +44,110 @@ public sealed class PreferenceController: AppController {
         _privacyPolicyHandler = privacyPolicyHandler;
     }
 
+    /// <summary>
+    /// To get the preference settings for an Authenticated User.
+    /// This data will be persisted in the Cookie to apply on the UI in subsequent app launches.
+    /// </summary>
+    /// <remarks>
+    /// Request signature:
+    /// <!--
+    /// <code>
+    ///     GET /preferences/get-preference-settings
+    ///     Headers
+    ///         AccountId: string
+    ///         AccessToken: string
+    /// </code>
+    /// -->
+    /// </remarks>
+    /// <param name="accountId">Mapped from header.</param>
+    /// <response code="200">
+    /// Successful request with data as follows:
+    /// <code>
+    /// PreferenceVM {
+    ///     id: string,
+    ///     appTheme: number,
+    ///     appLanguage: number,
+    ///     dataFormats: Array(4) [
+    ///         {
+    ///             dataType: number,
+    ///             format: number,
+    ///         }
+    ///     ]
+    /// }
+    /// </code>
+    /// * The `dataFormats` is saved as JSON Array string in database,
+    /// with 4 items for Date, Time, Number, and UnitSystem.
+    /// </response>
+    /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [HttpGet("get-preference-settings")]
     public async Task<IActionResult> GetPreferenceSettings([FromHeader] string accountId) {
         _logger.Log(new LoggerBinding<PreferenceController> { Location = nameof(GetPreferenceSettings) });
         
         var preferences = await _preferenceService.GetPreferenceSettings(accountId);
-        return preferences is null ? new ErrorResponse() : new SuccessResponse(preferences);
+        if (preferences is null) return new ErrorResponse();
+        
+        Response.Cookies.Append(nameof(preferences), JsonConvert.SerializeObject(preferences), _cookieOptions);
+        return new SuccessResponse(preferences);
     }
 
+    /// <summary>
+    /// To get the privary settings for an Authenticated User.
+    /// This data will be persisted in the Cookie to apply on the UI in subsequent app launches.
+    /// </summary>
+    /// <remarks>
+    /// Request signature:
+    /// <!--
+    /// <code>
+    ///     GET /preferences/get-privacy-settings
+    ///     Headers
+    ///         AccountId: string
+    ///         AccessToken: string
+    /// </code>
+    /// -->
+    /// </remarks>
+    /// <param name="accountId">Mapped from header.</param>
+    /// <response code="200">
+    /// Successful request with data as follows:
+    /// <code>
+    /// PrivacyVM {
+    ///     profilePreference: ProfilePolicy,
+    ///     namePreference: PrivacyPolicyVM,
+    ///     birthPreference: PrivacyPolicyVM,
+    ///     careerPreference: PrivacyPolicyVM,
+    ///     phoneNumberPreference: PrivacyPolicyVM,
+    ///     securityPreference: SecurityPolicyVM,
+    /// }
+    ///
+    /// ProfilePolicy
+    /// {
+    ///     hiddenToSearchEngine: boolean,
+    ///     viewableByStrangers: boolean,
+    /// }
+    ///
+    /// PrivacyPolicyVM
+    /// {
+    ///     dataFormat: number,
+    ///     visibility: number,
+    ///     visibleTos: VisibleToVM [
+    ///         {
+    ///             id: string,
+    ///             username: string,
+    ///             name?: string,
+    ///         }
+    ///     ]
+    /// }
+    ///
+    /// SecurityPolicyVM
+    /// {
+    ///     notifyLoginIncidentsOnUntrustedDevices: boolean,
+    ///     notifyLoginIncidentsOverEmail: boolean,
+    ///     canChangeNotifyLoginIncidentsOverEmail: boolean,
+    ///     blockLoginOnUntrustedDevices: boolean,
+    ///     canChangeBlockLoginOnUntrustedDevices: boolean,
+    /// }
+    /// </code>
+    /// </response>
+    /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [HttpGet("get-privacy-settings")]
     public async Task<IActionResult> GetPrivacySettings([FromHeader] string accountId) {
         _logger.Log(new LoggerBinding<PreferenceController> { Location = nameof(GetPrivacySettings) });
@@ -66,11 +162,40 @@ public sealed class PreferenceController: AppController {
             Value = privacySettings,
         });
 
+        Response.Cookies.Append(nameof(privacySettings), JsonConvert.SerializeObject(privacySettings), _cookieOptions);
         return new SuccessResponse(privacySettings);
 
     }
 
-    [HttpPatch("update-preference")]
+    /// <summary>
+    /// To update the preference settings. On success database query, the caches and Cookie entries will be invalidated.
+    /// </summary>
+    /// <remarks>
+    /// Request signature:
+    /// <!--
+    /// <code>
+    ///     PATCH /preferences/update
+    ///     Headers
+    ///         AccountId: string
+    ///         AccessToken: string
+    ///     Body
+    ///         {
+    ///             fieldName: string,
+    ///             propertyName: string,
+    ///             boolValue: boolean,
+    ///             byteValue: number,
+    ///             strValue: string,
+    ///             strValues: Array:string,
+    ///         }
+    /// </code>
+    /// -->
+    /// </remarks>
+    /// <param name="accountId">Mapped from header.</param>
+    /// <param name="preferenceData">Mapped from body.</param>
+    /// <response code="200">Successful request.</response>
+    /// <response code="400">BadRequest - The data is invalid.</response>
+    /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
+    [HttpPatch("update")]
     public async Task<IActionResult> UpdatePreferenceAndPrivacy([FromHeader] string accountId, [FromBody] PreferenceUpdateData preferenceData) {
         _logger.Log(new LoggerBinding<PreferenceController> { Location = nameof(UpdatePreferenceAndPrivacy) });
 
@@ -78,19 +203,19 @@ public sealed class PreferenceController: AppController {
         if (errors is null) return new ErrorResponse();
         if (errors.Count != 0) return new ErrorResponse(HttpStatusCode.BadRequest, errors);
 
-        var preference = await _preferenceService.GetPreference(accountId);
-        if (preference is null) return new ErrorResponse();
+        var preferences = await _preferenceService.GetPreference(accountId);
+        if (preferences is null) return new ErrorResponse();
 
         try {
             switch (preferenceData.FieldName) {
                 case nameof(Preference.ApplicationTheme):
-                    preference.ApplicationTheme = preferenceData.ByteValue;
+                    preferences.ApplicationTheme = preferenceData.ByteValue;
                     break;
                 case nameof(Preference.ApplicationLanguage):
-                    preference.ApplicationLanguage = preferenceData.ByteValue;
+                    preferences.ApplicationLanguage = preferenceData.ByteValue;
                     break;
                 case nameof(Preference.DataFormat):
-                    var dataFormat = JsonConvert.DeserializeObject<List<DataFormat>>(preference.DataFormat!);
+                    var dataFormat = JsonConvert.DeserializeObject<List<DataFormat>>(preferences.DataFormat!);
 
                     switch (preferenceData.PropertyName) {
                         case nameof(DataFormat.DataType.Date):
@@ -123,10 +248,10 @@ public sealed class PreferenceController: AppController {
                             break;
                     }
 
-                    preference.DataFormat = JsonConvert.SerializeObject(dataFormat);
+                    preferences.DataFormat = JsonConvert.SerializeObject(dataFormat);
                     break;
                 case nameof(PrivacyPreference.ProfilePreference):
-                    var settings = JsonConvert.DeserializeObject<PrivacyPreference>(preference.Privacy);
+                    var settings = JsonConvert.DeserializeObject<PrivacyPreference>(preferences.Privacy);
 
                     switch (preferenceData.PropertyName) {
                         case nameof(ProfilePolicy.HiddenToSearchEngines):
@@ -137,10 +262,10 @@ public sealed class PreferenceController: AppController {
                             break;
                     }
 
-                    preference.Privacy = JsonConvert.SerializeObject(settings);
+                    preferences.Privacy = JsonConvert.SerializeObject(settings);
                     break;
                 case nameof(PrivacyPreference.NamePreference):
-                    settings = JsonConvert.DeserializeObject<PrivacyPreference>(preference.Privacy);
+                    settings = JsonConvert.DeserializeObject<PrivacyPreference>(preferences.Privacy);
 
                     switch (preferenceData.PropertyName) {
                         case nameof(PrivacyPolicy.DataFormat):
@@ -154,10 +279,10 @@ public sealed class PreferenceController: AppController {
                             break;
                     }
 
-                    preference.Privacy = JsonConvert.SerializeObject(settings);
+                    preferences.Privacy = JsonConvert.SerializeObject(settings);
                     break;
                 case nameof(PrivacyPreference.BirthPreference):
-                    settings = JsonConvert.DeserializeObject<PrivacyPreference>(preference.Privacy);
+                    settings = JsonConvert.DeserializeObject<PrivacyPreference>(preferences.Privacy);
 
                     switch (preferenceData.PropertyName) {
                         case nameof(PrivacyPolicy.DataFormat):
@@ -171,10 +296,10 @@ public sealed class PreferenceController: AppController {
                             break;
                     }
 
-                    preference.Privacy = JsonConvert.SerializeObject(settings);
+                    preferences.Privacy = JsonConvert.SerializeObject(settings);
                     break;
                 case nameof(PrivacyPreference.CareerPreference):
-                    settings = JsonConvert.DeserializeObject<PrivacyPreference>(preference.Privacy);
+                    settings = JsonConvert.DeserializeObject<PrivacyPreference>(preferences.Privacy);
 
                     switch (preferenceData.PropertyName) {
                         case nameof(PrivacyPolicy.DataFormat):
@@ -188,10 +313,10 @@ public sealed class PreferenceController: AppController {
                             break;
                     }
 
-                    preference.Privacy = JsonConvert.SerializeObject(settings);
+                    preferences.Privacy = JsonConvert.SerializeObject(settings);
                     break;
                 case nameof(PrivacyPreference.PhoneNumberPreference):
-                    settings = JsonConvert.DeserializeObject<PrivacyPreference>(preference.Privacy);
+                    settings = JsonConvert.DeserializeObject<PrivacyPreference>(preferences.Privacy);
 
                     switch (preferenceData.PropertyName) {
                         case nameof(PrivacyPolicy.DataFormat):
@@ -205,10 +330,10 @@ public sealed class PreferenceController: AppController {
                             break;
                     }
 
-                    preference.Privacy = JsonConvert.SerializeObject(settings);
+                    preferences.Privacy = JsonConvert.SerializeObject(settings);
                     break;
                 case nameof(PrivacyPreference.SecurityPreference):
-                    settings = JsonConvert.DeserializeObject<PrivacyPreference>(preference.Privacy);
+                    settings = JsonConvert.DeserializeObject<PrivacyPreference>(preferences.Privacy);
                     
                     var privacySettings = await _cacheService.GetCacheEntry<PrivacyVM>($"{nameof(PrivacyVM)}{Constants.Hyphen}{accountId}")
                                           ?? await _preferenceService.GetPrivacySettings(accountId);
@@ -230,7 +355,7 @@ public sealed class PreferenceController: AppController {
                             break;
                     }
 
-                    preference.Privacy = JsonConvert.SerializeObject(settings);
+                    preferences.Privacy = JsonConvert.SerializeObject(settings);
                     break;
             }
         }
@@ -242,7 +367,15 @@ public sealed class PreferenceController: AppController {
             return new ErrorResponse();
         }
 
-        var preferenceUpdated = await _preferenceService.UpdatePreference(preference);
-        return !preferenceUpdated.HasValue || !preferenceUpdated.Value ? new ErrorResponse() : new SuccessResponse();
+        var preferenceUpdated = await _preferenceService.UpdatePreference(preferences);
+        if (!preferenceUpdated.HasValue || !preferenceUpdated.Value) return new ErrorResponse();
+
+        if (preferenceData.FieldName.Equals(nameof(PrivacyPreference.SecurityPreference))) {
+            await _cacheService.RemoveCacheEntry($"{nameof(PrivacyVM)}{Constants.Hyphen}{accountId}");
+            Response.Cookies.Delete("privacySettings");
+        }
+        else Response.Cookies.Delete(nameof(preferences));
+
+        return new SuccessResponse();
     }
 }
