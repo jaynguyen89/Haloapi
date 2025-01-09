@@ -6,9 +6,17 @@ namespace HelperLibrary.Shared.Helpers;
 
 public static class ObjectHelpers {
     
-    public static byte[] EncodeDataAscii(this object data) => Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(data));
+    public static byte[] EncodeDataAscii(this object data) => Encoding.ASCII.GetBytes(
+        JsonConvert.SerializeObject(data, Formatting.None, new JsonSerializerSettings {
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+        })
+    );
     
-    public static byte[] EncodeDataUtf8(this object data) => Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(data));
+    public static byte[] EncodeDataUtf8(this object data) => Encoding.UTF8.GetBytes(
+        JsonConvert.SerializeObject(data, Formatting.None, new JsonSerializerSettings {
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+        })
+    );
 
     public static T? DecodeUtf8<T>(this byte[] data) {
         var decodedData = Encoding.UTF8.GetString(data);

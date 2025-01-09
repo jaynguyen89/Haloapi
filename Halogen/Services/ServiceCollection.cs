@@ -3,8 +3,6 @@ using Halogen.Bindings.ApiBindings;
 using Halogen.DbContexts;
 using Halogen.Auxiliaries;
 using Halogen.Auxiliaries.Interfaces;
-using Halogen.Services.AppServices.Services;
-using Halogen.Services.DbServices.Interfaces;
 using HelperLibrary.Shared.Logger;
 
 namespace Halogen.Services;

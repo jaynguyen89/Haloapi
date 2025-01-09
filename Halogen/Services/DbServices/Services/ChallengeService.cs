@@ -22,8 +22,8 @@ public sealed class ChallengeService: DbServiceBase, IChallengeService {
     public ChallengeService(
         ILoggerService logger,
         HalogenDbContext dbContext,
-        IHaloServiceFactory haloServiceFactory 
-    ): base(logger, dbContext) {
+        IHaloServiceFactory haloServiceFactory
+    ): base(logger, dbContext, haloServiceFactory) {
         _sessionService = haloServiceFactory.GetService<SessionService>(Enums.ServiceType.AppService) ?? throw new HaloArgumentNullException<ChallengeService>(nameof(SessionService));
     }
 

@@ -45,7 +45,7 @@ public sealed class HaloServiceFactory: IHaloServiceFactory {
             if (_services.Value.ContainsKey(serviceKey)) return (T)_services.Value!.GetDictionaryValue(serviceKey)!;
             
             var service = serviceType switch {
-                Enums.ServiceType.DbService => (T)Activator.CreateInstance(typeof(T), _logger, _dbContext)!,
+                Enums.ServiceType.DbService => (T)Activator.CreateInstance(typeof(T), _logger, _dbContext, this)!,
                 Enums.ServiceType.AppService => (T)GetAppService<T>(),
                 _ => (T)(IServiceBase)new HostedServiceBase(_logger),
             };

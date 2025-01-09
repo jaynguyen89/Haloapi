@@ -25,7 +25,7 @@ public sealed class ProfileService: DbServiceBase, IProfileService {
         ILoggerService logger,
         HalogenDbContext dbContext,
         IHaloServiceFactory haloServiceFactory
-    ): base(logger, dbContext) {
+    ): base(logger, dbContext, haloServiceFactory) {
         var cacheServiceFactory = haloServiceFactory.GetService<CacheServiceFactory>(Enums.ServiceType.AppService) ?? throw new HaloArgumentNullException<AccountController>(nameof(CacheServiceFactory));
         _cacheService = cacheServiceFactory.GetActiveCacheService();
     }
@@ -69,8 +69,10 @@ public sealed class ProfileService: DbServiceBase, IProfileService {
     public async Task<Profile?> GetProfileByAccountId(string accountId) {
         _logger.Log(new LoggerBinding<ProfileService> { Location = nameof(GetProfileByAccountId) });
         try {
-            var profile = await _cacheService.GetCacheEntry<Profile>($"{nameof(Profile)}{Constants.Hyphen}{accountId}")
-                          ?? await _dbContext.Profiles.SingleAsync(x => x.AccountId.Equals(accountId));
+            var profile = await _cacheService.GetCacheEntry<Profile>($"{nameof(Profile)}{Constants.Hyphen}{accountId}");
+            if (profile is not null) return profile;
+                
+            profile = await _dbContext.Profiles.SingleAsync(x => x.AccountId.Equals(accountId));
 
             await _cacheService.InsertCacheEntry(new MemoryCacheEntry {
                 Key = $"{nameof(Profile)}{Constants.Hyphen}{accountId}",

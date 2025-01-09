@@ -1,4 +1,5 @@
-﻿using Halogen.DbContexts;
+﻿using Halogen.Auxiliaries.Interfaces;
+using Halogen.DbContexts;
 using Halogen.DbModels;
 using Halogen.Services.DbServices.Interfaces;
 using HelperLibrary.Shared;
@@ -11,8 +12,9 @@ public sealed class AuthenticationService: DbServiceBase, IAuthenticationService
 
     public AuthenticationService(
         ILoggerService logger,
-        HalogenDbContext dbContext
-    ): base(logger, dbContext) { }
+        HalogenDbContext dbContext,
+        IHaloServiceFactory haloServiceFactory
+    ): base(logger, dbContext, haloServiceFactory) { }
 
 
     public async Task<string?> InsertNewAccount(Account newAccount) {

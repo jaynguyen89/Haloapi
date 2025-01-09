@@ -1,7 +1,7 @@
-﻿using Halogen.DbContexts;
+﻿using Halogen.Auxiliaries.Interfaces;
+using Halogen.DbContexts;
 using Halogen.DbModels;
 using Halogen.Services.DbServices.Interfaces;
-using HelperLibrary;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Helpers;
 using HelperLibrary.Shared.Logger;
@@ -13,8 +13,9 @@ public sealed class RoleService: DbServiceBase, IRoleService {
     
     public RoleService(
         ILoggerService logger,
-        HalogenDbContext dbContext
-    ): base(logger, dbContext) { }
+        HalogenDbContext dbContext,
+        IHaloServiceFactory haloServiceFactory
+    ): base(logger, dbContext, haloServiceFactory) { }
 
     public async Task<string?> InsertNewAccountRole(AccountRole newAccountRole) {
         _logger.Log(new LoggerBinding<RoleService> { Location = nameof(InsertNewAccountRole) });

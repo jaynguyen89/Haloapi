@@ -5,6 +5,7 @@ using HelperLibrary.Shared;
 using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Logger;
 using Microsoft.Extensions.Caching.Memory;
+using Newtonsoft.Json;
 using ICacheEntry = Halogen.Bindings.ServiceBindings.ICacheEntry;
 
 namespace Halogen.Services.AppServices.Services;
@@ -24,16 +25,22 @@ public class MemoryCache: AppServiceBase, IMemoryCacheService {
         ILoggerService logger
     ): base(logger) {
         var environment = ecosystem.GetEnvironment();
-        IsEnabled = bool.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.MemoryCacheSettings.IsEnabled)}")!);
+        IsEnabled = bool.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.MemoryCacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.MemoryCacheSettings.IsEnabled)}")!);
+
+        var (sizeLimit, compactionPercentage, expirationScanFrequency) = (
+            long.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.MemoryCacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.MemoryCacheSettings.Size)}")!),
+            double.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.MemoryCacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.MemoryCacheSettings.Compaction)}")!),
+            TimeSpan.FromSeconds(int.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.MemoryCacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.MemoryCacheSettings.ScanFrequency)}")!))
+        );
         
         _memoryCache = new Microsoft.Extensions.Caching.Memory.MemoryCache(new MemoryCacheOptions {
-            SizeLimit = int.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.MemoryCacheSettings.Size)}")!),
-            CompactionPercentage = double.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.MemoryCacheSettings.Compaction)}")!),
-            ExpirationScanFrequency = TimeSpan.FromSeconds(int.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.MemoryCacheSettings.ScanFrequency)}")!)),
+            SizeLimit = sizeLimit,
+            CompactionPercentage = compactionPercentage,
+            ExpirationScanFrequency = expirationScanFrequency,
         });
 
         _entryOptions = new MemoryCacheEntryOptions {
-            SlidingExpiration = TimeSpan.FromSeconds(int.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.RedisCacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.MemoryCacheSettings.SlidingExpiration)}")!)),
+            SlidingExpiration = TimeSpan.FromSeconds(int.Parse(configuration.GetValue<string>($"{nameof(HalogenOptions)}{Constants.Colon}{environment}{Constants.Colon}{nameof(HalogenOptions.Local.MemoryCacheSettings)}{Constants.Colon}{nameof(HalogenOptions.Local.MemoryCacheSettings.SlidingExpiration)}")!)),
         };
     }
     
@@ -41,6 +48,13 @@ public class MemoryCache: AppServiceBase, IMemoryCacheService {
         _logger.Log(new LoggerBinding<MemoryCache> { Location = nameof(InsertCacheEntry) });
         if (!IsEnabled) return Task.CompletedTask;
         
+        _entryOptions.Size = JsonConvert.SerializeObject(
+            ((MemoryCacheEntry)entry).Value,
+            Formatting.None,
+            new JsonSerializerSettings {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+            }
+        ).Length;
         _entryOptions.Priority = ((MemoryCacheEntry)entry).Priority;
         _entryOptions.AbsoluteExpiration = ((MemoryCacheEntry)entry).AbsoluteExpiration;
         

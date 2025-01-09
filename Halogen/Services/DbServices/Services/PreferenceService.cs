@@ -1,4 +1,5 @@
-﻿using Halogen.Bindings.ApiBindings;
+﻿using Halogen.Auxiliaries.Interfaces;
+using Halogen.Bindings.ApiBindings;
 using Halogen.Bindings.ViewModels;
 using Halogen.DbContexts;
 using Halogen.DbModels;
@@ -14,8 +15,9 @@ public sealed class PreferenceService: DbServiceBase, IPreferenceService {
     
     public PreferenceService(
         ILoggerService logger,
-        HalogenDbContext dbContext
-    ): base(logger, dbContext) { }
+        HalogenDbContext dbContext,
+        IHaloServiceFactory haloServiceFactory
+    ): base(logger, dbContext, haloServiceFactory) { }
 
     public async Task<string?> InsertNewPreference(Preference newPreference) {
         _logger.Log(new LoggerBinding<PreferenceService> { Location = nameof(InsertNewPreference) });

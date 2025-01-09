@@ -310,7 +310,7 @@ public sealed class AuthenticationController: AppController {
     /// <response code="422">Unprocessable Entity - The Account has no information for the destination.</response>
     /// <response code="500">Internal Server Error - Something went wrong with Halogen services.</response>
     [ServiceFilter(typeof(RecaptchaAuthorize))]
-    [HttpGet("send-secret-code/{destination}")]
+    [HttpGet("send-secret-code")]
     public async Task<IActionResult> SendSecretCode([FromHeader] string accountId, [FromQuery] Enums.TokenDestination destination) {
         _logger.Log(new LoggerBinding<AuthenticationController> { Location = nameof(SendSecretCode) });
 
