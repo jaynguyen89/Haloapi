@@ -41,11 +41,15 @@ public partial class Profile
 
     public string? JobTitle { get; set; }
 
+    public string? OccupationId { get; set; }
+
     public string? Websites { get; set; }
 
     public string? Interests { get; set; }
 
     public virtual Account Account { get; set; } = null!;
+
+    public virtual Occupation? Occupation { get; set; }
 
     public virtual ICollection<ProfileAddress> ProfileAddresses { get; set; } = new List<ProfileAddress>();
 }

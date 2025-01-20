@@ -15,4 +15,17 @@ public interface IInterestService {
     /// </summary>
     /// <returns>InterestVM[]?</returns>
     Task<InterestVM[]?> GetAllInterests();
+
+    /// <summary>
+    /// To get all Interests for dropdown list.
+    /// </summary>
+    /// <returns>InterestListVM[]?</returns>
+    Task<InterestItemVM[]?> GetAllInterestsAsList();
+
+    /// <summary>
+    /// To get all Interests for user.
+    /// </summary>
+    /// <param name="profileId">string</param>
+    /// <returns>InterestVM[]?</returns>
+    Task<InterestVM[]?> GetProfileInterests(string profileId);
 }

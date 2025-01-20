@@ -33,11 +33,17 @@ public sealed class PublicDataVM {
 
     public EnumProp[] CareerFormats { get; set; } = null!;
 
-    public EnumProp[] VisibilityFormats { get; set; } = null!;
+    public EnumProp[] Visibilities { get; set; } = null!;
 
     public CountryDataVM[] Countries { get; set; } = null!;
 
     public string[] SupportedSocialAccounts { get; set; } = null!;
+    
+    public EnumProp[] SocialMedias { get; set; } = null!;
+    
+    public EnumProp[] LocalityRegions { get; set; } = null!;
+    
+    public EnumProp[] Ethnicities { get; set; } = null!;
     
     public sealed class CountryDataVM {
 

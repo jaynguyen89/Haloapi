@@ -41,9 +41,9 @@ public partial class Address
 
     public byte Variant { get; set; }
 
-    public virtual Locality? Country { get; set; }
+    public virtual Locality Country { get; set; } = null!;
 
-    public virtual LocalityDivision? Division { get; set; }
+    public virtual LocalityDivision Division { get; set; } = null!;
 
     public virtual ICollection<ProfileAddress> ProfileAddresses { get; set; } = new List<ProfileAddress>();
 }

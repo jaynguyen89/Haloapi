@@ -344,6 +344,9 @@ public sealed class ProfileController: AppController {
             case nameof(Profile.JobTitle):
                 profile.JobTitle = profileData.StrValue;
                 break;
+            case nameof(Profile.OccupationId):
+                profile.OccupationId = profileData.StrValue;
+                break;
             case nameof(Profile.Websites):
                 var websites = profileData.IntValueMaps?.Select(entry => new ProfileLinkVM {
                     LinkType = (Enums.SocialMedia)entry.Key,

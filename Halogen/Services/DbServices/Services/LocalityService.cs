@@ -1,5 +1,4 @@
-﻿using Halogen.Auxiliaries.Interfaces;
-using Halogen.DbContexts;
+﻿using Halogen.DbContexts;
 using Halogen.DbModels;
 using Halogen.Services.DbServices.Interfaces;
 using HelperLibrary.Shared;
@@ -14,9 +13,8 @@ public class LocalityService: DbServiceBase, ILocalityService {
 
     public LocalityService(
         ILoggerService logger,
-        HalogenDbContext dbContext,
-        IHaloServiceFactory haloServiceFactory
-    ): base(logger, dbContext, haloServiceFactory) { }
+        HalogenDbContext dbContext
+    ): base(logger, dbContext) { }
 
     public virtual async Task<string[]?> GetTelephoneCodes() {
         _logger.Log(new LoggerBinding<LocalityService> { Location = nameof(GetTelephoneCodes) });

@@ -1,31 +1,24 @@
-﻿using Halogen.Auxiliaries.Interfaces;
-using Halogen.Bindings;
-using Halogen.Bindings.ApiBindings;
+﻿using Halogen.Bindings.ApiBindings;
 using Halogen.Bindings.ViewModels;
 using Halogen.DbContexts;
 using Halogen.DbModels;
-using Halogen.Services.AppServices.Interfaces;
-using Halogen.Services.AppServices.Services;
 using Halogen.Services.DbServices.Interfaces;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Helpers;
 using HelperLibrary.Shared.Logger;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using Preference = Halogen.Bindings.ServiceBindings.Preference;
 
 namespace Halogen.Services.DbServices.Services; 
 
 public sealed class ChallengeService: DbServiceBase, IChallengeService {
-    
-    private readonly ISessionService _sessionService;
 
     public ChallengeService(
         ILoggerService logger,
         HalogenDbContext dbContext,
-        IHaloServiceFactory haloServiceFactory
-    ): base(logger, dbContext, haloServiceFactory) {
-        _sessionService = haloServiceFactory.GetService<SessionService>(Enums.ServiceType.AppService) ?? throw new HaloArgumentNullException<ChallengeService>(nameof(SessionService));
-    }
+        HttpContext httpContext
+    ): base(logger, dbContext, httpContext) { }
 
     public async Task<ChallengeVM[]?> GetChallengeQuestions() {
         _logger.Log(new LoggerBinding<ChallengeService> { Location = nameof(GetChallengeQuestions) });
@@ -51,7 +44,10 @@ public sealed class ChallengeService: DbServiceBase, IChallengeService {
         _logger.Log(new LoggerBinding<ChallengeService> { Location = nameof(GetAllChallengeResponses) });
 
         try {
-            var preferences = _sessionService.Get<Preference>(Enums.SessionKey.Preference.GetValue()!);
+            var storedPreferences = _httpContext!.Session.GetString(Enums.SessionKey.Preference.GetValue()!);
+            if (!storedPreferences.IsString()) return default;
+
+            var preferences = JsonConvert.DeserializeObject<Preference>(storedPreferences!);
             var (dateFormat, timeFormat) = GetPreferenceDateTimeFormats(preferences);
 
             return await _dbContext.ChallengeResponses

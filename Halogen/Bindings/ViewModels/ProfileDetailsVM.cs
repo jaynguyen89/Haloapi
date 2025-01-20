@@ -23,7 +23,7 @@ public sealed class ProfileDetailsVM {
     
     public Enums.Ethnicity Ethnicity { get; set; }
 
-    public WorkAndInterestVM WorkAndInterest { get; set; } = null!;
+    public WorkInfoVM WorkInfo { get; set; } = null!;
 
     public static implicit operator ProfileDetailsVM(Profile profile) {
         var fullName = profile.FullName
@@ -40,29 +40,30 @@ public sealed class ProfileDetailsVM {
             Gender = (Enums.Gender)profile.Gender,
             DateOfBirth = profile.DateOfBirth,
             Ethnicity = (Enums.Ethnicity)profile.Ethnicity,
-            WorkAndInterest = profile,
+            WorkInfo = profile,
         };
     }
 }
 
-public sealed class WorkAndInterestVM {
+public sealed class WorkInfoVM {
     
     public string? Company  { get; set; }
     
     public string? JobTitle  { get; set; }
     
-    public InterestVM[]? Interests  { get; set; }
+    public string? OccupationId { get; set; }
     
     public ProfileLinkVM[]? ProfileLinks  { get; set; }
 
-    public static implicit operator WorkAndInterestVM(Profile profile) {
+    public static implicit operator WorkInfoVM(Profile profile) {
         var profileLinks = profile.Websites is null
             ? null
             : ConvertWebsites(profile.Websites);
         
-        return new WorkAndInterestVM {
+        return new WorkInfoVM {
             Company = profile.Company,
             JobTitle = profile.JobTitle,
+            OccupationId = profile.OccupationId,
             ProfileLinks = profileLinks,
         };
 

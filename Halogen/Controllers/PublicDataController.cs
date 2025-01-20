@@ -126,12 +126,15 @@ public sealed class PublicDataController: AppController {
             PhoneNumberFormats = EnumHelpers.ToArrayWithValueAttribute<Enums.PhoneNumberFormat>(),
             UnitSystems = EnumHelpers.ToArrayWithValueAttribute<Enums.UnitSystem>(),
             CareerFormats = EnumHelpers.ToArrayWithValueAttribute<Enums.CareerFormat>(),
-            VisibilityFormats = EnumHelpers.ToArrayWithValueAttribute<Enums.Visibility>(),
+            Visibilities = EnumHelpers.ToArrayWithValueAttribute<Enums.Visibility>(),
             Countries = localities.Select(locality => (PublicDataVM.CountryDataVM)locality).ToArray(),
             SupportedSocialAccounts = _haloConfigs.SupportedSocialAccountForRegistration
                 .Select(x => x.GetValue() ?? string.Empty)
                 .Where(x => x.IsString())
                 .ToArray(),
+            SocialMedias = EnumHelpers.ToArrayWithValueAttribute<Enums.SocialMedia>(),
+            LocalityRegions = EnumHelpers.ToArrayWithCompositeAttribute<Enums.LocalityRegion>(),
+            Ethnicities = EnumHelpers.ToArrayWithValueAttribute<Enums.Ethnicity>(),
         };
         
         return new SuccessResponse(publicData);

@@ -1,5 +1,4 @@
-﻿using Halogen.Auxiliaries.Interfaces;
-using Halogen.Bindings.ApiBindings;
+﻿using Halogen.Bindings.ApiBindings;
 using Halogen.Bindings.ViewModels;
 using Halogen.DbContexts;
 using Halogen.DbModels;
@@ -16,9 +15,8 @@ public sealed class AccountService: DbServiceBase, IAccountService {
     
     public AccountService(
         ILoggerService logger,
-        HalogenDbContext dbContext,
-        IHaloServiceFactory haloServiceFactory
-    ): base(logger, dbContext, haloServiceFactory) { }
+        HalogenDbContext dbContext
+    ): base(logger, dbContext) { }
     
     public async Task<bool?> IsEmailAddressAvailableForNewAccount(string emailAddress) {
         _logger.Log(new LoggerBinding<AccountService> { Location = nameof(IsEmailAddressAvailableForNewAccount) });

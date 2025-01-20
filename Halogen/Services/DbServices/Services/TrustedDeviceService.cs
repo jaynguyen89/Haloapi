@@ -1,5 +1,4 @@
-﻿using Halogen.Auxiliaries.Interfaces;
-using Halogen.DbContexts;
+﻿using Halogen.DbContexts;
 using Halogen.DbModels;
 using Halogen.Services.DbServices.Interfaces;
 using HelperLibrary.Shared;
@@ -12,9 +11,8 @@ public sealed class TrustedDeviceService: DbServiceBase, ITrustedDeviceService {
     
     public TrustedDeviceService(
         ILoggerService logger,
-        HalogenDbContext dbContext,
-        IHaloServiceFactory haloServiceFactory
-    ): base(logger, dbContext, haloServiceFactory) { }
+        HalogenDbContext dbContext
+    ): base(logger, dbContext) { }
 
     public async Task<TrustedDevice[]?> GetTrustedDevicesForAccount(string accountId) {
         _logger.Log(new LoggerBinding<TrustedDeviceService> { Location = nameof(GetTrustedDevicesForAccount) });

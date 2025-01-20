@@ -1,5 +1,4 @@
-﻿using Halogen.Auxiliaries.Interfaces;
-using Halogen.DbContexts;
+﻿using Halogen.DbContexts;
 using Halogen.Services.DbServices.Interfaces;
 using HelperLibrary.Shared.Logger;
 
@@ -9,9 +8,8 @@ public sealed class ContextService: DbServiceBase, IContextService {
 
     public ContextService(
         ILoggerService logger,
-        HalogenDbContext dbContext,
-        IHaloServiceFactory haloServiceFactory
-    ) : base(logger, dbContext, haloServiceFactory) { }
+        HalogenDbContext dbContext
+    ): base(logger, dbContext) { }
 
     public async Task StartTransaction() {
         _logger.Log(new LoggerBinding<ContextService> { Location = nameof(StartTransaction) });

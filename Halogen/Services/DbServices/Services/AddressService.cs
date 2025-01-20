@@ -1,5 +1,4 @@
-﻿using Halogen.Auxiliaries.Interfaces;
-using Halogen.Bindings.ViewModels;
+﻿using Halogen.Bindings.ViewModels;
 using Halogen.DbContexts;
 using Halogen.DbModels;
 using Halogen.Services.DbServices.Interfaces;
@@ -14,9 +13,8 @@ public sealed class AddressService: DbServiceBase, IAddressService {
     
     public AddressService(
         ILoggerService logger,
-        HalogenDbContext dbContext,
-        IHaloServiceFactory haloServiceFactory
-    ): base(logger, dbContext, haloServiceFactory) { }
+        HalogenDbContext dbContext
+    ): base(logger, dbContext) { }
 
     public async Task<AddressBookVM?> GetAddressBookByProfileId(string profileId) {
         _logger.Log(new LoggerBinding<AddressService> { Location = nameof(GetAddressBookByProfileId) });

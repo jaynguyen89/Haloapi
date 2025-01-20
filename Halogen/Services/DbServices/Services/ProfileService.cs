@@ -24,8 +24,9 @@ public sealed class ProfileService: DbServiceBase, IProfileService {
     public ProfileService(
         ILoggerService logger,
         HalogenDbContext dbContext,
+        HttpContext httpContext,
         IHaloServiceFactory haloServiceFactory
-    ): base(logger, dbContext, haloServiceFactory) {
+    ): base(logger, dbContext, httpContext) {
         var cacheServiceFactory = haloServiceFactory.GetService<CacheServiceFactory>(Enums.ServiceType.AppService) ?? throw new HaloArgumentNullException<AccountController>(nameof(CacheServiceFactory));
         _cacheService = cacheServiceFactory.GetActiveCacheService();
     }
@@ -184,18 +185,9 @@ public sealed class ProfileService: DbServiceBase, IProfileService {
 
         try {
             var profile = await GetProfileByAccountId(profileId);
-            var profileDetails = (ProfileDetailsVM)profile!;
-            
-            if (profile!.Interests is null) return profileDetails;
-
-            var interestIds = JsonConvert.DeserializeObject<string[]>(profile.Interests) ?? [];
-            var interests = await _dbContext.Interests
-                .Where(interest => interestIds.Contains(interest.Id))
-                .Select(interest => (InterestVM)interest)
-                .ToArrayAsync();
-
-            profileDetails.WorkAndInterest.Interests = interests;
-            return profileDetails;
+            return profile is null
+                ? default
+                : (ProfileDetailsVM)profile!;
         }
         catch (NullReferenceException e) {
             _logger.Log(new LoggerBinding<ProfileService> {

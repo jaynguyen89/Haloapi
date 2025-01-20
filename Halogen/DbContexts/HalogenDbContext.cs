@@ -34,6 +34,8 @@ public partial class HalogenDbContext : DbContext
 
     public virtual DbSet<LocalityDivision> LocalityDivisions { get; set; }
 
+    public virtual DbSet<Occupation> Occupations { get; set; }
+
     public virtual DbSet<Preference> Preferences { get; set; }
 
     public virtual DbSet<Profile> Profiles { get; set; }
@@ -52,7 +54,7 @@ public partial class HalogenDbContext : DbContext
 
             entity.ToTable("Account");
 
-            entity.HasIndex(e => e.Id, "UQ__Account__3214EC06190EBE71").IsUnique();
+            entity.HasIndex(e => e.Id, "UQ__Account__3214EC06668F5102").IsUnique();
 
             entity.Property(e => e.Id)
                 .HasMaxLength(65)
@@ -101,7 +103,7 @@ public partial class HalogenDbContext : DbContext
 
             entity.ToTable("AccountRole");
 
-            entity.HasIndex(e => e.Id, "UQ__AccountR__3214EC06F25067A0").IsUnique();
+            entity.HasIndex(e => e.Id, "UQ__AccountR__3214EC069B152DB6").IsUnique();
 
             entity.Property(e => e.Id)
                 .HasMaxLength(65)
@@ -131,7 +133,7 @@ public partial class HalogenDbContext : DbContext
 
             entity.ToTable("Address");
 
-            entity.HasIndex(e => e.Id, "UQ__Address__3214EC065083E066").IsUnique();
+            entity.HasIndex(e => e.Id, "UQ__Address__3214EC065B4183B4").IsUnique();
 
             entity.Property(e => e.Id)
                 .HasMaxLength(65)
@@ -145,15 +147,11 @@ public partial class HalogenDbContext : DbContext
             entity.Property(e => e.Commute)
                 .HasMaxLength(100)
                 .HasDefaultValueSql("(NULL)");
-            entity.Property(e => e.CountryId)
-                .HasMaxLength(65)
-                .HasDefaultValueSql("(NULL)");
+            entity.Property(e => e.CountryId).HasMaxLength(65);
             entity.Property(e => e.District)
                 .HasMaxLength(100)
                 .HasDefaultValueSql("(NULL)");
-            entity.Property(e => e.DivisionId)
-                .HasMaxLength(65)
-                .HasDefaultValueSql("(NULL)");
+            entity.Property(e => e.DivisionId).HasMaxLength(65);
             entity.Property(e => e.Group)
                 .HasMaxLength(100)
                 .HasDefaultValueSql("(NULL)");
@@ -172,9 +170,7 @@ public partial class HalogenDbContext : DbContext
             entity.Property(e => e.Quarter)
                 .HasMaxLength(100)
                 .HasDefaultValueSql("(NULL)");
-            entity.Property(e => e.StreetAddress)
-                .HasMaxLength(100)
-                .HasDefaultValueSql("(NULL)");
+            entity.Property(e => e.StreetAddress).HasMaxLength(100);
             entity.Property(e => e.Suburb)
                 .HasMaxLength(100)
                 .HasDefaultValueSql("(NULL)");
@@ -185,9 +181,13 @@ public partial class HalogenDbContext : DbContext
                 .HasMaxLength(100)
                 .HasDefaultValueSql("(NULL)");
 
-            entity.HasOne(d => d.Country).WithMany(p => p.Addresses).HasForeignKey(d => d.CountryId);
+            entity.HasOne(d => d.Country).WithMany(p => p.Addresses)
+                .HasForeignKey(d => d.CountryId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
 
-            entity.HasOne(d => d.Division).WithMany(p => p.Addresses).HasForeignKey(d => d.DivisionId);
+            entity.HasOne(d => d.Division).WithMany(p => p.Addresses)
+                .HasForeignKey(d => d.DivisionId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
         modelBuilder.Entity<Challenge>(entity =>
@@ -196,7 +196,7 @@ public partial class HalogenDbContext : DbContext
 
             entity.ToTable("Challenge");
 
-            entity.HasIndex(e => e.Id, "UQ__Challeng__3214EC063650CCC3").IsUnique();
+            entity.HasIndex(e => e.Id, "UQ__Challeng__3214EC060E391EC0").IsUnique();
 
             entity.Property(e => e.Id)
                 .HasMaxLength(65)
@@ -216,7 +216,7 @@ public partial class HalogenDbContext : DbContext
 
             entity.ToTable("ChallengeResponse");
 
-            entity.HasIndex(e => e.Id, "UQ__Challeng__3214EC067F88ED28").IsUnique();
+            entity.HasIndex(e => e.Id, "UQ__Challeng__3214EC06E897C5A7").IsUnique();
 
             entity.Property(e => e.Id)
                 .HasMaxLength(65)
@@ -241,7 +241,7 @@ public partial class HalogenDbContext : DbContext
 
             entity.ToTable("Currency");
 
-            entity.HasIndex(e => e.Id, "UQ__Currency__3214EC06F9BBA3CA").IsUnique();
+            entity.HasIndex(e => e.Id, "UQ__Currency__3214EC0683E148A1").IsUnique();
 
             entity.Property(e => e.Id)
                 .HasMaxLength(65)
@@ -257,13 +257,15 @@ public partial class HalogenDbContext : DbContext
 
             entity.ToTable("Interest");
 
-            entity.HasIndex(e => e.Id, "UQ__Interest__3214EC06E2A832A9").IsUnique();
+            entity.HasIndex(e => e.Id, "UQ__Interest__3214EC0664C18E68").IsUnique();
 
             entity.Property(e => e.Id)
                 .HasMaxLength(65)
                 .HasDefaultValueSql("(newid())");
+            entity.Property(e => e.Description)
+                .HasMaxLength(250)
+                .HasDefaultValueSql("(NULL)");
             entity.Property(e => e.Name).HasMaxLength(60);
-            entity.Property(e => e.Description).HasMaxLength(250).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.ParentId)
                 .HasMaxLength(65)
                 .HasDefaultValueSql("(NULL)");
@@ -279,7 +281,7 @@ public partial class HalogenDbContext : DbContext
 
             entity.ToTable("Locality");
 
-            entity.HasIndex(e => e.Id, "UQ__Locality__3214EC06284188CE").IsUnique();
+            entity.HasIndex(e => e.Id, "UQ__Locality__3214EC06C049C62F").IsUnique();
 
             entity.Property(e => e.Id)
                 .HasMaxLength(65)
@@ -306,7 +308,7 @@ public partial class HalogenDbContext : DbContext
 
             entity.ToTable("LocalityDivision");
 
-            entity.HasIndex(e => e.Id, "UQ__Locality__3214EC0645C42DCC").IsUnique();
+            entity.HasIndex(e => e.Id, "UQ__Locality__3214EC06516A6DDA").IsUnique();
 
             entity.Property(e => e.Id)
                 .HasMaxLength(65)
@@ -323,13 +325,37 @@ public partial class HalogenDbContext : DbContext
                 .HasConstraintName("FK_State_Locality_LocalityId");
         });
 
+        modelBuilder.Entity<Occupation>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_Occupation_Id");
+
+            entity.ToTable("Occupation");
+
+            entity.HasIndex(e => e.Id, "UQ__Occupati__3214EC06A66077E9").IsUnique();
+
+            entity.Property(e => e.Id)
+                .HasMaxLength(65)
+                .HasDefaultValueSql("(newid())");
+            entity.Property(e => e.Description)
+                .HasMaxLength(250)
+                .HasDefaultValueSql("(NULL)");
+            entity.Property(e => e.Name).HasMaxLength(60);
+            entity.Property(e => e.ParentId)
+                .HasMaxLength(65)
+                .HasDefaultValueSql("(NULL)");
+
+            entity.HasOne(d => d.Parent).WithMany(p => p.InverseParent)
+                .HasForeignKey(d => d.ParentId)
+                .HasConstraintName("FK_Occupation_ParentId_Id");
+        });
+
         modelBuilder.Entity<Preference>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK_Preference_Id");
 
             entity.ToTable("Preference");
 
-            entity.HasIndex(e => e.Id, "UQ__Preferen__3214EC06472AD3B7").IsUnique();
+            entity.HasIndex(e => e.Id, "UQ__Preferen__3214EC06CB404886").IsUnique();
 
             entity.Property(e => e.Id)
                 .HasMaxLength(65)
@@ -350,7 +376,7 @@ public partial class HalogenDbContext : DbContext
 
             entity.ToTable("Profile");
 
-            entity.HasIndex(e => e.Id, "UQ__Profile__3214EC06C8EAE412").IsUnique();
+            entity.HasIndex(e => e.Id, "UQ__Profile__3214EC063E98E0D6").IsUnique();
 
             entity.Property(e => e.Id)
                 .HasMaxLength(65)
@@ -387,6 +413,7 @@ public partial class HalogenDbContext : DbContext
             entity.Property(e => e.NickName)
                 .HasMaxLength(50)
                 .HasDefaultValueSql("(NULL)");
+            entity.Property(e => e.OccupationId).HasMaxLength(65);
             entity.Property(e => e.PhoneNumber)
                 .HasMaxLength(50)
                 .HasDefaultValueSql("(NULL)");
@@ -401,6 +428,8 @@ public partial class HalogenDbContext : DbContext
             entity.HasOne(d => d.Account).WithMany(p => p.Profiles)
                 .HasForeignKey(d => d.AccountId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
+
+            entity.HasOne(d => d.Occupation).WithMany(p => p.Profiles).HasForeignKey(d => d.OccupationId);
         });
 
         modelBuilder.Entity<ProfileAddress>(entity =>
@@ -409,7 +438,7 @@ public partial class HalogenDbContext : DbContext
 
             entity.ToTable("ProfileAddress");
 
-            entity.HasIndex(e => e.Id, "UQ__ProfileA__3214EC062A0284F8").IsUnique();
+            entity.HasIndex(e => e.Id, "UQ__ProfileA__3214EC0609BDA0D1").IsUnique();
 
             entity.Property(e => e.Id)
                 .HasMaxLength(65)
@@ -433,7 +462,7 @@ public partial class HalogenDbContext : DbContext
 
             entity.ToTable("Role");
 
-            entity.HasIndex(e => e.Id, "UQ__Role__3214EC06EDF83C94").IsUnique();
+            entity.HasIndex(e => e.Id, "UQ__Role__3214EC06016BEE5B").IsUnique();
 
             entity.Property(e => e.Id)
                 .HasMaxLength(65)
@@ -456,7 +485,7 @@ public partial class HalogenDbContext : DbContext
 
             entity.ToTable("TrustedDevice");
 
-            entity.HasIndex(e => e.Id, "UQ__TrustedD__3214EC063E89CF9A").IsUnique();
+            entity.HasIndex(e => e.Id, "UQ__TrustedD__3214EC068832F6F9").IsUnique();
 
             entity.Property(e => e.Id)
                 .HasMaxLength(65)

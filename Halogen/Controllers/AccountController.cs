@@ -26,7 +26,7 @@ namespace Halogen.Controllers;
 
 [ApiController]
 [Route("account")]
-[AutoValidateAntiforgeryToken]
+//[AutoValidateAntiforgeryToken]
 [ServiceFilter(typeof(AuthenticatedAuthorize))]
 [ServiceFilter(typeof(TwoFactorAuthorize))]
 public sealed class AccountController: AppController {

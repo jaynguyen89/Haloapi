@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Halogen.DbModels;
 
-public partial class Interest
+public partial class Occupation
 {
     public string Id { get; set; } = null!;
 
@@ -13,9 +13,9 @@ public partial class Interest
 
     public string? Description { get; set; }
 
-    public bool IsHobby { get; set; }
+    public virtual ICollection<Occupation> InverseParent { get; set; } = new List<Occupation>();
 
-    public virtual ICollection<Interest> InverseParent { get; set; } = new List<Interest>();
+    public virtual Occupation? Parent { get; set; }
 
-    public virtual Interest? Parent { get; set; }
+    public virtual ICollection<Profile> Profiles { get; set; } = new List<Profile>();
 }

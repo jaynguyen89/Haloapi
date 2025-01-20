@@ -1,4 +1,5 @@
-﻿using Halogen.Auxiliaries.Interfaces;
+﻿using Halogen.Attributes;
+using Halogen.Auxiliaries.Interfaces;
 using Halogen.Bindings;
 using Halogen.Bindings.ViewModels;
 using Halogen.Services.DbServices.Interfaces;
@@ -11,6 +12,8 @@ namespace Halogen.Controllers;
 
 [ApiController]
 [Route("interests")]
+[ServiceFilter(typeof(AuthenticatedAuthorize))]
+[ServiceFilter(typeof(TwoFactorAuthorize))]
 public sealed class InterestController {
 
     private readonly ILoggerService _logger;
@@ -52,6 +55,23 @@ public sealed class InterestController {
         _logger.Log(new LoggerBinding<InterestController> { Location = nameof(GetAllInterests) });
 
         var interests = await _interestService.GetAllInterests();
+        return interests is null ? new ErrorResponse() : new SuccessResponse(interests);
+    }
+
+    [HttpGet("list")]
+    public async Task<IActionResult> GetInterestsList() {
+        _logger.Log(new LoggerBinding<InterestController> { Location = nameof(GetInterestsList) });
+        
+        var interests = await _interestService.GetAllInterestsAsList();
+        return interests is null ? new ErrorResponse() : new SuccessResponse(interests);
+    }
+
+    [ServiceFilter(typeof(AccountAndProfileAssociatedAuthorize))]
+    [HttpGet("profile-interests")]
+    public async Task<IActionResult> GetProfileInterests([FromHeader] string profileId) {
+        _logger.Log(new LoggerBinding<InterestController> { Location = nameof(GetProfileInterests) });
+
+        var interests = await _interestService.GetProfileInterests(profileId);
         return interests is null ? new ErrorResponse() : new SuccessResponse(interests);
     }
 }

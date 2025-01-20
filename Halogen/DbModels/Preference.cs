@@ -13,7 +13,7 @@ public partial class Preference
 
     public byte ApplicationLanguage { get; set; }
 
-    public string? DataFormat { get; set; }
+    public string DataFormat { get; set; } = null!;
 
     public string Privacy { get; set; } = null!;
 

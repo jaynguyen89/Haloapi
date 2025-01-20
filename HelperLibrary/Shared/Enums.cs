@@ -283,8 +283,10 @@ public static class Enums {
         ShowLastName,
         [Value("Show nick name")]
         ShowNickName,
-        [Value("Show initials")]
+        [Value("Show initials only")]
         ShowInitials,
+        [Value("Show initials and nickname")]
+        InitialsAndNickName,
     }
 
     public enum BirthFormat {
@@ -307,7 +309,7 @@ public static class Enums {
     }
 
     public enum Ethnicity {
-        [Value("Prefer not to tell")]
+        [Value("Not Specified")]
         NotSpecified,
         [Value("East Asian")]
         EastAsian,

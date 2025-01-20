@@ -20,6 +20,7 @@ using HelperLibrary.Shared.Helpers;
 using HelperLibrary.Shared.Logger;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using Newtonsoft.Json;
 using Preference = Halogen.Bindings.ServiceBindings.Preference;
 
 namespace Halogen.Controllers;
@@ -33,7 +34,6 @@ public sealed class ChallengeController: AppController {
     
     private readonly IContextService _contextService;
     private readonly ICacheService _cacheService;
-    private readonly ISessionService _sessionService;
     private readonly IChallengeService _challengeService;
     private readonly IMailService _mailService;
     private readonly ISmsService _smsService;
@@ -47,7 +47,6 @@ public sealed class ChallengeController: AppController {
         IAssistantServiceFactory assistantServiceFactory
     ): base(ecosystem, logger, configuration, haloConfigProvider.GetHalogenConfigs()) {
         _contextService = haloServiceFactory.GetService<ContextService>(Enums.ServiceType.DbService) ?? throw new HaloArgumentNullException<ChallengeController>(nameof(ContextService));
-        _sessionService = haloServiceFactory.GetService<SessionService>(Enums.ServiceType.DbService) ?? throw new HaloArgumentNullException<ChallengeController>(nameof(SessionService));
         _challengeService = haloServiceFactory.GetService<ChallengeService>(Enums.ServiceType.DbService) ?? throw new HaloArgumentNullException<ChallengeController>(nameof(ChallengeService));
         
         var cacheServiceFactory = haloServiceFactory.GetService<CacheServiceFactory>(Enums.ServiceType.AppService) ?? throw new HaloArgumentNullException<ChallengeController>(nameof(CacheServiceFactory));
@@ -174,7 +173,8 @@ public sealed class ChallengeController: AppController {
         var dbResponse = await _challengeService.GetChallengeResponse(accountId, response.Id);
         if (dbResponse is null) return new ErrorResponse();
 
-        var preference = _sessionService.Get<Preference>($"{Enums.SessionKey.Preference.GetValue()}{accountId}");
+        var sessionPreference = HttpContext.Session.GetString($"{Enums.SessionKey.Preference.GetValue()}{accountId}");
+        var preference = JsonConvert.DeserializeObject<Preference>(sessionPreference!);
         if (preference is null) return new ErrorResponse();
         
         dbResponse.Response = response.Response;
