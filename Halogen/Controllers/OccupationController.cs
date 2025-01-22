@@ -1,4 +1,5 @@
-﻿using Halogen.Auxiliaries.Interfaces;
+﻿using Halogen.Attributes;
+using Halogen.Auxiliaries.Interfaces;
 using Halogen.Bindings;
 using Halogen.Bindings.ViewModels;
 using Halogen.Services.DbServices.Interfaces;
@@ -11,6 +12,8 @@ namespace Halogen.Controllers;
 
 [ApiController]
 [Route("occupations")]
+[ServiceFilter(typeof(AuthenticatedAuthorize))]
+[ServiceFilter(typeof(TwoFactorAuthorize))]
 public sealed class OccupationController {
 
     private readonly ILoggerService _logger;

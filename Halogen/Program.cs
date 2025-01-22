@@ -225,6 +225,7 @@ public static class Program {
         builder.Services.AddScoped<TwoFactorAuthorize>();
         builder.Services.AddScoped<RoleAuthorize>();
         builder.Services.AddScoped<AuthenticatedAuthorize>();
+        builder.Services.AddScoped<AccountAndProfileAssociatedAuthorize>();
 
         var app = builder.Build();
 

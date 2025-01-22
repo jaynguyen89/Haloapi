@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using Halogen.Auxiliaries.Interfaces;
 using Halogen.Bindings.ServiceBindings;
 using Halogen.Bindings.ViewModels;
 using HelperLibrary.Shared;
@@ -18,8 +17,7 @@ public sealed class AuthenticatedAuthorize: AuthorizeAttribute, IAuthorizationFi
     private readonly ILoggerService _logger;
 
     public AuthenticatedAuthorize(
-        ILoggerService logger,
-        IHaloServiceFactory haloServiceFactory
+        ILoggerService logger
     ) {
         _logger = logger;
     }

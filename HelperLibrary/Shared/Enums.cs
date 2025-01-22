@@ -160,6 +160,8 @@ public static class Enums {
         WMMDDYYYYD,
         [Value("ddd, MM/dd/yyyy")]
         WMMDDYYYYS,
+        [Value("yyyy/MM/dd")]
+        YYYYMMDD, // client-side ISO format
     }
     
     public enum TimeFormat {
@@ -168,7 +170,7 @@ public static class Enums {
         [Value("hh:mm tt")]
         HHMMTTC, // default if no preference set
         [Value("HH:mm:ss")]
-        HHMMSSC,
+        HHMMSSC, // client-side ISO format
         [Value("HH:mm")]
         HHMMC,
         [Value("hh.mm.ss tt")]

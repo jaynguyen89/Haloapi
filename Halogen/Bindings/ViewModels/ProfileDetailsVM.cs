@@ -19,7 +19,7 @@ public sealed class ProfileDetailsVM {
     
     public Enums.Gender Gender { get; set; }
     
-    public DateTime? DateOfBirth { get; set; }
+    public string? DateOfBirth { get; set; }
     
     public Enums.Ethnicity Ethnicity { get; set; }
 
@@ -38,7 +38,7 @@ public sealed class ProfileDetailsVM {
             FullName = fullName,
             NickName = profile.NickName,
             Gender = (Enums.Gender)profile.Gender,
-            DateOfBirth = profile.DateOfBirth,
+            DateOfBirth = profile.DateOfBirth?.Format(Enums.DateFormat.YYYYMMDD, null),
             Ethnicity = (Enums.Ethnicity)profile.Ethnicity,
             WorkInfo = profile,
         };

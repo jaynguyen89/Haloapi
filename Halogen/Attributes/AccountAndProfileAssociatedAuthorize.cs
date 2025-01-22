@@ -35,18 +35,18 @@ public class AccountAndProfileAssociatedAuthorize: AuthorizeAttribute, IAuthoriz
         
         var authorization = JsonConvert.DeserializeObject<Authorization>(context.HttpContext.Session.GetString(Enums.SessionKey.Authorization.GetValue()!)!);
         if (authorization is null) {
-            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InternalServerError.GetValue()}");
+            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AccountAndProfileAssociatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InternalServerError.GetValue()}");
             return;
         }
 
         var (_, profileIdFromRequest) = context.HttpContext.Request.Headers.Single(x => x.Key.ToLower().Equals(nameof(HttpHeaderKeys.ProfileId).ToLower()));
         var belongToAccount = _profileService.IsProfileIdBelongedToAccount(profileIdFromRequest!, authorization.AccountId).Result;
         if (!belongToAccount.HasValue) {
-            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InternalServerError.GetValue()}");
+            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AccountAndProfileAssociatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.InternalServerError.GetValue()}");
             return;
         }
         
         if (!belongToAccount.Value)
-            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AuthenticatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.AccountProfileUnassociated.GetValue()}");
+            context.Result = new ErrorResponse(HttpStatusCode.Unauthorized, $"{nameof(AccountAndProfileAssociatedAuthorize)}{Constants.FSlash}{Enums.AuthorizationFailure.AccountProfileUnassociated.GetValue()}");
     }
 }

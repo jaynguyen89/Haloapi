@@ -1,11 +1,9 @@
 using System.Net;
 using Halogen.Attributes;
-using Halogen.Auxiliaries.Interfaces;
 using Halogen.Bindings.ServiceBindings;
 using Halogen.Bindings.ViewModels;
 using HaloUnitTest.Mocks;
 using HaloUnitTest.Mocks.HaloApi.Auxiliaries;
-using HaloUnitTest.Mocks.HaloApi.Services;
 using HelperLibrary.Shared;
 using HelperLibrary.Shared.Helpers;
 using HelperLibrary.Shared.Logger;
@@ -47,9 +45,8 @@ public sealed class AuthenticatedAuthorizeTest {
     [Test]
     public void Test_OnAuthorization_Failure_AccountId() {
         _authorization.AccountId = "something";
-        var haloSvFactoryMock = MockHaloServiceFactory(_authorization);
         
-        var authenticatedAuthorize = new AuthenticatedAuthorize(_loggerMock, haloSvFactoryMock);
+        var authenticatedAuthorize = new AuthenticatedAuthorize(_loggerMock);
         authenticatedAuthorize.OnAuthorization(_authorizationFilterCtx);
 
         var result = _authorizationFilterCtx.Result as ErrorResponse;
@@ -65,9 +62,8 @@ public sealed class AuthenticatedAuthorizeTest {
     [Test]
     public void Test_OnAuthorization_Failure_BearerToken() {
         _authorization.BearerToken = "Bearer something";
-        var haloSvFactoryMock = MockHaloServiceFactory(_authorization);
         
-        var authenticatedAuthorize = new AuthenticatedAuthorize(_loggerMock, haloSvFactoryMock);
+        var authenticatedAuthorize = new AuthenticatedAuthorize(_loggerMock);
         authenticatedAuthorize.OnAuthorization(_authorizationFilterCtx);
 
         var result = _authorizationFilterCtx.Result as ErrorResponse;
@@ -83,9 +79,8 @@ public sealed class AuthenticatedAuthorizeTest {
     [Test]
     public void Test_OnAuthorization_Failure_AuthToken() {
         _authorization.AuthorizationToken = "something";
-        var haloSvFactoryMock = MockHaloServiceFactory(_authorization);
         
-        var authenticatedAuthorize = new AuthenticatedAuthorize(_loggerMock, haloSvFactoryMock);
+        var authenticatedAuthorize = new AuthenticatedAuthorize(_loggerMock);
         authenticatedAuthorize.OnAuthorization(_authorizationFilterCtx);
 
         var result = _authorizationFilterCtx.Result as ErrorResponse;
@@ -101,9 +96,8 @@ public sealed class AuthenticatedAuthorizeTest {
     [Test]
     public void Test_OnAuthorization_Failure_AuthTimestamp() {
         _authorization.AuthorizedTimestamp = DateTime.UtcNow.AddHours(-2.1).ToTimestamp();
-        var haloSvFactoryMock = MockHaloServiceFactory(_authorization);
         
-        var authenticatedAuthorize = new AuthenticatedAuthorize(_loggerMock, haloSvFactoryMock);
+        var authenticatedAuthorize = new AuthenticatedAuthorize(_loggerMock);
         authenticatedAuthorize.OnAuthorization(_authorizationFilterCtx);
 
         var result = _authorizationFilterCtx.Result as ErrorResponse;
@@ -118,9 +112,7 @@ public sealed class AuthenticatedAuthorizeTest {
 
     [Test]
     public void Test_OnAuthorization_Success() {
-        var haloSvFactoryMock = MockHaloServiceFactory(_authorization);
-        
-        var authenticatedAuthorize = new AuthenticatedAuthorize(_loggerMock, haloSvFactoryMock);
+        var authenticatedAuthorize = new AuthenticatedAuthorize(_loggerMock);
         authenticatedAuthorize.OnAuthorization(_authorizationFilterCtx);
 
         var result = _authorizationFilterCtx.Result as ErrorResponse;
@@ -136,16 +128,4 @@ public sealed class AuthenticatedAuthorizeTest {
         AuthorizedTimestamp = DateTime.UtcNow.ToTimestamp(),
         ValidityDuration = 2.ToMilliseconds(Enums.TimeUnit.Hour),
     };
-
-    private static IHaloServiceFactory MockHaloServiceFactory(Authorization auth) {
-        var sessionSvMock = SessionServiceMock.Instance<Authorization>([
-            new KeyValuePair<string, Authorization>(nameof(Authorization), auth),
-        ]);
-        
-        var haloSvFactoryMock = HaloServiceFactoryMock.Instance<object>([
-            new KeyValuePair<Enums.ServiceType, object>(Enums.ServiceType.AppService, sessionSvMock),
-        ]);
-
-        return haloSvFactoryMock;
-    }
 }

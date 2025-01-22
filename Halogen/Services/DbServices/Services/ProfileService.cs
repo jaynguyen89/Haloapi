@@ -184,7 +184,7 @@ public sealed class ProfileService: DbServiceBase, IProfileService {
         _logger.Log(new LoggerBinding<ProfileService> { Location = nameof(GetProfileDetails) });
 
         try {
-            var profile = await GetProfileByAccountId(profileId);
+            var profile = await _dbContext.Profiles.FindAsync(profileId);
             return profile is null
                 ? default
                 : (ProfileDetailsVM)profile!;
