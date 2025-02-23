@@ -3,7 +3,7 @@
 public static class DateTimeHelpers {
 
     public static DateTime? ToDateTime(this string any, bool exact = true) {
-        if (exact) return DateTime.ParseExact(any, "dd/MM/yyyy, HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
+        if (exact) return DateTime.ParseExact(any, $"{Enums.DateFormat.DDMMYYYYS} {Enums.TimeFormat.HHMMC}", System.Globalization.CultureInfo.InvariantCulture);
         
         var success = DateTime.TryParse(any, out var result);
         return success ? result : null;

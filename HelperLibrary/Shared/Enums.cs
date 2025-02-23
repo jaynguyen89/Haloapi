@@ -31,6 +31,12 @@ public static class Enums {
         Base64,
     }
 
+    public enum ActionType {
+        Add,
+        Update,
+        Remove,
+    }
+
     public enum SocialMedia {
         [Value("Facebook")]
         Facebook,

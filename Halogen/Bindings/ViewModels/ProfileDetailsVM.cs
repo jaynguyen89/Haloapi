@@ -26,10 +26,11 @@ public sealed class ProfileDetailsVM {
     public WorkInfoVM WorkInfo { get; set; } = null!;
 
     public static implicit operator ProfileDetailsVM(Profile profile) {
-        var fullName = profile.FullName
-                       ?? $"{profile.GivenName ?? string.Empty} {profile.MiddleName ?? string.Empty} {profile.LastName ?? string.Empty}";
-        if (!fullName.IsString()) fullName = null;
+        var fullName = profile.FullName.IsString()
+            ? profile.FullName
+            : $"{profile.GivenName ?? string.Empty} {profile.MiddleName ?? string.Empty} {profile.LastName ?? string.Empty}";
         
+        if (!fullName.IsString()) fullName = null;
         
         return new ProfileDetailsVM {
             GivenName = profile.GivenName,

@@ -11,6 +11,8 @@ namespace Halogen.Bindings.ApiBindings;
 public sealed class ProfileUpdateData: ValueData {
 
     public string FieldName { get; set; } = null!;
+    
+    public Enums.ActionType ActionType { get; set; }
 
     public async Task<Dictionary<string, List<string>?>?> VerifyProfileUpdateData(ProfileUpdateDataHandler dataHandler) {
         var errors = new List<string>();
@@ -28,6 +30,13 @@ public sealed class ProfileUpdateData: ValueData {
                     errors = StrValue.VerifyFormalName(FieldName);
                 }
 
+                break;
+            case nameof(Profile.OccupationId):
+                var existed = await dataHandler.VerifyOccupation(StrValue!);
+                errors = !existed.HasValue
+                    ? null
+                    : existed.Value ? [] : [$"{FieldName.Lucidify()} does not exist."];
+                
                 break;
             case nameof(Profile.DateOfBirth):
                 if (!StrValue.IsString()) StrValue = null;
@@ -50,13 +59,14 @@ public sealed class ProfileUpdateData: ValueData {
                 
                 break;
             case nameof(Profile.Websites):
-                foreach (var (websiteType, websiteLink) in IntValueMaps!) {
-                    if (websiteType < 0 || websiteType > EnumHelpers.Length<Enums.SocialMedia>())
-                        errors.Add($"{nameof(Enums.SocialMedia).Lucidify()} Type is not recognized.)");
-                    
-                    if (!websiteLink.IsValidUrl())
-                        errors.Add($"{nameof(Enums.SocialMedia).Lucidify()} URL is invalid.");
-                }
+                if (ActionType is Enums.ActionType.Add or Enums.ActionType.Update)
+                    foreach (var (websiteType, websiteLink) in IntValueList!) {
+                        if (websiteType < 0 || websiteType > EnumHelpers.Length<Enums.SocialMedia>())
+                            errors.Add($"{nameof(Enums.SocialMedia).Lucidify()} Type is not recognized.)");
+                        
+                        if (!websiteLink.IsValidUrl())
+                            errors.Add($"{nameof(Enums.SocialMedia).Lucidify()} URL is invalid.");
+                    }
                 break;
             case nameof(Profile.Interests):
                 if (StrValues is not null) errors = await dataHandler.VerifyInterests(StrValues!);
@@ -74,10 +84,12 @@ public sealed class ProfileUpdateData: ValueData {
 
 public sealed class ProfileUpdateDataHandler {
 
+    private readonly IOccupationService _occupationService;
     private readonly IInterestService _interestService;
 
     public ProfileUpdateDataHandler(IHaloServiceFactory haloServiceFactory) {
         _interestService = haloServiceFactory.GetService<InterestService>(Enums.ServiceType.DbService) ?? throw new HaloArgumentNullException<ProfileUpdateDataHandler>(nameof(InterestService));
+        _occupationService = haloServiceFactory.GetService<OccupationService>(Enums.ServiceType.DbService) ?? throw new HaloArgumentNullException<ProfileUpdateDataHandler>(nameof(OccupationService));
     }
 
     public async Task<List<string>?> VerifyInterests(string[] interestIds) {
@@ -89,5 +101,11 @@ public sealed class ProfileUpdateDataHandler {
             .ToList();
         
         return interestIdsNotInDb.Count == 0 ? [] : interestIdsNotInDb;
+    }
+
+    public async Task<bool?> VerifyOccupation(string occupationId) {
+        var occupations = await _occupationService.GetAllOccupationsAsList();
+        var occupationIds = occupations?.Select(o => o.Id).ToList();
+        return occupationIds?.Any(id => Equals(id, occupationId));
     }
 }

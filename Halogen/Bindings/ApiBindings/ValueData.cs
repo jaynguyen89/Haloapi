@@ -15,4 +15,8 @@ public class ValueData {
     public Dictionary<int, string>? IntValueMaps { get; set; }
     
     public Dictionary<string, string>? StrValueMaps { get; set; }
+    
+    public List<KeyValuePair<int, string>>? IntValueList { get; set; }
+    
+    public List<KeyValuePair<string, string>>? StrValueList { get; set; }
 }

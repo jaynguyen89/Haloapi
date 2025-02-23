@@ -187,7 +187,7 @@ public sealed class ProfileService: DbServiceBase, IProfileService {
             var profile = await _dbContext.Profiles.FindAsync(profileId);
             return profile is null
                 ? default
-                : (ProfileDetailsVM)profile!;
+                : (ProfileDetailsVM)profile;
         }
         catch (NullReferenceException e) {
             _logger.Log(new LoggerBinding<ProfileService> {

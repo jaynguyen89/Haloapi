@@ -25,7 +25,7 @@ namespace Halogen.Controllers;
 
 [ApiController]
 [Route("profile")]
-[AutoValidateAntiforgeryToken]
+//[AutoValidateAntiforgeryToken]
 [ServiceFilter(typeof(AuthenticatedAuthorize))]
 [ServiceFilter(typeof(TwoFactorAuthorize))]
 public sealed class ProfileController: AppController {
@@ -330,7 +330,7 @@ public sealed class ProfileController: AppController {
                 profile.NickName = profileData.StrValue;
                 break;
             case nameof(Profile.DateOfBirth):
-                profile.DateOfBirth = profileData.StrValue?.ToDateTime();
+                profile.DateOfBirth = profileData.StrValue?.ToDateTime(false);
                 break;
             case nameof(Profile.Gender):
                 profile.Gender = (byte)profileData.IntValue!.Value;
@@ -348,11 +348,38 @@ public sealed class ProfileController: AppController {
                 profile.OccupationId = profileData.StrValue;
                 break;
             case nameof(Profile.Websites):
-                var websites = profileData.IntValueMaps?.Select(entry => new ProfileLinkVM {
-                    LinkType = (Enums.SocialMedia)entry.Key,
-                    LinkHref = entry.Value,
-                }).ToArray();
-                profile.Websites = websites is null ? null : JsonConvert.SerializeObject(websites);
+                switch (profileData.ActionType) {
+                    case Enums.ActionType.Add:
+                        var websites = profileData.IntValueList?.Select(entry => new ProfileLinkVM {
+                            LinkType = (Enums.SocialMedia)entry.Key,
+                            LinkHref = entry.Value,
+                        }).ToArray() ?? [];
+                        var currentWebsites = profile.Websites is null ? [] : JsonConvert.DeserializeObject<List<ProfileLinkVM>>(profile.Websites);
+                        
+                        currentWebsites!.AddRange(websites);
+                        profile.Websites = JsonConvert.SerializeObject(currentWebsites);
+                        break;
+                    case Enums.ActionType.Update:
+                        websites = profileData.IntValueList?.Select(entry => new ProfileLinkVM {
+                            LinkType = (Enums.SocialMedia)entry.Key,
+                            LinkHref = entry.Value,
+                        }).ToArray();
+                        
+                        profile.Websites = websites is null ? null : JsonConvert.SerializeObject(websites);
+                        break;
+                    case Enums.ActionType.Remove:
+                        websites = profileData.IntValueList?.Select(entry => new ProfileLinkVM {
+                            LinkType = (Enums.SocialMedia)entry.Key,
+                            LinkHref = entry.Value,
+                        }).ToArray() ?? [];
+                        
+                        currentWebsites = profile.Websites is null ? [] : JsonConvert.DeserializeObject<List<ProfileLinkVM>>(profile.Websites);
+                        currentWebsites?.RemoveAll(website => websites.Any(item => item.LinkType == website.LinkType && item.LinkHref == website.LinkHref));
+                        
+                        profile.Websites = JsonConvert.SerializeObject(currentWebsites);
+                        break;
+                }
+                
                 break;
             case nameof(Profile.Interests):
                 profile.Interests = profileData.StrValues is null ? null : JsonConvert.SerializeObject(profileData.StrValues);
