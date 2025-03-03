@@ -28,10 +28,13 @@ public sealed class InterestItemVM {
     public string? ParentId { get; set; }
     
     public string Name { get; set; } = null!;
+    
+    public bool IsHobby { get; set; }
 
     public static implicit operator InterestItemVM(Interest interest) => new() {
         Id = interest.Id,
         ParentId = interest.ParentId,
         Name = interest.Name,
+        IsHobby = interest.IsHobby,
     };
 }

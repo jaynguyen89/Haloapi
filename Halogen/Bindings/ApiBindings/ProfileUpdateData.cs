@@ -70,6 +70,7 @@ public sealed class ProfileUpdateData: ValueData {
                 break;
             case nameof(Profile.Interests):
                 if (StrValues is not null) errors = await dataHandler.VerifyInterests(StrValues!);
+                else errors.Add("Data is missing.");
                 break;
             default:
                 errors.Add($"Field `{FieldName}` is not recognized.");

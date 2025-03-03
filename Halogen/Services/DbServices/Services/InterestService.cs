@@ -98,7 +98,7 @@ public sealed class InterestService: DbServiceBase, IInterestService {
             if (profile is null) return default;
             if (profile.Interests is null) return [];
 
-            var profileInterestIds = JsonConvert.DeserializeObject<string>(profile.Interests);
+            var profileInterestIds = JsonConvert.DeserializeObject<string[]>(profile.Interests);
             var interests = await _dbContext.Interests
                 .Where(interest => profileInterestIds!.Contains(interest.Id))
                 .Select(interest => (InterestVM)interest)

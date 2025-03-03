@@ -22,6 +22,8 @@ public sealed class ProfileDetailsVM {
     public string? DateOfBirth { get; set; }
     
     public Enums.Ethnicity Ethnicity { get; set; }
+    
+    public string? AvatarName { get; set; }
 
     public WorkInfoVM WorkInfo { get; set; } = null!;
 
@@ -41,6 +43,7 @@ public sealed class ProfileDetailsVM {
             Gender = (Enums.Gender)profile.Gender,
             DateOfBirth = profile.DateOfBirth?.Format(Enums.DateFormat.YYYYMMDD, null),
             Ethnicity = (Enums.Ethnicity)profile.Ethnicity,
+            AvatarName = profile.AvatarName,
             WorkInfo = profile,
         };
     }

@@ -32,6 +32,7 @@ public sealed class ProfileController: AppController {
     
     private readonly IContextService _contextService;
     private readonly IProfileService _profileService;
+    private readonly IInterestService _interestService;
     private readonly ISmsService _smsService;
     private readonly RegionalizedPhoneNumberHandler _phoneNumberHandler;
     private readonly ProfileUpdateDataHandler _profileUpdateDataHandler;
@@ -50,6 +51,7 @@ public sealed class ProfileController: AppController {
     ) : base(ecosystem, logger, configuration, haloConfigProvider.GetHalogenConfigs()) {
         _contextService = haloServiceFactory.GetService<ContextService>(Enums.ServiceType.DbService) ?? throw new HaloArgumentNullException<ProfileController>(nameof(ContextService));
         _profileService = haloServiceFactory.GetService<ProfileService>(Enums.ServiceType.DbService) ?? throw new HaloArgumentNullException<ProfileController>(nameof(ProfileService));
+        _interestService = haloServiceFactory.GetService<InterestService>(Enums.ServiceType.DbService) ?? throw new HaloArgumentNullException<ProfileController>(nameof(InterestService));
         _smsService = assistantServiceFactory.GetService<SmsServiceFactory>()?.GetActiveSmsService() ?? throw new HaloArgumentNullException<ProfileController>(nameof(SmsServiceFactory));
         _phoneNumberHandler = phoneNumberHandler;
         _profileUpdateDataHandler = profileUpdateDataHandler;
@@ -382,7 +384,27 @@ public sealed class ProfileController: AppController {
                 
                 break;
             case nameof(Profile.Interests):
-                profile.Interests = profileData.StrValues is null ? null : JsonConvert.SerializeObject(profileData.StrValues);
+                var profileInterests = await _interestService.GetProfileInterests(profileId);
+                if (profileInterests is null) return new ErrorResponse();
+                
+                var profileInterestIds = profileInterests.Select(interest => interest.Id).ToList();
+                
+                switch (profileData.ActionType) {
+                    case Enums.ActionType.Add when profileData.StrValues!.Any(val => profileInterestIds.Contains(val)):
+                    case Enums.ActionType.Remove when profileData.StrValues!.Any(val => !profileInterestIds.Contains(val)):
+                        return new ErrorResponse(HttpStatusCode.BadRequest);
+                    case Enums.ActionType.Add:
+                        profileInterestIds.AddRange(profileData.StrValues!);
+                        break;
+                    case Enums.ActionType.Remove:
+                        profileInterestIds.RemoveAll(id => profileData.StrValues!.Contains(id));
+                        break;
+                    case Enums.ActionType.Update:
+                    default:
+                        return new ErrorResponse(HttpStatusCode.BadRequest);
+                }
+
+                profile.Interests = JsonConvert.SerializeObject(profileInterestIds);
                 break;
         }
         

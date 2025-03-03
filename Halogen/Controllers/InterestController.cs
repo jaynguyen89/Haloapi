@@ -67,11 +67,15 @@ public sealed class InterestController {
     }
 
     [ServiceFilter(typeof(AccountAndProfileAssociatedAuthorize))]
-    [HttpGet("profile-interests")]
-    public async Task<IActionResult> GetProfileInterests([FromHeader] string profileId) {
+    [HttpGet("profile-interests/{simplified:int}")]
+    public async Task<IActionResult> GetProfileInterests([FromHeader] string profileId, [FromRoute] int simplified) {
         _logger.Log(new LoggerBinding<InterestController> { Location = nameof(GetProfileInterests) });
 
         var interests = await _interestService.GetProfileInterests(profileId);
-        return interests is null ? new ErrorResponse() : new SuccessResponse(interests);
+        if (interests is null) return new ErrorResponse();
+        
+        return simplified == 1
+            ? new SuccessResponse(interests.Select(interest => interest.Id).ToArray())
+            : new SuccessResponse(interests);
     }
 }
