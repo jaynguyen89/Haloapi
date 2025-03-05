@@ -12,12 +12,13 @@ using HelperLibrary.Shared.Ecosystem;
 using HelperLibrary.Shared.Helpers;
 using HelperLibrary.Shared.Logger;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace Halogen.Controllers;
 
 [ApiController]
 [Route("addresses")]
-[AutoValidateAntiforgeryToken]
+// [AutoValidateAntiforgeryToken]
 [ServiceFilter(typeof(AuthenticatedAuthorize))]
 [ServiceFilter(typeof(TwoFactorAuthorize))]
 public sealed class AddressController: AppController {
@@ -128,7 +129,7 @@ public sealed class AddressController: AppController {
         var addresses = await _addressService.GetAddressBookByProfileId(profileId);
         return addresses is null
             ? new ErrorResponse()
-            : new SuccessResponse(addresses);
+            : new SuccessResponse(JsonConvert.SerializeObject(addresses));
     }
 
     /// <summary>

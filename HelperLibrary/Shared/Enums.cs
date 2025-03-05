@@ -221,8 +221,6 @@ public static class Enums {
     }
 
     public enum AddressVariant {
-        [Value("PO Box")]
-        PoBox,
         [Value("Western")]
         Western,
         [Value("Eastern")]
