@@ -1,4 +1,5 @@
-﻿using Halogen.Bindings.ViewModels;
+﻿using Halogen.Bindings.ApiBindings.AddressStrategy;
+using Halogen.Bindings.ViewModels;
 using Halogen.DbContexts;
 using Halogen.DbModels;
 using Halogen.Services.DbServices.Interfaces;
@@ -6,6 +7,7 @@ using HelperLibrary.Shared;
 using HelperLibrary.Shared.Helpers;
 using HelperLibrary.Shared.Logger;
 using Microsoft.EntityFrameworkCore;
+using Address = Halogen.DbModels.Address;
 
 namespace Halogen.Services.DbServices.Services; 
 
@@ -60,11 +62,12 @@ public sealed class AddressService: DbServiceBase, IAddressService {
                 .Select(task => task.Result)
                 .ToDictionary(x => x.Id, x => x.Division);
             
-            
-            
             foreach (var address in addresses) {
                 address.Address.Division = divisionIdsMap[address.Address.Division.Id]!;
                 address.Address.Country = countryIdsMap[address.Address.Division.CountryId]!;
+                address.Address.NormalizedAddress = address.Address.Variant == Enums.AddressVariant.Eastern
+                    ? ((EasternAddress)address.Address).ToString()
+                    : ((WesternAddress)address.Address).ToString();
             }
 
             return new AddressBookVM {

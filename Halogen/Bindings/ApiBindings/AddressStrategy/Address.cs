@@ -13,6 +13,7 @@ public interface IAddress {
     string StreetAddress { get; set; }
     Division Division { get; set; }
     Country Country { get; set; }
+    string? NormalizedAddress { get; set; }
 }
 
 public class Address: IAddress {
@@ -30,6 +31,8 @@ public class Address: IAddress {
     public Division Division { get; set; } = null!;
     
     public Country Country { get; set; } = null!;
+    
+    public string? NormalizedAddress { get; set; }
 
     protected Dictionary<string, List<string>> VerifyCommonAddressParts() {
         var buildingErrors = new List<string>();

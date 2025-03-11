@@ -26,8 +26,8 @@ public sealed class AddressVM {
 
     public static AddressVM CreateAddressVm(ProfileAddress dbProfileAddress, Address dbAddress) {
         IAddress address = dbAddress.Variant == (byte)Enums.AddressVariant.Eastern
-            ? (WesternAddress)dbAddress
-            : (EasternAddress)dbAddress;
+            ? (EasternAddress)dbAddress
+            : (WesternAddress)dbAddress;
 
         return new AddressVM {
             Id = dbProfileAddress.Id,
