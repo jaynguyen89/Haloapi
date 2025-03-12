@@ -108,8 +108,8 @@ public sealed class PublicDataController: AppController {
     public async Task<IActionResult> GetPublicData() {
         _logger.Log(new LoggerBinding<PublicDataController> { Location = nameof(GetPublicData) });
 
-        var localities = await _localityService.GetLocalitiesForPublicData();
-        if (localities is null) return new ErrorResponse();
+        var countries = await _localityService.GetCountriesAsPublicData();
+        if (countries is null) return new ErrorResponse();
 
         var publicData = new PublicDataVM {
             Environment = _environment,
@@ -127,7 +127,7 @@ public sealed class PublicDataController: AppController {
             UnitSystems = EnumHelpers.ToArrayWithValueAttribute<Enums.UnitSystem>(),
             CareerFormats = EnumHelpers.ToArrayWithValueAttribute<Enums.CareerFormat>(),
             Visibilities = EnumHelpers.ToArrayWithValueAttribute<Enums.Visibility>(),
-            Countries = localities.Select(locality => (PublicDataVM.CountryDataVM)locality).ToArray(),
+            Countries = countries,
             SupportedSocialAccounts = _haloConfigs.SupportedSocialAccountForRegistration
                 .Select(x => x.GetValue() ?? string.Empty)
                 .Where(x => x.IsString())

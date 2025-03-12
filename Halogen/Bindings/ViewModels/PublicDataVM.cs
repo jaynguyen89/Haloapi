@@ -35,7 +35,7 @@ public sealed class PublicDataVM {
 
     public EnumProp[] Visibilities { get; set; } = null!;
 
-    public CountryDataVM[] Countries { get; set; } = null!;
+    public CountryVM[] Countries { get; set; } = null!;
 
     public string[] SupportedSocialAccounts { get; set; } = null!;
     
@@ -44,22 +44,4 @@ public sealed class PublicDataVM {
     public EnumProp[] LocalityRegions { get; set; } = null!;
     
     public EnumProp[] Ethnicities { get; set; } = null!;
-    
-    public sealed class CountryDataVM {
-
-        public string Name { get; set; } = null!;
-        
-        public string IsoCode2Char { get; set; } = null!;
-        
-        public string IsoCode3Char { get; set; } = null!;
-        
-        public string TelephoneCode { get; set; } = null!;
-
-        public static implicit operator CountryDataVM(Locality locality) => new() {
-            Name = locality.Name,
-            IsoCode2Char = locality.IsoCode2Char,
-            IsoCode3Char = locality.IsoCode3Char,
-            TelephoneCode = locality.TelephoneCode,
-        };
-    }
 }

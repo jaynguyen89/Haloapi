@@ -1,4 +1,5 @@
-﻿using Halogen.DbModels;
+﻿using Halogen.Bindings.ViewModels;
+using Halogen.DbModels;
 
 namespace Halogen.Services.DbServices.Interfaces; 
 
@@ -9,10 +10,16 @@ public interface ILocalityService {
     /// </summary>
     /// <returns>string[]?</returns>
     Task<string[]?> GetTelephoneCodes();
+    
+    Task<CountryVM[]?> GetCountriesAsPublicData();
 
     /// <summary>
-    /// To get all Locality entities.
+    /// To get all Locality entities as CountryVM.
     /// </summary>
-    /// <returns>Locality[]?</returns>
-    Task<Locality[]?> GetLocalitiesForPublicData();
+    /// <returns>CountryVM[]?</returns>
+    Task<CountryVM[]?> GetCountries(bool minimal = true);
+
+    Task<Locality?> GetCountryById(string countryId);
+    
+    Task<LocalityVM?> GetLocalities();
 }

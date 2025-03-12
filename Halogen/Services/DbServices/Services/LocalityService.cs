@@ -1,4 +1,5 @@
-﻿using Halogen.DbContexts;
+﻿using Halogen.Bindings.ViewModels;
+using Halogen.DbContexts;
 using Halogen.DbModels;
 using Halogen.Services.DbServices.Interfaces;
 using HelperLibrary.Shared;
@@ -30,14 +31,87 @@ public class LocalityService: DbServiceBase, ILocalityService {
         }
     }
 
-    public virtual async Task<Locality[]?> GetLocalitiesForPublicData() {
-        _logger.Log(new LoggerBinding<LocalityService> { Location = nameof(GetLocalitiesForPublicData) });
+    public async Task<CountryVM[]?> GetCountriesAsPublicData() {
+        _logger.Log(new LoggerBinding<LocalityService> { Location = nameof(GetCountriesAsPublicData) });
         try {
-            return await _dbContext.Localities.ToArrayAsync();
+            return await _dbContext.Localities
+                .Select(locality => (CountryVM)locality)
+                .ToArrayAsync();
         }
         catch (ArgumentNullException e) {
             _logger.Log(new LoggerBinding<LocalityService> {
-                Location = $"{nameof(GetLocalitiesForPublicData)}.{nameof(ArgumentNullException)}",
+                Location = $"{nameof(GetCountriesAsPublicData)}.{nameof(ArgumentNullException)}",
+                Severity = Enums.LogSeverity.Error, E = e,
+            });
+            return default;
+        }
+    }
+
+    public virtual async Task<CountryVM[]?> GetCountries(bool minimal = true) {
+        _logger.Log(new LoggerBinding<LocalityService> { Location = nameof(GetCountries) });
+        try {
+            return await _dbContext.Localities
+                .Select(locality => minimal
+                    ? new CountryVM {
+                        Id = locality.Id,
+                        Name = locality.Name,
+                        IsoCode2Char = locality.IsoCode2Char,
+                        IsoCode3Char = locality.IsoCode3Char,
+                    }
+                    : new CountryVM {
+                        Id = locality.Id,
+                        Name = locality.Name,
+                        Region = (Enums.LocalityRegion)locality.Region,
+                        TelephoneCode = locality.TelephoneCode,
+                        IsoCode2Char = locality.IsoCode2Char,
+                        IsoCode3Char = locality.IsoCode3Char,
+                        PrimaryCurrencyId = locality.PrimaryCurrencyId,
+                        SecondaryCurrencyId = locality.SecondaryCurrencyId,
+                    })
+                .ToArrayAsync();
+        }
+        catch (ArgumentNullException e) {
+            _logger.Log(new LoggerBinding<LocalityService> {
+                Location = $"{nameof(GetCountries)}.{nameof(ArgumentNullException)}",
+                Severity = Enums.LogSeverity.Error, E = e,
+            });
+            return default;
+        }
+    }
+
+    public async Task<Locality?> GetCountryById(string countryId) {
+        _logger.Log(new LoggerBinding<LocalityService> { Location = nameof(GetCountryById) });
+        return await _dbContext.Localities.FindAsync(countryId);
+    }
+    public async Task<LocalityVM?> GetLocalities() {
+        _logger.Log(new LoggerBinding<LocalityService> { Location = nameof(GetLocalities) });
+        try {
+            return await _dbContext.Localities
+                .Join(
+                    _dbContext.LocalityDivisions,
+                    locality => locality.Id,
+                    division => division.LocalityId,
+                    (locality, division) => new {
+                        Country = (CountryVM)locality,
+                        Division = division,
+                    }
+                )
+                .GroupBy(pair => pair.Country)
+                .OrderBy(pair => pair.Key.Name)
+                .Select(group => new LocalityVM {
+                    Country = group.Key,
+                    Divisions = group
+                        .Select(item => new DivisionVM {
+                            Id = item.Division.Id,
+                            Name = item.Division.Name,
+                        })
+                        .ToArray(),
+                })
+                .FirstAsync();
+        }
+        catch (ArgumentNullException e) {
+            _logger.Log(new LoggerBinding<LocalityService> {
+                Location = $"{nameof(GetCountries)}.{nameof(ArgumentNullException)}",
                 Severity = Enums.LogSeverity.Error, E = e,
             });
             return default;
