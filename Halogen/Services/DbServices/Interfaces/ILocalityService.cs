@@ -21,5 +21,5 @@ public interface ILocalityService {
 
     Task<Locality?> GetCountryById(string countryId);
     
-    Task<LocalityVM?> GetLocalities();
+    Task<LocalityVM[]?> GetLocalities();
 }

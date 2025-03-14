@@ -83,7 +83,7 @@ public class LocalityService: DbServiceBase, ILocalityService {
         _logger.Log(new LoggerBinding<LocalityService> { Location = nameof(GetCountryById) });
         return await _dbContext.Localities.FindAsync(countryId);
     }
-    public async Task<LocalityVM?> GetLocalities() {
+    public async Task<LocalityVM[]?> GetLocalities() {
         _logger.Log(new LoggerBinding<LocalityService> { Location = nameof(GetLocalities) });
         try {
             return await _dbContext.Localities
@@ -92,7 +92,7 @@ public class LocalityService: DbServiceBase, ILocalityService {
                     locality => locality.Id,
                     division => division.LocalityId,
                     (locality, division) => new {
-                        Country = (CountryVM)locality,
+                        Country = locality,
                         Division = division,
                     }
                 )
@@ -107,7 +107,7 @@ public class LocalityService: DbServiceBase, ILocalityService {
                         })
                         .ToArray(),
                 })
-                .FirstAsync();
+                .ToArrayAsync();
         }
         catch (ArgumentNullException e) {
             _logger.Log(new LoggerBinding<LocalityService> {
